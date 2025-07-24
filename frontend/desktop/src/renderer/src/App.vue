@@ -1,5 +1,176 @@
 <template>
-  <div class="flex h-screen bg-gray-50/80 overflow-hidden">
+  <!-- 快速窗口模式 -->
+  <div v-if="isQuickMode" class="h-screen bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl overflow-hidden shadow-2xl">
+    <!-- 简约头部 -->
+    <div class="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+        <span class="text-white font-medium text-sm">Memora</span>
+        <div v-if="detectedBrowser && detectedBrowser !== 'NONE'" class="text-xs bg-blue-500/20 text-blue-200 px-2 py-1 rounded-full">
+          {{ getBrowserDisplayName(detectedBrowser) }}
+        </div>
+      </div>
+      <button 
+        @click="closeQuickWindow"
+        class="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-all duration-200"
+        title="关闭"
+      >
+        <X class="w-4 h-4" />
+      </button>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="flex-1 p-6 space-y-6">
+      <!-- 链接显示区域 -->
+      <div v-if="capturedUrl" class="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span class="text-sm font-medium text-gray-700">已捕获链接</span>
+        </div>
+        <div class="text-sm text-gray-900 bg-white rounded-lg p-3 border break-all font-mono">
+          {{ capturedUrl }}
+        </div>
+        <div class="flex items-center space-x-2">
+          <button 
+            @click="copyUrl"
+            class="flex-1 text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-colors font-medium"
+          >
+            复制链接
+          </button>
+          <button 
+            @click="openUrl"
+            class="flex-1 text-xs bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg transition-colors font-medium"
+          >
+            打开链接
+          </button>
+          <button 
+            @click="saveAsEvent"
+            class="flex-1 text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors font-medium"
+          >
+            保存事件
+          </button>
+        </div>
+      </div>
+
+      <!-- 手动输入区域 -->
+      <div class="space-y-4">
+        <div class="flex items-center space-x-2">
+          <Globe class="w-4 h-4 text-gray-400" />
+          <span class="text-sm font-medium text-gray-700">快速输入链接</span>
+        </div>
+        
+        <div class="space-y-3">
+          <input 
+            v-model="manualUrl"
+            type="url"
+            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all duration-200"
+            placeholder="输入或粘贴网页链接..."
+            @keydown.enter="useManualUrl"
+          />
+          <button 
+            @click="useManualUrl"
+            :disabled="!manualUrl.trim()"
+            class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-3 px-4 rounded-xl transition-colors font-medium disabled:cursor-not-allowed"
+          >
+            使用此链接
+          </button>
+        </div>
+      </div>
+
+      <!-- 快速记录 -->
+      <div class="space-y-4">
+        <div class="flex items-center space-x-2">
+          <Edit class="w-4 h-4 text-gray-400" />
+          <span class="text-sm font-medium text-gray-700">快速记录</span>
+        </div>
+        
+        <div class="space-y-3">
+          <textarea 
+            v-model="quickNote" 
+            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all duration-200"
+            rows="3"
+            placeholder="记录今天发生的事情..."
+            @keydown.ctrl.enter="saveQuickNote"
+          ></textarea>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">Ctrl+Enter 快速保存</span>
+            <button 
+              @click="saveQuickNote"
+              :disabled="!quickNote.trim()"
+              class="text-sm bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
+            >
+              保存记录
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 状态信息 -->
+      <div v-if="statusMessage" 
+           class="text-sm text-center py-3 px-4 rounded-xl transition-all duration-300" 
+           :class="statusMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'">
+        {{ statusMessage.text }}
+      </div>
+    </div>
+
+    <!-- 底部操作栏 -->
+    <div class="border-t border-gray-100 bg-gray-50/50 p-4 flex items-center justify-between">
+      <!-- 左下角：浏览器抓取按钮 -->
+      <div class="flex items-center space-x-2">
+        <!-- Detecting State -->
+        <div
+          v-if="isDetectingBrowser"
+          class="flex items-center space-x-2 text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded-lg"
+        >
+          <div
+            class="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"
+          ></div>
+          <span>检测中...</span>
+        </div>
+
+        <!-- Has Browser State -->
+        <button
+          v-else-if="hasBrowser"
+          @click="captureEdgeUrl"
+          :disabled="isCapturing"
+          class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium shadow-sm"
+        >
+          <div
+            v-if="isCapturing"
+            class="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"
+          ></div>
+          <Zap v-else class="w-4 h-4" />
+          <span v-if="!isCapturing">抓取{{ getBrowserDisplayName(detectedBrowser) }}</span>
+          <span v-else>获取中...</span>
+        </button>
+
+        <!-- No Browser State -->
+        <div v-else class="flex items-center space-x-2">
+          <div class="text-xs text-gray-400 bg-gray-100 px-3 py-2 rounded-lg">
+            无活跃浏览器
+          </div>
+          <button
+            @click="detectBrowser"
+            class="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors"
+            title="重新检测浏览器"
+          >
+            刷新
+          </button>
+        </div>
+      </div>
+      
+      <!-- 右下角：主应用链接 -->
+      <button 
+        @click="openMainWindow"
+        class="text-sm text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg border border-gray-200 transition-all duration-200 font-medium"
+      >
+        打开主应用
+      </button>
+    </div>
+  </div>
+
+  <!-- 主应用模式 -->
+  <div v-else class="flex h-screen bg-gray-50/80 overflow-hidden">
     <!-- 侧边栏 -->
     <div class="w-56 bg-white/90 glass-effect border-r border-gray-100 flex flex-col flex-shrink-0">
       <!-- Logo区域 -->
@@ -59,6 +230,16 @@
             <p class="text-sm text-gray-500 mt-0.5">{{ getCurrentDate() }}</p>
           </div>
           <div class="flex items-center space-x-2">
+            <div class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              Ctrl + Space 快速访问
+            </div>
+            <button 
+              @click="testQuickWindow"
+              class="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
+              title="测试快速窗口"
+            >
+              测试小窗
+            </button>
             <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50 transition-smooth btn-hover">
               <Bell class="w-4 h-4" />
             </button>
@@ -295,10 +476,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { 
-  Camera, User, Bell, Settings, Calendar, Upload, Plus, Eye, Edit, Trash2, FileText
+  Camera, User, Bell, Settings, Calendar, Upload, Plus, Eye, Edit, Trash2, FileText,
+  X, ExternalLink, RotateCcw, Globe, Zap
 } from 'lucide-vue-next'
+
+// 检测是否为快速窗口模式
+const isQuickMode = ref(false)
 
 // 当前页面
 const currentPage = ref('events')
@@ -342,6 +527,28 @@ const attachmentDescription = ref('')
 const isDragging = ref(false)
 const fileInput = ref(null)
 
+// 快速窗口相关状态
+const isCapturing = ref(false)
+const capturedUrl = ref('')
+const quickNote = ref('')
+const statusMessage = ref(null)
+const showManualInput = ref(false)
+const manualUrl = ref('')
+
+// 浏览器检测状态
+const detectedBrowser = ref('NONE')
+const hasBrowser = ref(false)
+const isDetectingBrowser = ref(true)
+
+// 计算属性
+const todayEventsQuick = computed(() => {
+  const today = new Date().toDateString()
+  return events.value.filter(event => {
+    const eventDate = new Date(event.created_at).toDateString()
+    return today === eventDate
+  }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+})
+
 // 方法
 const getCurrentPageTitle = () => {
   const page = menuItems.find(item => item.id === currentPage.value)
@@ -366,6 +573,25 @@ const formatDate = (dateString) => {
   })
 }
 
+const formatTimeQuick = (dateString) => {
+  const now = new Date()
+  const date = new Date(dateString)
+  const diffMinutes = Math.floor((now - date) / (1000 * 60))
+  
+  if (diffMinutes < 60) {
+    return `${diffMinutes}分钟前`
+  } else if (diffMinutes < 1440) {
+    return `${Math.floor(diffMinutes / 60)}小时前`
+  } else {
+    return date.toLocaleDateString('zh-CN', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+}
+
 const createEvent = async () => {
   if (!newEvent.value.description.trim()) return
 
@@ -388,7 +614,24 @@ const createEvent = async () => {
   newEvent.value.description = ''
   newEventTags.value = ''
   showCreateEvent.value = false
-  todayEvents.value++
+  updateTodayEventsCount()
+}
+
+const createQuickEvent = async () => {
+  if (!quickEventDescription.value.trim()) return
+
+  const event = {
+    id: Date.now(),
+    user_id: currentUserId.value,
+    description: quickEventDescription.value,
+    metadata: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+
+  events.value.unshift(event)
+  quickEventDescription.value = ''
+  updateTodayEventsCount()
 }
 
 const viewEvent = (event) => {
@@ -401,7 +644,32 @@ const editEvent = (event) => {
 
 const deleteEvent = (eventId) => {
   events.value = events.value.filter(event => event.id !== eventId)
-  todayEvents.value = Math.max(0, todayEvents.value - 1)
+  updateTodayEventsCount()
+}
+
+const deleteEventQuick = (eventId) => {
+  deleteEvent(eventId)
+}
+
+const updateTodayEventsCount = () => {
+  const today = new Date().toDateString()
+  todayEvents.value = events.value.filter(event => {
+    const eventDate = new Date(event.created_at).toDateString()
+    return today === eventDate
+  }).length
+}
+
+// 快速窗口操作
+const openMainWindow = async () => {
+  if (window.electronAPI && window.electronAPI.invoke) {
+    await window.electronAPI.invoke('show-main-window')
+  }
+}
+
+const closeQuickWindow = async () => {
+  if (window.electronAPI && window.electronAPI.invoke) {
+    await window.electronAPI.invoke('hide-quick-window')
+  }
 }
 
 const handleDrop = (e) => {
@@ -458,12 +726,257 @@ const getFileName = (url) => {
   return url.split('/').pop()
 }
 
-// 初始化今日事件数量
-todayEvents.value = events.value.filter(event => {
-  const today = new Date().toDateString()
-  const eventDate = new Date(event.created_at).toDateString()
-  return today === eventDate
-}).length
+// 新增方法
+const captureEdgeUrl = async () => {
+  try {
+    isCapturing.value = true
+    statusMessage.value = null
+    
+    console.log('Starting URL capture for browser:', detectedBrowser.value)
+    
+    if (window.electronAPI && window.electronAPI.invoke) {
+      // 根据检测到的浏览器类型进行抓取
+      const result = await window.electronAPI.invoke('capture-edge-url')
+      
+      if (result.success) {
+        capturedUrl.value = result.url
+        statusMessage.value = { 
+          type: 'success', 
+          text: `成功抓取${getBrowserDisplayName(detectedBrowser.value)}链接!` 
+        }
+        console.log('Successfully captured URL:', result.url)
+      } else {
+        statusMessage.value = { 
+          type: 'error', 
+          text: result.error || '获取失败' 
+        }
+        console.log('URL capture failed:', result.error)
+      }
+    } else {
+      statusMessage.value = { type: 'error', text: 'API 不可用' }
+    }
+  } catch (error) {
+    console.error('Error capturing URL:', error)
+    statusMessage.value = { 
+      type: 'error', 
+      text: '获取链接时出错: ' + error.message 
+    }
+  } finally {
+    isCapturing.value = false
+    
+    // 3秒后清除状态消息
+    if (statusMessage.value && statusMessage.value.type !== 'success') {
+      setTimeout(() => {
+        statusMessage.value = null
+      }, 3000)
+    } else if (statusMessage.value) {
+      setTimeout(() => {
+        statusMessage.value = null
+      }, 2000)
+    }
+  }
+}
+
+const copyUrl = async () => {
+  try {
+    if (capturedUrl.value) {
+      await navigator.clipboard.writeText(capturedUrl.value)
+      statusMessage.value = { type: 'success', text: '链接已复制到剪贴板' }
+      setTimeout(() => {
+        statusMessage.value = null
+      }, 2000)
+    }
+  } catch (error) {
+    console.error('Error copying URL:', error)
+    statusMessage.value = { type: 'error', text: '复制失败' }
+  }
+}
+
+const openUrl = () => {
+  if (capturedUrl.value) {
+    window.open(capturedUrl.value, '_blank')
+  }
+}
+
+const saveAsEvent = async () => {
+  if (!capturedUrl.value) return
+  
+  const event = {
+    id: Date.now(),
+    user_id: currentUserId.value,
+    description: `网页链接: ${capturedUrl.value}`,
+    metadata: { 
+      type: 'url',
+      url: capturedUrl.value,
+      source: 'edge_capture'
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+
+  events.value.unshift(event)
+  statusMessage.value = { type: 'success', text: '已保存为事件' }
+  updateTodayEventsCount()
+  
+  setTimeout(() => {
+    statusMessage.value = null
+  }, 2000)
+}
+
+const saveQuickNote = async () => {
+  if (!quickNote.value.trim()) return
+
+  const event = {
+    id: Date.now(),
+    user_id: currentUserId.value,
+    description: quickNote.value,
+    metadata: { source: 'quick_note' },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+
+  events.value.unshift(event)
+  quickNote.value = ''
+  statusMessage.value = { type: 'success', text: '笔记已保存' }
+  updateTodayEventsCount()
+  
+  setTimeout(() => {
+    statusMessage.value = null
+  }, 2000)
+}
+
+const useManualUrl = () => {
+  if (!manualUrl.value.trim()) return
+  
+  // 简单的URL验证
+  try {
+    new URL(manualUrl.value)
+    capturedUrl.value = manualUrl.value
+    showManualInput.value = false
+    manualUrl.value = ''
+    statusMessage.value = { type: 'success', text: '链接已设置' }
+    
+    setTimeout(() => {
+      statusMessage.value = null
+    }, 2000)
+  } catch (error) {
+    statusMessage.value = { type: 'error', text: '请输入有效的网页链接' }
+    setTimeout(() => {
+      statusMessage.value = null
+    }, 2000)
+  }
+}
+
+// 检测活跃浏览器
+const detectBrowser = async () => {
+  try {
+    console.log('Re-starting browser detection from renderer...')
+    isDetectingBrowser.value = true // Show loading state for manual refresh
+    if (window.electronAPI && window.electronAPI.invoke) {
+      const result = await window.electronAPI.invoke('detect-active-browser')
+      console.log('Re-detection result:', result)
+
+      isDetectingBrowser.value = false // Hide loading state
+      if (result.success) {
+        detectedBrowser.value = result.browser
+        hasBrowser.value = result.hasBrowser
+
+        if (result.hasBrowser) {
+          statusMessage.value = {
+            type: 'success',
+            text: `刷新成功: ${getBrowserDisplayName(result.browser)}`
+          }
+        } else {
+          statusMessage.value = { type: 'info', text: '仍未检测到浏览器' }
+        }
+      } else {
+        detectedBrowser.value = 'NONE'
+        hasBrowser.value = false
+        statusMessage.value = { type: 'error', text: '刷新检测失败' }
+      }
+      setTimeout(() => {
+        statusMessage.value = null
+      }, 2000)
+    }
+  } catch (error) {
+    console.error('Error re-detecting browser:', error)
+    isDetectingBrowser.value = false // Hide loading state
+    detectedBrowser.value = 'NONE'
+    hasBrowser.value = false
+    statusMessage.value = { type: 'error', text: '刷新检测出错' }
+    setTimeout(() => {
+      statusMessage.value = null
+    }, 2000)
+  }
+}
+
+// 获取浏览器显示名称
+const getBrowserDisplayName = (browser) => {
+  const names = {
+    'EDGE': 'Edge',
+    'CHROME': 'Chrome', 
+    'FIREFOX': 'Firefox',
+    'IE': 'IE',
+    'OPERA': 'Opera',
+    'BRAVE': 'Brave',
+    'VIVALDI': 'Vivaldi',
+    'UNKNOWN_BROWSER': '未知浏览器',
+    'NONE': '无浏览器'
+  }
+  return names[browser] || browser
+}
+
+// 测试快速窗口
+const testQuickWindow = async () => {
+  try {
+    console.log('Testing quick window...')
+    if (window.electronAPI && window.electronAPI.invoke) {
+      const result = await window.electronAPI.invoke('test-quick-window')
+      console.log('Test quick window result:', result)
+    } else {
+      console.error('electronAPI not available')
+      alert('electronAPI 不可用，请检查 preload 脚本')
+    }
+  } catch (error) {
+    console.error('Error testing quick window:', error)
+    alert('测试快速窗口失败: ' + error.message)
+  }
+}
+
+// 初始化
+onMounted(() => {
+  // 监听主进程发送的浏览器检测结果
+  if (window.electronAPI && window.electronAPI.on) {
+    window.electronAPI.on('browser-detection-start', () => {
+      console.log('Received browser-detection-start event')
+      isDetectingBrowser.value = true
+      hasBrowser.value = false
+    })
+
+    window.electronAPI.on('browser-detected', (result) => {
+      console.log('Received browser-detected event:', result)
+      isDetectingBrowser.value = false
+
+      if (result && result.success) {
+        detectedBrowser.value = result.browser
+        hasBrowser.value = result.hasBrowser
+      } else {
+        detectedBrowser.value = 'NONE'
+        hasBrowser.value = false
+      }
+    })
+  }
+
+  // 初始化模式
+  isQuickMode.value = window.location.hash === '#/quick'
+  
+  // 监听 hash 变化
+  window.addEventListener('hashchange', () => {
+    isQuickMode.value = window.location.hash === '#/quick'
+  })
+  
+  updateTodayEventsCount()
+})
 </script>
 
 <style scoped>
@@ -553,5 +1066,13 @@ todayEvents.value = events.value.filter(event => {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.5);
+}
+
+/* 文本行数限制 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>
