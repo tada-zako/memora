@@ -172,49 +172,90 @@
   <!-- 主应用模式 -->
   <div v-else class="flex h-screen bg-gray-50/80 overflow-hidden">
     <!-- 侧边栏 -->
-    <div class="w-56 bg-white/90 glass-effect border-r border-gray-100 flex flex-col flex-shrink-0">
+    <div 
+      @mouseenter="handleSidebarEnter"
+      @mouseleave="handleSidebarLeave"
+      :class="[
+        'bg-white/90 glass-effect border-r border-gray-100 flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out',
+        sidebarExpanded ? 'w-56' : 'w-24'
+      ]"
+    >
       <!-- Logo区域 -->
-      <div class="p-6 border-b border-gray-50">
+      <div :class="['border-b border-gray-50 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-6' : 'p-4']">
         <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg flex items-center justify-center shadow-minimal">
-            <Camera class="w-4 h-4 text-white" />
+          <div :class="[
+            'bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg flex items-center justify-center shadow-minimal flex-shrink-0 transition-all duration-300 ease-in-out',
+            sidebarExpanded ? 'w-8 h-8' : 'w-12 h-12'
+          ]">
+            <Camera :class="[
+              'text-white transition-all duration-300 ease-in-out',
+              sidebarExpanded ? 'w-4 h-4' : 'w-6 h-6'
+            ]" />
           </div>
-          <div>
-            <h1 class="text-base font-semibold text-gray-900">Memora</h1>
-            <p class="text-xs text-gray-500 font-light">事件记录管理</p>
+          <div 
+            :class="[
+              'transition-all duration-300 ease-in-out overflow-hidden',
+              sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
+            ]"
+          >
+            <h1 class="text-base font-semibold text-gray-900 whitespace-nowrap">Memora</h1>
+            <p class="text-xs text-gray-500 font-light whitespace-nowrap">事件记录管理</p>
           </div>
         </div>
       </div>
 
       <!-- 导航菜单 -->
-      <nav class="flex-1 p-4">
-        <ul class="space-y-1">
+      <nav :class="['flex-1 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-3']">
+        <ul :class="[sidebarExpanded ? 'space-y-1' : 'space-y-2']">
           <li v-for="item in menuItems" :key="item.id">
             <button
               @click="currentPage = item.id"
               :class="[
-                'w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-smooth btn-hover',
+                'w-full flex items-center rounded-lg text-left transition-all duration-300 ease-in-out btn-hover',
+                sidebarExpanded ? 'space-x-3 px-3 py-2.5' : 'justify-center px-2 py-3',
                 currentPage === item.id 
                   ? 'bg-gray-900 text-white shadow-minimal' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               ]"
+              :title="!sidebarExpanded ? item.name : ''"
             >
-              <component :is="item.icon" class="w-4 h-4" />
-              <span class="font-medium text-sm">{{ item.name }}</span>
+              <component :is="item.icon" :class="[
+                'flex-shrink-0 transition-all duration-300 ease-in-out',
+                sidebarExpanded ? 'w-4 h-4' : 'w-6 h-6'
+              ]" />
+              <span 
+                :class="[
+                  'font-medium text-sm transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap',
+                  sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
+                ]"
+              >
+                {{ item.name }}
+              </span>
             </button>
           </li>
         </ul>
       </nav>
 
       <!-- 用户信息 -->
-      <div class="p-4 border-t border-gray-50">
-        <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-            <User class="w-4 h-4 text-gray-600" />
+      <div :class="['border-t border-gray-50 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-3']">
+        <div :class="['flex items-center', sidebarExpanded ? 'space-x-3' : 'justify-center']">
+          <div :class="[
+            'bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ease-in-out',
+            sidebarExpanded ? 'w-8 h-8' : 'w-12 h-12'
+          ]">
+            <User :class="[
+              'text-gray-600 transition-all duration-300 ease-in-out',
+              sidebarExpanded ? 'w-4 h-4' : 'w-6 h-6'
+            ]" />
           </div>
-          <div>
-            <p class="font-medium text-gray-900 text-sm">用户 {{ currentUserId }}</p>
-            <p class="text-xs text-gray-500">{{ todayEvents }} 个事件</p>
+          <div 
+            :class="[
+              'transition-all duration-300 ease-in-out overflow-hidden',
+              sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
+            ]"
+          >
+            <p class="font-medium text-gray-900 text-sm whitespace-nowrap">用户 {{ currentUserId }}</p>
+            <p class="text-xs text-gray-500 whitespace-nowrap">{{ todayEvents }} 个事件</p>
           </div>
         </div>
       </div>
@@ -472,6 +513,23 @@
         </div>
       </div>
     </div>
+
+    <!-- 恼人弹窗 -->
+    <div v-if="showAnnoyanceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-xl p-8 max-w-sm w-full border-4 border-red-500 shadow-2xl animate-bounce">
+        <div class="text-center">
+          <div class="text-6xl mb-4">😤</div>
+          <h3 class="text-2xl font-bold text-red-600 mb-4">你TM在干嘛？！</h3>
+          <p class="text-gray-700 mb-6">连续{{ sidebarToggleCount }}次展开收缩侧边栏<br/>你是不是太无聊了？</p>
+          <button 
+            @click="closeAnnoyanceModal"
+            class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition-colors transform hover:scale-105"
+          >
+            我错了 🥺
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -484,6 +542,11 @@ import {
 
 // 检测是否为快速窗口模式
 const isQuickMode = ref(false)
+
+// 侧边栏展开状态
+const sidebarExpanded = ref(false)
+const sidebarToggleCount = ref(0)
+const showAnnoyanceModal = ref(false)
 
 // 当前页面
 const currentPage = ref('events')
@@ -964,6 +1027,30 @@ const testQuickWindow = async () => {
   }
 }
 
+// 侧边栏交互处理
+const handleSidebarEnter = () => {
+  if (!sidebarExpanded.value) {
+    sidebarToggleCount.value++
+    checkAnnoyanceThreshold()
+  }
+  sidebarExpanded.value = true
+}
+
+const handleSidebarLeave = () => {
+  sidebarExpanded.value = false
+}
+
+const checkAnnoyanceThreshold = () => {
+  if (sidebarToggleCount.value >= 10) {
+    showAnnoyanceModal.value = true
+  }
+}
+
+const closeAnnoyanceModal = () => {
+  showAnnoyanceModal.value = false
+  sidebarToggleCount.value = 0 // 重置计数
+}
+
 // 初始化
 onMounted(() => {
   // 监听主进程发送的浏览器检测结果
@@ -1095,5 +1182,25 @@ onMounted(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* 弹窗动画 */
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -15px, 0);
+  }
+  70% {
+    transform: translate3d(0, -7px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s ease-in-out;
 }
 </style>
