@@ -6,14 +6,24 @@ import icon from '../../resources/icon.png?asset'
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1200,
+    height: 800,
+    minWidth: 1000,
+    minHeight: 700,
     show: false,
+    center: true,
     autoHideMenuBar: true,
+    resizable: true,
+    maximizable: true,
+    fullscreenable: false,
+    title: 'Memora - 事件记录管理',
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      contextIsolation: true,
+      enableRemoteModule: false
     }
   })
 
@@ -40,7 +50,7 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.memora.app')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
