@@ -4,4 +4,11 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "fastapi>=0.116.1",
+    "openai>=1.97.1",
+    "sqlalchemy>=2.0.41",
+    "uvicorn>=0.35.0",
+    "python-multipart>=0.0.6",
+    "aiofiles>=23.1.0",
+]
