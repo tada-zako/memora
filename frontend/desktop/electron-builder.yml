@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: memora
+productName: desktop
 directories:
   buildResources: build
 files:
@@ -11,7 +11,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: memora
+  executableName: desktop
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -40,3 +40,5 @@ npmRebuild: false
 publish:
   provider: generic
   url: https://example.com/auto-updates
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/

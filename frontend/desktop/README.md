@@ -1,4 +1,4 @@
-# memora
+# desktop
 
 An Electron application with Vue
 
