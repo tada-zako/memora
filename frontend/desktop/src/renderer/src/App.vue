@@ -666,7 +666,18 @@ const openMainWindow = async () => {
   }
 }
 
+const resetQuickWindowState = () => {
+  capturedUrl.value = ''
+  quickNote.value = ''
+  manualUrl.value = ''
+  statusMessage.value = null
+  showManualInput.value = false
+  isCapturing.value = false
+  isDetectingBrowser.value = true // Reset to detecting on next open
+}
+
 const closeQuickWindow = async () => {
+  resetQuickWindowState() // Reset state before hiding
   if (window.electronAPI && window.electronAPI.invoke) {
     await window.electronAPI.invoke('hide-quick-window')
   }
