@@ -728,6 +728,11 @@ const getFileName = (url) => {
 
 // 新增方法
 const captureEdgeUrl = async () => {
+  // Notify main process to keep window on top
+  if (window.electronAPI && window.electronAPI.send) {
+    window.electronAPI.send('capture-url-start')
+  }
+
   try {
     isCapturing.value = true
     statusMessage.value = null
@@ -763,7 +768,12 @@ const captureEdgeUrl = async () => {
     }
   } finally {
     isCapturing.value = false
-    
+
+    // Notify main process that capture has ended
+    if (window.electronAPI && window.electronAPI.send) {
+      window.electronAPI.send('capture-url-end')
+    }
+
     // 3秒后清除状态消息
     if (statusMessage.value && statusMessage.value.type !== 'success') {
       setTimeout(() => {

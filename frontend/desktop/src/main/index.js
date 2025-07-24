@@ -10,6 +10,7 @@ const execAsync = promisify(exec)
 
 let mainWindow = null
 let quickWindow = null
+let isCapturingUrl = false // Add a flag to track capture state
 
 function createWindow() {
   // Create the browser window.
@@ -89,7 +90,7 @@ function createQuickWindow() {
     // 设置窗口失去焦点时隐藏
     quickWindow.on('blur', () => {
       console.log('Quick window lost focus')
-      if (quickWindow && !quickWindow.webContents.isDevToolsOpened()) {
+      if (quickWindow && !quickWindow.webContents.isDevToolsOpened() && !isCapturingUrl) {
         quickWindow.hide()
       }
     })
@@ -713,6 +714,27 @@ app.whenReady().then(() => {
   ipcMain.handle('capture-edge-url', async () => {
     console.log('IPC: capture-browser-url called')
     return await captureBrowserUrl()
+  })
+
+  // 添加新的 IPC handlers
+  ipcMain.on('capture-url-start', () => {
+    console.log('IPC: capture-url-start received')
+    isCapturingUrl = true
+    if (quickWindow) {
+      quickWindow.setAlwaysOnTop(true, 'screen-saver')
+    }
+  })
+
+  ipcMain.on('capture-url-end', () => {
+    console.log('IPC: capture-url-end received')
+    isCapturingUrl = false
+    if (quickWindow) {
+      quickWindow.setAlwaysOnTop(true, 'normal') // Revert to normal alwaysOnTop
+      // Refocus the quick window if it's still visible
+      if (quickWindow.isVisible()) {
+        quickWindow.focus()
+      }
+    }
   })
 
   // 添加浏览器检测的 IPC 处理器
