@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL收集器 - Logo设计方案</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+            color: #111827;
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #6b7280;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .logo-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.1);
+            border-color: #d1d5db;
+        }
+
+        .logo-display {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid #f3f4f6;
+        }
+
+        .logo-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .logo-description {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .logo-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #111827;
+            color: white;
+            border: 1px solid #111827;
+        }
+
+        .btn-primary:hover {
+            background: #1f2937;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .variations {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .variations h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .size-showcase {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .size-item {
+            text-align: center;
+        }
+
+        .size-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .color-showcase {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .color-item {
+            text-align: center;
+        }
+
+        .color-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+
+        /* Logo SVG样式 */
+        .logo-svg {
+            transition: all 0.3s ease;
+        }
+
+        .logo-card:hover .logo-svg {
+            transform: scale(1.05);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .logo-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .logo-card {
+                padding: 30px 20px;
+            }
+            
+            .size-showcase {
+                gap: 20px;
+            }
+            
+            .color-showcase {
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>URL收集器 Logo设计</h1>
+            <p>为你的URL收集和解析工具精心设计的品牌标识，体现简洁、专业、高效的产品理念</p>
+        </div>
+
+        <div class="logo-grid">
+            <!-- Logo方案1：链接环 -->
+            <div class="logo-card">
+                <div class="logo-display">
+                    <svg class="logo-svg" width="80" height="80" viewBox="0 0 80 80" fill="none">
+                        <!-- 外环 -->
+                        <circle cx="40" cy="40" r="35" stroke="#111827" stroke-width="3" fill="none"/>
+                        <!-- 链接符号 -->
+                        <path d="M25 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H25c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M45 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H45c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M35 37.5h10v5H35z" fill="#111827"/>
+                        <!-- 收集点 -->
+                        <circle cx="30" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="30" cy="55" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="55" r="2" fill="#6b7280"/>
+                    </svg>
+                </div>
+                <div class="logo-title">链接环</div>
+                <div class="logo-description">以链接符号为核心，外环代表收集范围，四个点表示多源收集</div>
+                <div class="logo-actions">
+                    <button class="btn btn-primary" onclick="downloadSVG('logo1', 'link-ring')">下载 SVG</button>
+                    <button class="btn btn-secondary" onclick="copySVG('logo1')">复制代码</button>
+                </div>
+            </div>
+
+            <!-- Logo方案2：捕获网格 -->
+            <div class="logo-card">
+                <div class="logo-display">
+                    <svg class="logo-svg" width="80" height="80" viewBox="0 0 80 80" fill="none">
+                        <!-- 网格背景 -->
+                        <defs>
+                            <pattern id="grid" width="8" height="8" patternUnits="userSpaceOnUse">
+                                <path d="M 8 0 L 0 0 0 8" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>
+                            </pattern>
+                        </defs>
+                        <rect x="15" y="15" width="50" height="50" fill="url(#grid)" rx="8"/>
+                        <!-- 捕获框 -->
+                        <rect x="15" y="15" width="50" height="50" stroke="#111827" stroke-width="2.5" fill="none" rx="8"/>
+                        <!-- URL符号 -->
+                        <rect x="25" y="30" width="30" height="4" rx="2" fill="#111827"/>
+                        <circle cx="28" cy="32" r="1.5" fill="white"/>
+                        <!-- 箭头指向 -->
+                        <path d="M35 45 L40 40 L45 45" stroke="#6b7280" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M40 40 L40 52" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="logo-title">捕获网格</div>
+                <div class="logo-description">网格代表有序收集，箭头表示捕获动作，体现工具的核心功能</div>
+                <div class="logo-actions">
+                    <button class="btn btn-primary" onclick="downloadSVG('logo2', 'capture-grid')">下载 SVG</button>
+                    <button class="btn btn-secondary" onclick="copySVG('logo2')">复制代码</button>
+                </div>
+            </div>
+
+            <!-- Logo方案3：字母U+C -->
+            <div class="logo-card">
+                <div class="logo-display">
+                    <svg class="logo-svg" width="80" height="80" viewBox="0 0 80 80" fill="none">
+                        <!-- 背景圆 -->
+                        <circle cx="40" cy="40" r="35" fill="#111827"/>
+                        <!-- 字母U -->
+                        <path d="M25 25v15c0 5.5 4.5 10 10 10s10-4.5 10-10V25" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <!-- 字母C -->
+                        <path d="M55 35c-2.5-2.5-6-4-10-4s-7.5 1.5-10 4c-2.5 2.5-2.5 7.5 0 10c2.5 2.5 6 4 10 4s7.5-1.5 10-4" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <!-- 连接点 -->
+                        <circle cx="42" cy="40" r="1.5" fill="white"/>
+                    </svg>
+                </div>
+                <div class="logo-title">字母组合</div>
+                <div class="logo-description">UC代表URL Collector，简洁的字母设计，易于识别和记忆</div>
+                <div class="logo-actions">
+                    <button class="btn btn-primary" onclick="downloadSVG('logo3', 'uc-letters')">下载 SVG</button>
+                    <button class="btn btn-secondary" onclick="copySVG('logo3')">复制代码</button>
+                </div>
+            </div>
+
+            <!-- Logo方案4：磁铁收集 -->
+            <div class="logo-card">
+                <div class="logo-display">
+                    <svg class="logo-svg" width="80" height="80" viewBox="0 0 80 80" fill="none">
+                        <!-- 磁铁主体 -->
+                        <rect x="30" y="20" width="20" height="35" rx="10" fill="#111827"/>
+                        <rect x="32" y="22" width="16" height="31" rx="8" fill="white"/>
+                        <rect x="34" y="24" width="12" height="27" rx="6" fill="#111827"/>
+                        <!-- 磁力线 -->
+                        <path d="M20 30 Q25 35 20 40" stroke="#6b7280" stroke-width="1.5" fill="none"/>
+                        <path d="M60 30 Q55 35 60 40" stroke="#6b7280" stroke-width="1.5" fill="none"/>
+                        <path d="M18 35 Q22 40 18 45" stroke="#6b7280" stroke-width="1.5" fill="none"/>
+                        <path d="M62 35 Q58 40 62 45" stroke="#6b7280" stroke-width="1.5" fill="none"/>
+                        <!-- 被吸引的链接点 -->
+                        <circle cx="22" cy="38" r="2" fill="#6b7280"/>
+                        <circle cx="58" cy="38" r="2" fill="#6b7280"/>
+                        <circle cx="25" cy="45" r="1.5" fill="#9ca3af"/>
+                        <circle cx="55" cy="45" r="1.5" fill="#9ca3af"/>
+                    </svg>
+                </div>
+                <div class="logo-title">磁铁收集</div>
+                <div class="logo-description">磁铁象征强大的收集能力，磁力线和点表示从各处吸引链接</div>
+                <div class="logo-actions">
+                    <button class="btn btn-primary" onclick="downloadSVG('logo4', 'magnet-collector')">下载 SVG</button>
+                    <button class="btn btn-secondary" onclick="copySVG('logo4')">复制代码</button>
+                </div>
+            </div>
+
+            <!-- Logo方案5：简约几何 -->
+            <div class="logo-card">
+                <div class="logo-display">
+                    <svg class="logo-svg" width="80" height="80" viewBox="0 0 80 80" fill="none">
+                        <!-- 主要形状 -->
+                        <rect x="20" y="30" width="40" height="20" rx="10" fill="#111827"/>
+                        <!-- 内部切口 -->
+                        <rect x="25" y="35" width="30" height="10" rx="5" fill="white"/>
+                        <!-- 连接点 -->
+                        <circle cx="15" cy="40" r="3" fill="#111827"/>
+                        <circle cx="65" cy="40" r="3" fill="#111827"/>
+                        <!-- 连接线 -->
+                        <line x1="18" y1="40" x2="20" y2="40" stroke="#111827" stroke-width="2"/>
+                        <line x1="60" y1="40" x2="62" y2="40" stroke="#111827" stroke-width="2"/>
+                        <!-- 装饰点 -->
+                        <circle cx="40" cy="20" r="1.5" fill="#6b7280"/>
+                        <circle cx="40" cy="60" r="1.5" fill="#6b7280"/>
+                        <circle cx="25" cy="25" r="1" fill="#9ca3af"/>
+                        <circle cx="55" cy="25" r="1" fill="#9ca3af"/>
+                        <circle cx="25" cy="55" r="1" fill="#9ca3af"/>
+                        <circle cx="55" cy="55" r="1" fill="#9ca3af"/>
+                    </svg>
+                </div>
+                <div class="logo-title">简约几何</div>
+                <div class="logo-description">现代几何设计，链接形状简化为基本图形，周围点表示收集网络</div>
+                <div class="logo-actions">
+                    <button class="btn btn-primary" onclick="downloadSVG('logo5', 'geometric-simple')">下载 SVG</button>
+                    <button class="btn btn-secondary" onclick="copySVG('logo5')">复制代码</button>
+                </div>
+            </div>
+
+            <!-- Logo方案6：网络节点 -->
+            <div class="logo-card">
+                <div class="logo-display">
+                    <svg class="logo-svg" width="80" height="80" viewBox="0 0 80 80" fill="none">
+                        <!-- 中心节点 -->
+                        <circle cx="40" cy="40" r="8" fill="#111827"/>
+                        <circle cx="40" cy="40" r="4" fill="white"/>
+                        <!-- 外围节点 -->
+                        <circle cx="25" cy="25" r="4" fill="#6b7280"/>
+                        <circle cx="55" cy="25" r="4" fill="#6b7280"/>
+                        <circle cx="25" cy="55" r="4" fill="#6b7280"/>
+                        <circle cx="55" cy="55" r="4" fill="#6b7280"/>
+                        <circle cx="15" cy="40" r="3" fill="#9ca3af"/>
+                        <circle cx="65" cy="40" r="3" fill="#9ca3af"/>
+                        <circle cx="40" cy="15" r="3" fill="#9ca3af"/>
+                        <circle cx="40" cy="65" r="3" fill="#9ca3af"/>
+                        <!-- 连接线 -->
+                        <line x1="40" y1="40" x2="25" y2="25" stroke="#e5e7eb" stroke-width="1.5"/>
+                        <line x1="40" y1="40" x2="55" y2="25" stroke="#e5e7eb" stroke-width="1.5"/>
+                        <line x1="40" y1="40" x2="25" y2="55" stroke="#e5e7eb" stroke-width="1.5"/>
+                        <line x1="40" y1="40" x2="55" y2="55" stroke="#e5e7eb" stroke-width="1.5"/>
+                        <line x1="40" y1="40" x2="15" y2="40" stroke="#d1d5db" stroke-width="1"/>
+                        <line x1="40" y1="40" x2="65" y2="40" stroke="#d1d5db" stroke-width="1"/>
+                        <line x1="40" y1="40" x2="40" y2="15" stroke="#d1d5db" stroke-width="1"/>
+                        <line x1="40" y1="40" x2="40" y2="65" stroke="#d1d5db" stroke-width="1"/>
+                    </svg>
+                </div>
+                <div class="logo-title">网络节点</div>
+                <div class="logo-description">中心节点代表收集器，连接线表示从各个来源收集信息的网络结构</div>
+                <div class="logo-actions">
+                    <button class="btn btn-primary" onclick="downloadSVG('logo6', 'network-nodes')">下载 SVG</button>
+                    <button class="btn btn-secondary" onclick="copySVG('logo6')">复制代码</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 尺寸和颜色变化展示 -->
+        <div class="variations">
+            <h3>推荐方案：链接环 - 多尺寸展示</h3>
+            <div class="size-showcase">
+                <div class="size-item">
+                    <div class="size-label">16px</div>
+                    <svg width="16" height="16" viewBox="0 0 80 80" fill="none">
+                        <circle cx="40" cy="40" r="35" stroke="#111827" stroke-width="3" fill="none"/>
+                        <path d="M25 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H25c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M45 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H45c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M35 37.5h10v5H35z" fill="#111827"/>
+                        <circle cx="30" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="30" cy="55" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="55" r="2" fill="#6b7280"/>
+                    </svg>
+                </div>
+                <div class="size-item">
+                    <div class="size-label">32px</div>
+                    <svg width="32" height="32" viewBox="0 0 80 80" fill="none">
+                        <circle cx="40" cy="40" r="35" stroke="#111827" stroke-width="3" fill="none"/>
+                        <path d="M25 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H25c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M45 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H45c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M35 37.5h10v5H35z" fill="#111827"/>
+                        <circle cx="30" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="30" cy="55" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="55" r="2" fill="#6b7280"/>
+                    </svg>
+                </div>
+                <div class="size-item">
+                    <div class="size-label">64px</div>
+                    <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
+                        <circle cx="40" cy="40" r="35" stroke="#111827" stroke-width="3" fill="none"/>
+                        <path d="M25 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H25c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M45 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H45c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M35 37.5h10v5H35z" fill="#111827"/>
+                        <circle cx="30" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="30" cy="55" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="55" r="2" fill="#6b7280"/>
+                    </svg>
+                </div>
+                <div class="size-item">
+                    <div class="size-label">128px</div>
+                    <svg width="128" height="128" viewBox="0 0 80 80" fill="none">
+                        <circle cx="40" cy="40" r="35" stroke="#111827" stroke-width="3" fill="none"/>
+                        <path d="M25 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H25c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M45 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H45c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M35 37.5h10v5H35z" fill="#111827"/>
+                        <circle cx="30" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="30" cy="55" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="55" r="2" fill="#6b7280"/>
+                    </svg>
+                </div>
+            </div>
+
+            <h3>颜色变化</h3>
+            <div class="color-showcase">
+                <div class="color-item">
+                    <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
+                        <circle cx="40" cy="40" r="35" stroke="#111827" stroke-width="3" fill="none"/>
+                        <path d="M25 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H25c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M45 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H45c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#111827"/>
+                        <path d="M35 37.5h10v5H35z" fill="#111827"/>
+                        <circle cx="30" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="25" r="2" fill="#6b7280"/>
+                        <circle cx="30" cy="55" r="2" fill="#6b7280"/>
+                        <circle cx="50" cy="55" r="2" fill="#6b7280"/>
+                    </svg>
+                    <div class="color-label">默认黑色</div>
+                </div>
+                <div class="color-item">
+                    <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
+                        <circle cx="40" cy="40" r="35" stroke="#ffffff" stroke-width="3" fill="none"/>
+                        <path d="M25 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H25c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#ffffff"/>
+                        <path d="M45 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H45c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#ffffff"/>
+                        <path d="M35 37.5h10v5H35z" fill="#ffffff"/>
+                        <circle cx="30" cy="25" r="2" fill="#d1d5db"/>
+                        <circle cx="50" cy="25" r="2" fill="#d1d5db"/>
+                        <circle cx="30" cy="55" r="2" fill="#d1d5db"/>
+                        <circle cx="50" cy="55" r="2" fill="#d1d5db"/>
+                    </svg>
+                    <div class="color-label">反色白色</div>
+                </div>
+                <div class="color-item">
+                    <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
+                        <circle cx="40" cy="40" r="35" stroke="#6b7280" stroke-width="3" fill="none"/>
+                        <path d="M25 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H25c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#6b7280"/>
+                        <path d="M45 35h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H45c-2.76 0-5-2.24-5-5s2.24-5 5-5z" fill="#6b7280"/>
+                        <path d="M35 37.5h10v5H35z" fill="#6b7280"/>
+                        <circle cx="30" cy="25" r="2" fill="#9ca3af"/>
+                        <circle cx="50" cy="25" r="2" fill="#9ca3af"/>
+                        <circle cx="30" cy="55" r="2" fill="#9ca3af"/>
+                        <circle cx="50" cy="55" r="2" fill="#9ca3af"/>
+                    </svg>
+                    <div class="color-label">灰色调</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 下载SVG文件
+        function downloadSVG(logoId, filename) {
+            const logoCard = document.querySelector(`#${logoId}`) || 
+                           document.querySelectorAll('.logo-card')[parseInt(logoId.replace('logo', '')) - 1];
+            const svg = logoCard.querySelector('.logo-svg');
+            
+            if (!svg) return;
+            
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+            const svgUrl = URL.createObjectURL(svgBlob);
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = svgUrl;
+            downloadLink.download = `${filename}.svg`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            URL.revokeObjectURL(svgUrl);
+        }
+
+        // 复制SVG代码
+        function copySVG(logoId) {
+            const logoCard = document.querySelector(`#${logoId}`) || 
+                           document.querySelectorAll('.logo-card')[parseInt(logoId.replace('logo', '')) - 1];
+            const svg = logoCard.querySelector('.logo-svg');
+            
+            if (!svg) return;
+            
+            const svgCode = svg.outerHTML;
+            
+            navigator.clipboard.writeText(svgCode).then(() => {
+                // 临时显示复制成功提示
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '已复制!';
+                btn.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动复制SVG代码');
+            });
+        }
+
+        // 添加一些交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为logo卡片添加点击效果
+            const logoCards = document.querySelectorAll('.logo-card');
+            logoCards.forEach((card, index) => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.tagName !== 'BUTTON') {
+                        // 高亮选中的卡片
+                        logoCards.forEach(c => c.style.borderColor = '#e5e7eb');
+                        this.style.borderColor = '#111827';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

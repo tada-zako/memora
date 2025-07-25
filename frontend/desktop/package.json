@@ -22,7 +22,8 @@
     "@electron-toolkit/utils": "^4.0.0",
     "lucide-vue-next": "^0.469.0",
     "sass-embedded": "^1.89.2",
-    "scss": "^0.2.4"
+    "scss": "^0.2.4",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.0.0",
