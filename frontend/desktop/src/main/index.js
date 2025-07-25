@@ -28,8 +28,8 @@ let isCapturingUrl = false // Add a flag to track capture state
 function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1000,
+    height: 700,
     minWidth: 1000,
     minHeight: 700,
     show: false,
