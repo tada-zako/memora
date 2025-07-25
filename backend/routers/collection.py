@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, select
-from typing import List
+from entity.response import Response
 from pydantic import BaseModel
 from loguru import logger
 
@@ -99,7 +99,7 @@ async def streaming_create_collection_url(
         select(Category).where(Category.name == category)
     )
     if category and not db_category.scalar_one_or_none():
-        new_category = Category(name=category, emoji=category_emoji)
+        new_category = Category(name=category, emoji=category_emoji, user_id=user_id)
         db.add(new_category)
         await db.commit()
         await db.refresh(new_category)
@@ -122,8 +122,8 @@ async def streaming_create_collection_url(
     if not category_id:
         category_id = -1
 
-    db_collection.category_id = category_id
-    db_collection.tags = ",".join(tags)
+    db_collection.category_id = category_id # type: ignore
+    db_collection.tags = ",".join(tags) # type: ignore
     db.add(db_collection)
 
     await db.commit()
@@ -178,13 +178,15 @@ user_events_router = APIRouter(
 )
 
 
-@user_events_router.get("/", response_model=List[dict])
-async def get_user_collections(user_id: int, db: AsyncSession = Depends(get_db)):
+@user_events_router.get("/", response_model=Response)
+async def get_user_collections(user_id: int, category_id: int | None = None, db: AsyncSession = Depends(get_db)):
     """
     Get all collections for a specific user
     """
     # Check if user exists
     user_query = select(User).where(User.id == user_id)
+    if category_id:
+        user_query = user_query.where(Collection.category_id == category_id)
     user_result = await db.execute(user_query)
     user = user_result.scalar_one_or_none()
     if not user:
@@ -202,13 +204,19 @@ async def get_user_collections(user_id: int, db: AsyncSession = Depends(get_db))
     collections_result = await db.execute(collections_query)
     collections = collections_result.scalars().all()
 
-    return [
-        {
-            "id": collection.id,
-            "category": collection.category,
-            "details": collection.details,
-            "created_at": collection.created_at,
-            "updated_at": collection.updated_at,
-        }
-        for collection in collections
-    ]
+    return Response(
+        status="success",
+        message="Collections retrieved successfully",
+        data={
+            "collections": [
+                {
+                    "id": collection.id,
+                    "category": collection.category.name if collection.category else None,
+                    "details": collection.details,
+                    "created_at": collection.created_at.isoformat(),
+                    "updated_at": collection.updated_at.isoformat(),
+                }
+                for collection in collections
+            ]
+        },
+    )

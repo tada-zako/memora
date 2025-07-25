@@ -29,6 +29,7 @@ class Category(Base):
     __tablename__ = 'categories'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     name = Column(String(50), unique=True, nullable=False)
     emoji = Column(String(10), nullable=True)  # Optional emoji for category
 

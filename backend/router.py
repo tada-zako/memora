@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from routers.collection import router as collection_router, user_events_router
 from routers.attachment import router as attachment_router
+from routers.category import router as category_router
 from routers.static import mount_static_files
 
 
@@ -24,6 +25,7 @@ app = FastAPI(
 app.include_router(collection_router)
 app.include_router(user_events_router)
 app.include_router(attachment_router)
+app.include_router(category_router)
 
 # Mount static files for uploads
 mount_static_files(app)
