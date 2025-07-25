@@ -111,8 +111,18 @@
                   <div class="status-indicator completed"></div>
                   <span class="status-text">解析完成</span>
                 </div>
-                <div class="url-display">
-                  {{ capturedUrl }}
+                <div class="url-display" :class="{ 'collapsed': !showFullUrl }">
+                  <template v-if="showFullUrl">
+                    <span>{{ capturedUrl }}</span>
+                    <button v-if="capturedUrl && capturedUrl.length > 0" class="toggle-url-btn" @click="showFullUrl = false" title="收起">
+                      <svg width="14" height="14" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M7 10l5 5 5-5" stroke="#0f766e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button v-if="capturedUrl && capturedUrl.length > 0" class="toggle-url-btn collapsed-btn" @click="showFullUrl = true" title="展开">
+                      <svg width="14" height="14" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M7 10l5 5 5-5" stroke="#0f766e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                  </template>
                 </div>
               </div>
               
@@ -153,13 +163,6 @@
               placeholder="输入或粘贴网页链接..."
               @keydown.enter="useManualUrl"
             />
-            <div class="input-actions">
-              <button @click="testConnection" class="test-btn" :disabled="isTesting">
-                <div v-if="isTesting" class="test-spinner"></div>
-                <span v-if="!isTesting">测试连接</span>
-                <span v-else>测试中...</span>
-              </button>
-            </div>
           </div>
           
           <!-- 捕获按钮区域 -->
@@ -252,6 +255,10 @@
   // 彩蛋：F11按键计数器
   const f11PressCount = ref(0)
   const showEasterEgg = ref(false)
+  
+  // 网址展开/收起状态
+  import { ref as vueRef } from 'vue'
+  const showFullUrl = vueRef(false)
   
   const resetQuickWindowState = () => {
     capturedUrl.value = ''
@@ -928,7 +935,6 @@
         
         // 当没有内容时垂直居中
         &.center-vertically {
-          justify-content: center;
           min-height: calc(100vh - 150px); // 为顶部和底部留出空间
         }
         
@@ -1088,6 +1094,47 @@
                 border: 1px solid #9ce0d9;
                 word-break: break-all;
                 font-family: 'Monaco', 'Menlo', monospace;
+                position: relative;
+                min-height: 24px;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                .toggle-url-btn {
+                  position: absolute;
+                  right: 8px;
+                  top: 8px;
+                  background: transparent;
+                  border: none;
+                  border-radius: 50%;
+                  padding: 2px;
+                  cursor: pointer;
+                  outline: none;
+                  transition: background 0.2s;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  &:hover {
+                    background: #e0f7fa;
+                  }
+                  svg {
+                    display: block;
+                  }
+                }
+                &.collapsed {
+                  padding: 0;
+                  border: none;
+                  background: transparent;
+                  min-height: 0;
+                  .toggle-url-btn.collapsed-btn {
+                    position: static;
+                    margin-left: 0;
+                    top: 0;
+                    right: 0;
+                  }
+                  span {
+                    display: none;
+                  }
+                }
               }
             }
             
@@ -1146,6 +1193,17 @@
                 font-size: 14px;
                 line-height: 1.5;
                 color: #374151;
+                max-height: 180px;
+                overflow-y: auto;
+                word-break: break-all;
+                // 自定义滚动条
+                &::-webkit-scrollbar {
+                  width: 6px;
+                }
+                &::-webkit-scrollbar-thumb {
+                  background: #9ce0d9;
+                  border-radius: 3px;
+                }
               }
             }
             
@@ -1214,46 +1272,6 @@
             }
           }
           
-          .input-actions {
-            display: flex;
-            justify-content: flex-start;
-            
-            .test-btn {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-              background: #f3f4f6;
-              color: #374151;
-              border: 1px solid #d1d5db;
-              padding: 6px 12px;
-              border-radius: 6px;
-              font-size: 12px;
-              font-weight: 500;
-              cursor: pointer;
-              transition: all 0.2s ease;
-              
-              &:hover:not(:disabled) {
-                background: #e5e7eb;
-                border-color: #9ca3af;
-              }
-              
-              &:disabled {
-                background: #f9fafb;
-                color: #9ca3af;
-                border-color: #e5e7eb;
-                cursor: not-allowed;
-              }
-              
-              .test-spinner {
-                width: 12px;
-                height: 12px;
-                border: 1px solid #d1d5db;
-                border-top-color: #6b7280;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-              }
-            }
-          }
         }
         
         // 捕获按钮区域
