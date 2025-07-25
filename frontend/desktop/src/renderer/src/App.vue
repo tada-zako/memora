@@ -162,16 +162,9 @@
               </div>
               
               <!-- 空状态 -->
-              <div v-if="collections.length === 0" class="text-center py-16">
+              <div v-if="collections.length === 0" class="text-center" style="height: calc(100% - 84px); display: flex; justify-content: center; align-items: center; flex-direction: column;">
                 <div class="text-6xl mb-4">📚</div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-2">还没有收藏</h3>
-                <p class="text-gray-500 mb-6">创建您的第一个收藏来开始整理内容</p>
-                <button 
-                  @click="showCreateCollection = true"
-                  class="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-smooth font-medium"
-                >
-                  创建收藏
-                </button>
               </div>
             </div>
           </div>
@@ -504,29 +497,19 @@ const events = ref([
 const attachments = ref([])
 
 // 集合数据
-const collections = ref([
-  {
-    id: 1,
-    name: 'AI',
-    color: 'bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300',
-    icon: '🤖',
-    description: 'AI相关资源和工具'
-  },
-  {
-    id: 2,
-    name: '旅行',
-    color: 'bg-gradient-to-br from-sky-100 via-cyan-200 to-blue-300',
-    icon: '✈️',
-    description: '旅行计划和回忆'
-  },
-  {
-    id: 3,
-    name: '游戏开发',
-    color: 'bg-gradient-to-br from-green-100 via-emerald-200 to-green-300',
-    icon: '🎮',
-    description: '游戏开发资源'
-  }
-])
+const collections = ref([])
+
+// 预定义的颜色组合和默认图标
+const colorCombinations = [
+  'bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300',
+  'bg-gradient-to-br from-sky-100 via-cyan-200 to-blue-300',
+  'bg-gradient-to-br from-green-100 via-emerald-200 to-green-300',
+  'bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300',
+  'bg-gradient-to-br from-pink-100 via-pink-200 to-pink-300',
+  'bg-gradient-to-br from-yellow-100 via-yellow-200 to-yellow-300',
+  'bg-gradient-to-br from-red-100 via-red-200 to-red-300',
+  'bg-gradient-to-br from-indigo-100 via-indigo-200 to-indigo-300'
+]
 
 // 表单数据
 const showCreateEvent = ref(false)
@@ -548,6 +531,40 @@ const fileInput = ref(null)
 
 // 状态消息
 const statusMessage = ref(null)
+
+// API 配置
+const API_BASE_URL = 'http://localhost:8000/api/v1'
+
+// API 函数
+const fetchCollections = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/category`)
+    const result = await response.json()
+    
+    if (result.status === 'success' && result.data && result.data.categories) {
+      // 将后端的 category 数据转换为前端的 collection 格式
+      collections.value = result.data.categories.map((category, index) => ({
+        id: category.id,
+        name: category.name,
+        icon: category.emoji || '📚', // 使用 emoji 作为图标，如果没有则使用默认图标
+        color: colorCombinations[index % colorCombinations.length], // 循环使用颜色组合
+        description: `${category.name} 相关内容`
+      }))
+    } else {
+      showStatusMessage('获取分类失败', 'error')
+    }
+  } catch (error) {
+    console.error('获取分类失败:', error)
+    showStatusMessage('网络错误，无法获取分类', 'error')
+  }
+}
+
+const showStatusMessage = (text, type = 'success') => {
+  statusMessage.value = { text, type }
+  setTimeout(() => {
+    statusMessage.value = null
+  }, 3000)
+}
 
 
 // 计算属性
@@ -603,21 +620,38 @@ const createEvent = async () => {
   updateTodayEventsCount()
 }
 
-const createCollection = () => {
+const createCollection = async () => {
   if (!newCollectionName.value.trim()) return
 
-  const collection = {
-    id: Date.now(),
-    name: newCollectionName.value,
-    icon: '📚', // 默认图标
-    description: newCollectionDescription.value || null,
-    created_at: new Date().toISOString()
-  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/category`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: newCollectionName.value,
+        emoji: '📚' // 默认表情，可以在后续功能中让用户选择
+      })
+    })
 
-  collections.value.unshift(collection)
-  newCollectionName.value = ''
-  newCollectionDescription.value = ''
-  showCreateCollection.value = false
+    const result = await response.json()
+    
+    if (result.status === 'success') {
+      // 重新获取分类列表以保持同步
+      await fetchCollections()
+      
+      newCollectionName.value = ''
+      newCollectionDescription.value = ''
+      showCreateCollection.value = false
+      showStatusMessage('分类创建成功', 'success')
+    } else {
+      showStatusMessage(result.message || '创建分类失败', 'error')
+    }
+  } catch (error) {
+    console.error('创建分类失败:', error)
+    showStatusMessage('网络错误，无法创建分类', 'error')
+  }
 }
 
 
@@ -642,8 +676,24 @@ const editCollection = (collection) => {
   console.log('编辑收藏:', collection)
 }
 
-const deleteCollection = (collectionId) => {
-  collections.value = collections.value.filter(collection => collection.id !== collectionId)
+const deleteCollection = async (collectionId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/category/${collectionId}`, {
+      method: 'DELETE'
+    })
+
+    if (response.ok) {
+      // 从本地状态中移除
+      collections.value = collections.value.filter(collection => collection.id !== collectionId)
+      showStatusMessage('分类删除成功', 'success')
+    } else {
+      const result = await response.json()
+      showStatusMessage(result.message || '删除分类失败', 'error')
+    }
+  } catch (error) {
+    console.error('删除分类失败:', error)
+    showStatusMessage('网络错误，无法删除分类', 'error')
+  }
 }
 
 
@@ -736,9 +786,10 @@ const closeAnnoyanceModal = () => {
 }
 
 // 初始化
-onMounted(() => {
+onMounted(async () => {
   currentPage.value = 'collections' // 默认显示收藏页面
   updateTodayEventsCount()
+  await fetchCollections() // 获取分类数据
 })
 </script>
 
@@ -835,6 +886,7 @@ onMounted(() => {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
