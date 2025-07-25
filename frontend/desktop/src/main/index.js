@@ -660,7 +660,7 @@ app.whenReady().then(() => {
   // 注册全局快捷键 - Windows 使用 Ctrl+Space，macOS 使用 Cmd+Space
   console.log('Registering global shortcuts...')
   
-  const shortcutKey = process.platform === 'darwin' ? 'Cmd+Space' : 'Ctrl+Space'
+  const shortcutKey = process.platform === 'darwin' ? 'Cmd+K' : 'Ctrl+Space'
   console.log('Attempting to register:', shortcutKey)
   
   const ret = globalShortcut.register(shortcutKey, () => {
