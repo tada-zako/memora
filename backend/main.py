@@ -1,23 +1,27 @@
-from db import create_tables
-from router import app
+import os
+from loguru import logger
+from dotenv import load_dotenv
 
-# Initialize database tables on startup
-@app.on_event("startup")
-async def startup_event():
-    """
-    Initialize database tables when the application starts.
-    """
-    create_tables()
-    print("Database tables created successfully!")
+__file__ = os.path.abspath(__file__)
+PROJ_DIR = os.path.dirname(os.path.dirname(__file__))
+
+ENV = os.getenv("ENV", "dev")
+if ENV == "dev":
+    logger.info("Loading DEV environment variables")
+    load_dotenv(os.path.join(PROJ_DIR, ".env.dev"))
+elif ENV == "prod":
+    logger.info("Loading PROD environment variables")
+    load_dotenv(os.path.join(PROJ_DIR, ".env.prod"))
+
+from router import app # noqa: E402
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     # Run the application
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,  # Enable auto-reload during development
-        log_level="info"
+        log_level="info",
     )
