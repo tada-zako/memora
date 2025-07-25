@@ -1,62 +1,61 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import os
-from typing import Generator
+from typing import AsyncGenerator
 
 # Database configuration
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./memora.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./memora.db")
 
-# Create SQLAlchemy engine
-engine = create_engine(
+# Create async SQLAlchemy engine
+engine = create_async_engine(
     DATABASE_URL,
-    # SQLite specific settings
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
     echo=False  # Set to True for SQL query logging
 )
 
-# Create SessionLocal class
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
+# Create async SessionLocal class
+AsyncSessionLocal = async_sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False
 )
 
 # Create Base for declarative models
 Base = declarative_base()
 
-def get_db() -> Generator[Session, None, None]:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    Dependency function to get database session.
-    This function creates a new SQLAlchemy SessionLocal that will be used in a single request,
+    Dependency function to get async database session.
+    This function creates a new SQLAlchemy AsyncSession that will be used in a single request,
     and then close it once the request is finished.
     """
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
 
-def create_tables():
+async def create_tables():
     """
     Create all tables in the database.
     This should be called when the application starts.
     """
     from model import Base  # Import here to avoid circular imports
-    Base.metadata.create_all(bind=engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-def drop_tables():
+async def drop_tables():
     """
     Drop all tables in the database.
     Use with caution - this will delete all data!
     """
     from model import Base  # Import here to avoid circular imports
-    Base.metadata.drop_all(bind=engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
-def reset_database():
+async def reset_database():
     """
     Drop and recreate all tables.
     Use with caution - this will delete all data!
     """
-    drop_tables()
-    create_tables()
+    await drop_tables()
+    await create_tables()

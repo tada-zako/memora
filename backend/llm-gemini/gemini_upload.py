@@ -49,22 +49,7 @@ PROMPT_TEMPLATES = {
         {
           "meal_type": "早餐/午餐/晚餐/点心/夜宵",
           "timestamp": "YYYY-MM-DDTHH:MM:SSZ",
-          "items": [
-            {
-              "name": "食物名称",
-              "calories": 0,
-              "protein": 0.0,
-              "carbohydrates": 0.0,
-              "fat": 0.0,
-              "fiber": 0.0,
-              "portion_size": 0.0,
-              "portion_unit": "克/毫升",
-              "nutrition_source": "手动/数据库/应用估算"
-            }
-          ],
-          "total_calories": 0,
-          "meal_rating": 0,
-          "photo_url": "照片链接"
+          "calories": 0,
         }
     ]
     """,

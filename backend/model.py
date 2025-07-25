@@ -18,42 +18,43 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(255), unique=True, nullable=False)
-    
-    # Relationship to events
-    events = relationship("Event", back_populates="user", cascade="all, delete-orphan")
-    
+
+    # Relationship to collections
+    collections = relationship("Collection", back_populates="user", cascade="all, delete-orphan")
+
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}')>"
 
 
-class Event(Base):
-    __tablename__ = 'events'
+class Collection(Base):
+    __tablename__ = 'collections'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    description = Column(String(500), nullable=False)
+    category = Column(String(50), nullable=False)
+    tags = Column(String(255), nullable=True) # splited by comma
     details = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), 
                        onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     
     # Relationship to user
-    user = relationship("User", back_populates="events")
-    
+    user = relationship("User", back_populates="collections")
+
     def __repr__(self):
-        return f"<Event(id={self.id}, user_id={self.user_id}, description='{self.description[:50]}...')>"
+        return f"<Collection(id={self.id}, user_id={self.user_id}, category='{self.category}...')>"
 
 
-class EventAttachment(Base):
-    __tablename__ = 'event_attachments'
+class Attachment(Base):
+    __tablename__ = 'attachments'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    event_id = Column(Integer, ForeignKey('events.id'), nullable=False)
+    collection_id = Column(Integer, ForeignKey('collections.id'), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     url = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     def __repr__(self):
-        return f"<EventAttachment(id={self.id}, event_id={self.event_id}, url='{self.url}')>"
+        return f"<Attachment(id={self.id}, collection_id={self.collection_id}, url='{self.url}')>"
 
