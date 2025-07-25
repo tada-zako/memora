@@ -100,13 +100,29 @@
             <!-- 主要内容区域 -->
             <div class="bg-white/90 glass-effect border border-gray-100 h-full min-h-0" style="padding: 28px;">
               <!-- 标题区域 -->
-              <div class="flex items-center mb-8">
-                <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
-                  <span class="text-white text-4xl">✨</span>
+              <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center">
+                  <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
+                    <span class="text-white text-4xl">✨</span>
+                  </div>
+                  <div>
+                    <h1 class="text-4xl font-bold text-gray-900">Your Collections</h1>
+                  </div>
                 </div>
-                <div>
-                  <h1 class="text-4xl font-bold text-gray-900">Your Collections</h1>
-                </div>
+                
+                <!-- 刷新按钮 -->
+                <button 
+                  @click="refreshCollections"
+                  :disabled="isLoadingCollections"
+                  class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-smooth font-medium text-sm btn-hover flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="刷新收藏列表"
+                >
+                  <RotateCcw :class="[
+                    'w-4 h-4 transition-transform duration-300',
+                    isLoadingCollections ? 'animate-spin' : ''
+                  ]" />
+                  <span>{{ isLoadingCollections ? '刷新中...' : '刷新' }}</span>
+                </button>
               </div>
               
               <div style="width: 100%; display: flex; gap: 16px;">
@@ -162,9 +178,15 @@
               </div>
               
               <!-- 空状态 -->
-              <div v-if="collections.length === 0" class="text-center" style="height: calc(100% - 84px); display: flex; justify-content: center; align-items: center; flex-direction: column;">
+              <div v-if="collections.length === 0 && !isLoadingCollections" class="text-center" style="height: calc(100% - 84px); display: flex; justify-content: center; align-items: center; flex-direction: column;">
                 <div class="text-6xl mb-4">📚</div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-2">还没有收藏</h3>
+              </div>
+              
+              <!-- 加载状态 -->
+              <div v-if="isLoadingCollections && collections.length === 0" class="text-center" style="height: calc(100% - 84px); display: flex; justify-content: center; align-items: center; flex-direction: column;">
+                <div class="w-8 h-8 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mb-4"></div>
+                <p class="text-gray-500">正在加载收藏...</p>
               </div>
             </div>
           </div>
@@ -458,7 +480,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { 
   Camera, User, Bell, Settings, Calendar, Upload, Plus, Eye, Edit, Trash2, FileText,
   X, ExternalLink, RotateCcw, Globe, Star, Home
@@ -785,11 +807,53 @@ const closeAnnoyanceModal = () => {
   sidebarToggleCount.value = 0 // 重置计数
 }
 
+// 刷新收藏列表
+const isLoadingCollections = ref(false)
+const refreshTimer = ref(null)
+
+const refreshCollections = async () => {
+  isLoadingCollections.value = true
+  try {
+    await fetchCollections()
+  } catch (error) {
+    console.error('刷新收藏失败:', error)
+  } finally {
+    isLoadingCollections.value = false
+  }
+}
+
+// 启动自动刷新
+const startAutoRefresh = () => {
+  // 清除之前的定时器（如果存在）
+  if (refreshTimer.value) {
+    clearInterval(refreshTimer.value)
+  }
+  
+  // 设置每15秒自动刷新
+  refreshTimer.value = setInterval(() => {
+    refreshCollections()
+  }, 15000)
+}
+
+// 停止自动刷新
+const stopAutoRefresh = () => {
+  if (refreshTimer.value) {
+    clearInterval(refreshTimer.value)
+    refreshTimer.value = null
+  }
+}
+
 // 初始化
 onMounted(async () => {
   currentPage.value = 'collections' // 默认显示收藏页面
   updateTodayEventsCount()
   await fetchCollections() // 获取分类数据
+  startAutoRefresh() // 启动自动刷新
+})
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  stopAutoRefresh()
 })
 </script>
 
