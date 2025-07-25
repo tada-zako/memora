@@ -1,7 +1,7 @@
 import './assets/styles.css'
 import { createApp } from 'vue'
 import App from './App.vue'
-import QuickApp from './QuickApp.vue'
+import QuickApp from './components/QuickWindow.vue'
 import router from './router'
 
 // 根据URL hash决定加载哪个应用组件
