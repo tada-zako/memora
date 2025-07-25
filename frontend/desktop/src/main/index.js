@@ -88,8 +88,7 @@ function createQuickWindow() {
       alwaysOnTop: true,
       skipTaskbar: true,
       resizable: false,
-      transparent: true,
-      backgroundColor: '#00000000',
+      backgroundColor: '#fff',
       hasShadow: false,
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),
@@ -185,6 +184,7 @@ async function toggleQuickWindow() {
     const { workAreaSize } = screen.getPrimaryDisplay()
     const windowWidth = 320
     const windowHeight = 480
+    const frame = false
     quickWindow.setSize(windowWidth, windowHeight)
     const newX = workAreaSize.width - windowWidth - 20
     const newY = workAreaSize.height - windowHeight - 20

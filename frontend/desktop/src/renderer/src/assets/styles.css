@@ -23,7 +23,6 @@ body {
   height: 100vh;
   overflow: hidden;
   border-radius: 24px;
-  background-color: transparent;
 }
 
 /* 自定义滚动条样式 */
