@@ -211,7 +211,7 @@ async def get_user_collections(user_id: int, category_id: int | None = None, db:
             "collections": [
                 {
                     "id": collection.id,
-                    "category": collection.category.name if collection.category else None,
+                    "category_id": collection.category_id,
                     "details": collection.details,
                     "created_at": collection.created_at.isoformat(),
                     "updated_at": collection.updated_at.isoformat(),
