@@ -28,37 +28,8 @@
               sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
             ]"
           >
-            <h1 class="text-base font-semibold text-gray-900 whitespace-nowrap">Memora</h1>
-            <p class="text-xs text-gray-500 font-light whitespace-nowrap">事件记录管理</p>
+            <h1 class="text-base font-bold text-gray-900 whitespace-nowrap">Memora</h1>
           </div>
-        </div>
-      </div>
-
-      <!-- 快捷图标 -->
-      <div :class="['border-b border-gray-50 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-3']">
-        <div :class="[!sidebarExpanded ? 'flex justify-center' : '']">
-          <button
-            @click="currentPage = 'collections'"
-            :class="[
-              'flex items-center rounded-lg text-left transition-all duration-300 ease-in-out btn-hover',
-              sidebarExpanded ? 'w-full space-x-3 px-3 py-2.5' : 'w-12 h-12 justify-center',
-              'bg-green-100 text-green-700 hover:bg-green-200'
-            ]"
-            :title="!sidebarExpanded ? '主页' : ''"
-          >
-            <Home :class="[
-              'flex-shrink-0 transition-all duration-300 ease-in-out',
-              sidebarExpanded ? 'w-4 h-4' : 'w-6 h-6'
-            ]" />
-            <span 
-              :class="[
-                'font-medium text-sm transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap',
-                sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
-              ]"
-            >
-              主页
-            </span>
-          </button>
         </div>
       </div>
 
@@ -117,63 +88,36 @@
           </div>
         </div>
       </div>
-
-      <!-- 临时清除缓存按钮 -->
-      <div :class="['transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-3']">
-        <button
-          @click="clearCache"
-          :class="[
-            'flex items-center rounded-lg text-left transition-all duration-300 ease-in-out btn-hover w-full',
-            'bg-red-50 text-red-700 hover:bg-red-100',
-            sidebarExpanded ? 'space-x-3 px-3 py-2.5' : 'w-12 h-12 justify-center'
-          ]"
-          title="清除缓存"
-        >
-          <Trash2 :class="[
-            'flex-shrink-0 transition-all duration-300 ease-in-out',
-            sidebarExpanded ? 'w-4 h-4' : 'w-6 h-6'
-          ]" />
-          <span
-            :class="[
-              'font-medium text-sm transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap',
-              sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
-            ]"
-          >
-            清除缓存
-          </span>
-        </button>
-      </div>
     </div>
 
     <!-- 主内容区域 -->
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
 
               <!-- 页面内容 -->
-        <main class="flex-1 overflow-auto p-6 custom-scrollbar">
+        <main class="flex-1 overflow-auto custom-scrollbar">
           <!-- 收藏管理页面 -->
           <div v-if="currentPage === 'collections'" class="h-full">
             <!-- 主要内容区域 -->
-            <div class="bg-white/90 glass-effect rounded-2xl border border-gray-100 h-full p-8 min-h-0">
+            <div class="bg-white/90 glass-effect border border-gray-100 h-full min-h-0" style="padding: 28px;">
               <!-- 标题区域 -->
               <div class="flex items-center mb-8">
-                <div class="bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center w-8 h-8 mr-3 shadow-minimal">
-                  <span class="text-white text-lg">✨</span>
+                <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
+                  <span class="text-white text-4xl">✨</span>
                 </div>
                 <div>
-                  <h1 class="text-4xl font-semibold text-gray-900">收藏夹</h1>
+                  <h1 class="text-4xl font-bold text-gray-900">Your Collections</h1>
                 </div>
               </div>
               
-              <!-- 收藏卡片网格 -->
-              <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+              <div style="width: 100%; display: flex; gap: 16px;">
                 <!-- 添加新收藏按钮 -->
-                <button 
+                <!-- <button 
                   @click="showCreateCollection = true"
                   class="h-30 w-48 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-xl flex flex-col items-center justify-center transition-all duration-300 ease-out group shadow-md hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1"
                 >
                   <Plus class="w-5 h-5 text-gray-400 group-hover:text-gray-600 mb-1" />
                   <span class="text-xs font-medium text-gray-500 group-hover:text-gray-700">添加收藏</span>
-                </button>
+                </button> -->
                 
                 <!-- 收藏卡片 -->
                 <div 
@@ -181,23 +125,20 @@
                   :key="collection.id"
                   @click="viewCollection(collection)"
                   :class="[
-                    'h-30 w-48 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 text-gray-800 relative overflow-hidden group shadow-sm border border-white/60',
-                    collection.color
+                    'h-30 w-48 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 text-gray-800 relative overflow-hidden group shadow-sm border border-white/60'
                   ]"
                 >
                   <!-- 背景效果 -->
-                  <div class="absolute inset-0">
+                  <div class="absolute">
                     <!-- 清新的光泽效果 -->
                     <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent"></div>
-                    <!-- 背景图案 -->
-                    <div class="absolute top-1 right-1 text-2xl opacity-15">{{ collection.icon }}</div>
                   </div>
                   
                   <!-- 内容 -->
                   <div class="relative z-10">
                     <div class="text-xl mb-1">{{ collection.icon }}</div>
-                    <h3 class="text-base font-semibold mb-0.5 truncate text-gray-800">{{ collection.name }}</h3>
-                    <p class="text-gray-600 text-sm truncate leading-tight">{{ collection.description }}</p>
+                    <h3 class="text-2xl font-bold mb-0.5 truncate text-gray-1000">{{ collection.name }}</h3>
+                    <p class="text-gray-600 text-sm truncate leading-tight">3 个收藏</p>
                   </div>
                   
                   <!-- 操作按钮 -->
@@ -540,9 +481,7 @@ const currentPage = ref('collections')
 
 // 菜单项
 const menuItems = [
-  { id: 'collections', name: '我的收藏', icon: Star },
-  { id: 'events', name: '事件管理', icon: Calendar },
-  { id: 'attachments', name: '附件管理', icon: Upload }
+  { id: 'collections', name: '收藏', icon: Star },
 ]
 
 // 用户信息
@@ -667,20 +606,9 @@ const createEvent = async () => {
 const createCollection = () => {
   if (!newCollectionName.value.trim()) return
 
-  // 清新的渐变色彩方案
-  const freshColors = [
-    'bg-gradient-to-br from-pink-100 via-rose-200 to-pink-300',
-    'bg-gradient-to-br from-orange-100 via-amber-200 to-yellow-300',
-    'bg-gradient-to-br from-lime-100 via-green-200 to-emerald-300',
-    'bg-gradient-to-br from-cyan-100 via-blue-200 to-indigo-300',
-    'bg-gradient-to-br from-purple-100 via-violet-200 to-fuchsia-300',
-    'bg-gradient-to-br from-slate-100 via-gray-200 to-zinc-300'
-  ]
-
   const collection = {
     id: Date.now(),
     name: newCollectionName.value,
-    color: freshColors[Math.floor(Math.random() * freshColors.length)],
     icon: '📚', // 默认图标
     description: newCollectionDescription.value || null,
     created_at: new Date().toISOString()
@@ -782,27 +710,6 @@ const getFileName = (url) => {
   }
   return url.split('/').pop()
 }
-
-
-// 清除缓存
-const clearCache = async () => {
-  if (window.electronAPI && window.electronAPI.invoke) {
-    try {
-      const result = await window.electronAPI.invoke('clear-cache');
-      if (result.success) {
-        statusMessage.value = { type: 'success', text: result.message };
-        setTimeout(() => { statusMessage.value = null }, 3000);
-      } else {
-        statusMessage.value = { type: 'error', text: result.message };
-        setTimeout(() => { statusMessage.value = null }, 3000);
-      }
-    } catch (error) {
-      statusMessage.value = { type: 'error', text: '调用清除缓存功能失败' };
-      setTimeout(() => { statusMessage.value = null }, 3000);
-    }
-  }
-};
-
 
 // 侧边栏交互处理
 const handleSidebarEnter = () => {

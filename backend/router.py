@@ -32,10 +32,10 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(collection_router)
-app.include_router(user_events_router)
-app.include_router(attachment_router)
-app.include_router(category_router)
+app.include_router(collection_router, prefix="/api/v1")
+app.include_router(user_events_router, prefix="/api/v1")
+app.include_router(attachment_router, prefix="/api/v1")
+app.include_router(category_router, prefix="/api/v1")
 
 # Mount static files for uploads
 mount_static_files(app)
