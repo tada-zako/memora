@@ -182,7 +182,7 @@
     >
       <!-- Logo区域 -->
       <div :class="['border-b border-gray-50 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-6' : 'p-4']">
-        <div class="flex items-center space-x-3">
+        <div :class="['flex items-center', sidebarExpanded ? 'space-x-3' : 'justify-center']">
           <div :class="[
             'bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg flex items-center justify-center shadow-minimal flex-shrink-0 transition-all duration-300 ease-in-out',
             sidebarExpanded ? 'w-8 h-8' : 'w-12 h-12'
@@ -205,14 +205,14 @@
       </div>
 
       <!-- 导航菜单 -->
-      <nav :class="['flex-1 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-3']">
+      <nav :class="['flex-1 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-4']">
         <ul :class="[sidebarExpanded ? 'space-y-1' : 'space-y-2']">
-          <li v-for="item in menuItems" :key="item.id">
+          <li v-for="item in menuItems" :key="item.id" :class="[!sidebarExpanded ? 'flex justify-center' : '']">
             <button
               @click="currentPage = item.id"
               :class="[
-                'w-full flex items-center rounded-lg text-left transition-all duration-300 ease-in-out btn-hover',
-                sidebarExpanded ? 'space-x-3 px-3 py-2.5' : 'justify-center px-2 py-3',
+                'flex items-center rounded-lg text-left transition-all duration-300 ease-in-out btn-hover',
+                sidebarExpanded ? 'w-full space-x-3 px-3 py-2.5' : 'w-12 h-12 justify-center',
                 currentPage === item.id 
                   ? 'bg-gray-900 text-white shadow-minimal' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -263,33 +263,6 @@
 
     <!-- 主内容区域 -->
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
-      <!-- 顶部栏 -->
-      <header class="bg-white/80 glass-effect border-b border-gray-100 px-6 py-4 flex-shrink-0">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-lg font-semibold text-gray-900">{{ getCurrentPageTitle() }}</h2>
-            <p class="text-sm text-gray-500 mt-0.5">{{ getCurrentDate() }}</p>
-          </div>
-          <div class="flex items-center space-x-2">
-            <div class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-              Ctrl + Space 快速访问
-            </div>
-            <button 
-              @click="testQuickWindow"
-              class="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
-              title="测试快速窗口"
-            >
-              测试小窗
-            </button>
-            <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50 transition-smooth btn-hover">
-              <Bell class="w-4 h-4" />
-            </button>
-            <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50 transition-smooth btn-hover">
-              <Settings class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </header>
 
       <!-- 页面内容 -->
       <main class="flex-1 overflow-auto p-6 custom-scrollbar">
