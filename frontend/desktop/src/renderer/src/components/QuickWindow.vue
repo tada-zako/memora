@@ -155,11 +155,52 @@
                     </svg>
                     <span class="card-title">分类</span>
                   </div>
+                  <button v-if="!isEditingTags" @click="startEditingTags" class="edit-btn small" title="编辑标签">
+                    <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
                 </div>
                 <div class="category-content">
                   <span class="category-tag">{{ processedData.category }}</span>
-                  <div v-if="processedData.tags && processedData.tags.length" class="tags-container">
-                    <span v-for="tag in processedData.tags" :key="tag" class="tag">{{ tag }}</span>
+                  <!-- 标签显示/编辑区域 -->
+                  <div v-if="!isEditingTags" class="tags-container">
+                    <span v-if="processedData.tags && processedData.tags.length === 0" class="no-tags-hint">暂无标签</span>
+                    <span v-else-if="processedData.tags && processedData.tags.length" v-for="tag in processedData.tags" :key="tag" class="tag">{{ tag }}</span>
+                  </div>
+                  <div v-else-if="isEditingTags" class="tags-edit-container">
+                    <div class="tags-edit-area">
+                      <div class="editing-tags">
+                        <span 
+                          v-for="(tag, index) in editingTags" 
+                          :key="index" 
+                          class="editing-tag"
+                        >
+                          {{ tag }}
+                          <button @click="removeTag(index)" class="remove-tag-btn" title="删除标签">
+                            <svg class="remove-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </span>
+                        <input 
+                          ref="tagInput"
+                          type="text" 
+                          class="tag-input"
+                          placeholder="输入标签并按回车..."
+                          @keydown="handleTagKeydown($event)"
+                          maxlength="20"
+                        />
+                      </div>
+                    </div>
+                    <div class="edit-actions">
+                      <button @click="cancelEditing" class="cancel-btn" title="取消">
+                        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -212,7 +253,7 @@
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 <div v-else class="spinner btn-spinner"></div>
-                {{ isEditingUrl || isEditingSummary ? (isUpdating ? '保存中...' : '确认修改') : '开始新收集' }}
+                {{ isEditingUrl || isEditingSummary || isEditingTags ? (isUpdating ? '保存中...' : '确认修改') : '开始新收集' }}
               </button>
             </div>
           </div>
@@ -305,8 +346,10 @@ const showCompletionMessage = ref(false)
 // 新增：编辑相关状态
 const isEditingUrl = ref(false)
 const isEditingSummary = ref(false)
+const isEditingTags = ref(false)
 const editingUrl = ref('')
 const editingSummary = ref('')
+const editingTags = ref([])
 const isUpdating = ref(false)
 
 // 新增：测试后端连接
@@ -360,8 +403,10 @@ const resetQuickWindowState = () => {
   // 重置编辑相关状态
   isEditingUrl.value = false
   isEditingSummary.value = false
+  isEditingTags.value = false
   editingUrl.value = ''
   editingSummary.value = ''
+  editingTags.value = []
   isUpdating.value = false
   stepCompleted.value = {
     1: false,
@@ -678,6 +723,89 @@ const captureEdgeUrl = async () => {
   }
 }
 
+// 新增：获取集合标签的API调用
+const fetchCollectionTags = async (collectionId) => {
+  try {
+    console.log(`=== 获取集合标签 ===`)
+    console.log('Collection ID:', collectionId)
+
+    const response = await fetch(`/api/v1/collection/${collectionId}/tags`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+
+    console.log('获取标签响应:', {
+      status: response.status,
+      statusText: response.statusText
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('获取标签失败:', errorText)
+      throw new Error(`获取标签失败: ${response.status} ${response.statusText}`)
+    }
+
+    const result = await response.json()
+    console.log('获取标签成功:', result)
+    return result.data.tags
+  } catch (error) {
+    console.error('获取集合标签失败:', error)
+    statusMessage.value = {
+      type: 'error',
+      text: `获取标签失败: ${error.message}`
+    }
+    setTimeout(() => {
+      statusMessage.value = null
+    }, 5000)
+    return []
+  }
+}
+
+// 新增：更新集合标签的API调用
+const updateCollectionTags = async (collectionId, tags) => {
+  try {
+    console.log(`=== 更新集合标签 ===`)
+    console.log('Collection ID:', collectionId)
+    console.log('Tags:', tags)
+
+    const response = await fetch(`/api/v1/collection/${collectionId}/tags`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ tags: tags })
+    })
+
+    console.log('更新标签响应:', {
+      status: response.status,
+      statusText: response.statusText
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('更新标签失败:', errorText)
+      throw new Error(`更新标签失败: ${response.status} ${response.statusText}`)
+    }
+
+    const result = await response.json()
+    console.log('更新标签成功:', result)
+    return result.data.tags
+  } catch (error) {
+    console.error('更新集合标签失败:', error)
+    statusMessage.value = {
+      type: 'error',
+      text: `更新标签失败: ${error.message}`
+    }
+    setTimeout(() => {
+      statusMessage.value = null
+    }, 5000)
+    return null
+  }
+}
+
 // 新增：更新集合详情的API调用
 const updateCollectionDetail = async (key, value) => {
   try {
@@ -746,12 +874,44 @@ const startEditingSummary = () => {
   editingSummary.value = processedData.value.summary
 }
 
+// 新增：开始编辑标签
+const startEditingTags = async () => {
+  isEditingTags.value = true
+  // 获取最新的标签数据
+  const tags = await fetchCollectionTags(processedData.value.collectionId)
+  editingTags.value = Array.isArray(tags) ? [...tags] : [] // 创建副本以避免直接修改原数据
+}
+
 // 新增：取消编辑
 const cancelEditing = () => {
   isEditingUrl.value = false
   isEditingSummary.value = false
+  isEditingTags.value = false
   editingUrl.value = ''
   editingSummary.value = ''
+  editingTags.value = []
+}
+
+// 新增：标签编辑相关函数
+const addNewTag = (tagText) => {
+  if (tagText && tagText.trim() && !editingTags.value.includes(tagText.trim())) {
+    editingTags.value.push(tagText.trim())
+  }
+}
+
+const removeTag = (index) => {
+  editingTags.value.splice(index, 1)
+}
+
+const handleTagKeydown = (event, inputRef) => {
+  if (event.key === 'Enter' && event.target.value.trim()) {
+    event.preventDefault()
+    addNewTag(event.target.value)
+    event.target.value = ''
+  } else if (event.key === 'Backspace' && !event.target.value && editingTags.value.length > 0) {
+    // 当输入框为空时按退格键删除最后一个标签
+    removeTag(editingTags.value.length - 1)
+  }
 }
 
 // 新增：确认所有修改
@@ -773,6 +933,20 @@ const confirmAllChanges = async () => {
     const success = await updateCollectionDetail('summary', editingSummary.value)
     if (!success) {
       allSuccess = false
+    }
+  }
+
+  // 更新标签（如果正在编辑且有变化）
+  if (isEditingTags.value) {
+    const currentTags = processedData.value.tags || []
+    const tagsChanged = JSON.stringify(editingTags.value.sort()) !== JSON.stringify(currentTags.sort())
+    if (tagsChanged) {
+      const updatedTags = await updateCollectionTags(processedData.value.collectionId, editingTags.value)
+      if (updatedTags !== null) {
+        processedData.value.tags = updatedTags
+      } else {
+        allSuccess = false
+      }
     }
   }
 
@@ -799,7 +973,7 @@ const confirmAllChanges = async () => {
 // 修改：原来的确认修改函数
 const startNewCollection = () => {
   // 如果有任何编辑状态，先确认修改
-  if (isEditingUrl.value || isEditingSummary.value) {
+  if (isEditingUrl.value || isEditingSummary.value || isEditingTags.value) {
     confirmAllChanges()
   } else {
     resetQuickWindowState()
@@ -1548,6 +1722,8 @@ onMounted(() => {
                     display: flex;
                     flex-wrap: wrap;
                     gap: 4px;
+                    min-height: 20px;
+                    align-items: center;
 
                     .tag {
                       background: #f9fafb;
@@ -1557,6 +1733,12 @@ onMounted(() => {
                       font-size: 12px;
                       font-weight: 500;
                       border: 1px solid #f3f4f6;
+                    }
+                    
+                    .no-tags-hint {
+                      color: #9ca3af;
+                      font-size: 12px;
+                      font-style: italic;
                     }
                   }
                 }
@@ -2186,6 +2368,98 @@ onMounted(() => {
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+}
+
+// 标签编辑相关样式
+.tags-edit-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  
+  .tags-edit-area {
+    width: 100%;
+    
+    .editing-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      padding: 8px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      
+      &:focus-within {
+        border-color: #6b7280;
+        box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.1);
+      }
+      
+      .editing-tag {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: #f3f4f6;
+        color: #374151;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background: #f9fafb;
+          border-color: #d1d5db;
+        }
+        
+        .remove-tag-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 16px;
+          height: 16px;
+          background: transparent;
+          border: none;
+          border-radius: 2px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          
+          &:hover {
+            background: #fee2e2;
+          }
+          
+          .remove-icon {
+            width: 10px;
+            height: 10px;
+            color: #9ca3af;
+            transition: color 0.2s ease;
+          }
+          
+          &:hover .remove-icon {
+            color: #dc2626;
+          }
+        }
+      }
+      
+      .tag-input {
+        flex: 1;
+        min-width: 120px;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 12px;
+        color: #374151;
+        padding: 4px 0;
+        
+        &::placeholder {
+          color: #9ca3af;
+        }
+      }
+    }
   }
 }
 </style>

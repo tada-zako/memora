@@ -22,6 +22,9 @@ from typing import Optional
 class CollectionDetailUpdate(BaseModel):
     value: Optional[str] = None
 
+class CollectionTagsUpdate(BaseModel):
+    tags: list[str]
+
 # Create router instance
 router = APIRouter(
     prefix="/collection",
@@ -309,4 +312,35 @@ async def delete_collection_detail(collection_id: int, key: str, db: AsyncSessio
         status="success",
         message="Detail deleted successfully",
         data={"key": key}
+    )
+
+@router.get("/{collection_id}/tags", response_model=Response)
+async def get_collection_tags(collection_id: int, db: AsyncSession = Depends(get_db)):
+    collection_query = select(Collection).where(Collection.id == collection_id)
+    collection_result = await db.execute(collection_query)
+    collection = collection_result.scalar_one_or_none()
+    if not collection:
+        raise HTTPException(status_code=404, detail="Collection not found")
+    tags = collection.tags.split(",") if collection.tags else []
+    return Response(
+        status="success",
+        message="Collection tags fetched successfully",
+        data={"tags": tags}
+    )
+
+@router.put("/{collection_id}/tags", response_model=Response)
+async def update_collection_tags(collection_id: int, update: CollectionTagsUpdate, db: AsyncSession = Depends(get_db)):
+    collection_query = select(Collection).where(Collection.id == collection_id)
+    collection_result = await db.execute(collection_query)
+    collection = collection_result.scalar_one_or_none()
+    if not collection:
+        raise HTTPException(status_code=404, detail="Collection not found")
+    collection.tags = ",".join(update.tags)
+    db.add(collection)
+    await db.commit()
+    await db.refresh(collection)
+    return Response(
+        status="success",
+        message="Collection tags updated successfully",
+        data={"tags": update.tags}
     )
