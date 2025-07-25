@@ -6,7 +6,7 @@ from typing import List
 from pydantic import BaseModel
 from loguru import logger
 
-from model import User, Collection
+from model import User, Collection, Category
 from db import get_db
 from ai.PROMPTS import (
     PROMPT_PARSE_CATEGORY_AND_TAGS,
@@ -34,7 +34,9 @@ class CollectionUrlResponseDelta(BaseModel):
     data: dict
 
 
-async def streaming_create_collection_url(collection: CollectionUrlCreate, db: AsyncSession):
+async def streaming_create_collection_url(
+    collection: CollectionUrlCreate, db: AsyncSession
+):
     """
     Create a new collection which type is url reference
     """
@@ -42,7 +44,7 @@ async def streaming_create_collection_url(collection: CollectionUrlCreate, db: A
     user_id = 1  # TODO(Soulter): This should be replaced with actual user_id from request context or authentication
 
     db_collection = Collection(
-        user_id=user_id, category="url", details={"url": collection.url}
+        user_id=user_id, details={"url": collection.url}
     )
     db.add(db_collection)
     await db.commit()
@@ -56,26 +58,31 @@ async def streaming_create_collection_url(collection: CollectionUrlCreate, db: A
         },
     )
 
-    # step 1.5: get categories from db
-    categories_query = select(Collection.category).distinct()
-    categories_result = await db.execute(categories_query)
-    categories = [row[0] for row in categories_result.all()]
-
-    categories_str = ", ".join(categories)
-    cate_sys_prompt = PROMPT_PARSE_CATEGORY_AND_TAGS.format(categories=categories_str)
-
     # step 2: fetching the content of the url
     content = await markdownit_helper.markdownit(collection.url)
 
-    logger.info(f"Fetched content from {collection.url}, length: {len(content)}: {content[:50]}...")
+    logger.info(
+        f"Fetched content from {collection.url}, length: {len(content)}: {content[:50]}..."
+    )
 
     yield CollectionUrlResponseDelta(
         type="content_fetched",
         data={
             "url": collection.url,
-            "content": content,
+            "content": f"{content[:100]}...",
         },
     )
+
+    # step 2.5: get categories from db
+    categories_query = select(Category.name, Category.emoji).order_by(Category.name)
+    categories_result = await db.execute(categories_query)
+    categories = [row[0] for row in categories_result.all()]
+    category_emojis = [row[1] for row in categories_result.all()]
+
+    categories_str = ", ".join(
+        [f"{cat}({emoji})" for cat, emoji in zip(categories, category_emojis)]
+    )
+    cate_sys_prompt = PROMPT_PARSE_CATEGORY_AND_TAGS.format(categories=categories_str)
 
     # step 3: llm analyze the category and tags
     cate_llm_resp = await provider_openai.text_chat(
@@ -84,7 +91,20 @@ async def streaming_create_collection_url(collection: CollectionUrlCreate, db: A
     )
     cate_json = parse_json(cate_llm_resp.completion_text)
     category: str = cate_json.get("category", "")
+    category_emoji: str = cate_json.get("category_emoji", "")
     tags: list = cate_json.get("tags", [])
+
+    # save to category if not exists
+    db_category = await db.execute(
+        select(Category).where(Category.name == category)
+    )
+    if category and not db_category.scalar_one_or_none():
+        new_category = Category(name=category, emoji=category_emoji)
+        db.add(new_category)
+        await db.commit()
+        await db.refresh(new_category)
+        logger.info(f"New category created: {new_category.name}")
+
     yield CollectionUrlResponseDelta(
         type="category_analyzed",
         data={
@@ -93,10 +113,19 @@ async def streaming_create_collection_url(collection: CollectionUrlCreate, db: A
         },
     )
 
+    # get category_id
+    category_query = select(Category.id).where(Category.name == category)
+    category_result = await db.execute(category_query)
+    category_id = category_result.scalar_one_or_none()
+
     # step 2.5: update collection with category and tags
-    db_collection.category = category # type: ignore
-    db_collection.tags = ",".join(tags) if tags else None  # type: ignore
+    if not category_id:
+        category_id = -1
+
+    db_collection.category_id = category_id
+    db_collection.tags = ",".join(tags)
     db.add(db_collection)
+
     await db.commit()
 
     # step 3: llm summarize the content, using streaming
@@ -122,7 +151,9 @@ async def streaming_create_collection_url(collection: CollectionUrlCreate, db: A
 
 
 @router.post(
-    "/url", response_model=CollectionUrlResponseDelta, status_code=status.HTTP_201_CREATED
+    "/url",
+    response_model=CollectionUrlResponseDelta,
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_collection_url(
     event: CollectionUrlCreate, db: AsyncSession = Depends(get_db)
@@ -130,6 +161,7 @@ async def create_collection_url(
     """
     Create a new collection which type is url reference
     """
+
     async def steaming():
         async for delta in streaming_create_collection_url(event, db):
             data = delta.model_dump_json()

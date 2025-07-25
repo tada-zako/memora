@@ -45,7 +45,6 @@ class ProviderOpenAI:
         query = [*context, query]
         if system_prompt:
             query.insert(0, {"role": "system", "content": system_prompt})
-        logger.info(f"Query: {query}")
         resp = await self.client.chat.completions.create(
             model=model,
             messages=query,
@@ -86,8 +85,6 @@ class ProviderOpenAI:
         query = [*context, query]
         if system_prompt:
             query.insert(0, {"role": "system", "content": system_prompt})
-
-        logger.info(f"Query: {query}")
 
         stream = await self.client.chat.completions.create(
             model=model,

@@ -11,6 +11,7 @@ Your output should be a JSON object with the following structure:
 ```json
 {{
     "category": "string",  # The category of the content
+    "category_emoji": "string",  # An optional emoji representing the category
     "tags": ["string1", "string2", ...]  # A list of relevant tags
 }}
 ```

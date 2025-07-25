@@ -25,13 +25,23 @@ class User(Base):
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}')>"
 
+class Category(Base):
+    __tablename__ = 'categories'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(50), unique=True, nullable=False)
+    emoji = Column(String(10), nullable=True)  # Optional emoji for category
+
+    def __repr__(self):
+        return f"<Category(id={self.id}, name='{self.name}')>"
+    
 
 class Collection(Base):
     __tablename__ = 'collections'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    category = Column(String(50), nullable=False)
+    category_id = Column(Integer, ForeignKey('categories.id'), nullable=True)
     tags = Column(String(255), nullable=True) # splited by comma
     details = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
@@ -40,6 +50,7 @@ class Collection(Base):
     
     # Relationship to user
     user = relationship("User", back_populates="collections")
+    category = relationship("Category")
 
     def __repr__(self):
         return f"<Collection(id={self.id}, user_id={self.user_id}, category='{self.category}...')>"
