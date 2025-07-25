@@ -1,10 +1,23 @@
-import { app, shell, BrowserWindow, ipcMain, globalShortcut, screen } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, globalShortcut, screen, session } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import fs from 'fs'
+
+// WORKAROUND: For persistent "Access Denied" cache errors on startup.
+// This moves the user data directory to a new location to circumvent
+// potential permission issues or antivirus locks on the default directory.
+// This must be called before the 'ready' event.
+try {
+  const newPath = join(app.getPath('userData'), '..', `${app.getName()}-data`)
+  app.setPath('userData', newPath)
+  console.log(`Switched userData path to: ${newPath}`)
+} catch (error) {
+  console.error('Failed to set new userData path:', error)
+}
+
 
 const execAsync = promisify(exec)
 
@@ -94,6 +107,15 @@ function createQuickWindow() {
       console.log('Quick window lost focus')
       if (quickWindow && !quickWindow.webContents.isDevToolsOpened() && !isCapturingUrl) {
         quickWindow.hide()
+      }
+    })
+
+    // 在窗口级别处理F11事件，阻止全屏但允许彩蛋功能
+    quickWindow.webContents.on('before-input-event', (event, input) => {
+      if (input.key === 'F11') {
+        event.preventDefault()
+        // 发送F11事件到渲染进程用于彩蛋
+        quickWindow.webContents.send('f11-pressed')
       }
     })
 
@@ -632,6 +654,9 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  // 注意：不在这里注册全局F11快捷键，避免影响其他应用
+  // 只在窗口级别禁用全屏功能即可
+
   // 注册全局快捷键 - Windows 使用 Ctrl+Space，macOS 使用 Cmd+Space
   console.log('Registering global shortcuts...')
   
@@ -743,6 +768,44 @@ app.whenReady().then(() => {
   ipcMain.handle('detect-active-browser', async () => {
     console.log('IPC: detect-active-browser called')
     return await detectActiveBrowser()
+  })
+
+  // 新增：清除缓存的 IPC 处理器
+  ipcMain.handle('clear-cache', async () => {
+    try {
+      console.log('IPC: clear-cache called. Attempting to manually delete cache directories.')
+      
+      const userDataPath = app.getPath('userData')
+      // Common cache-related folders in Electron
+      const cacheFolders = ['Cache', 'Code Cache', 'GPUCache', 'ShaderCache']
+      
+      for (const folder of cacheFolders) {
+        const folderPath = join(userDataPath, folder)
+        try {
+          // Use fs.promises.rm for modern, async removal.
+          // The { recursive: true, force: true } options will delete the directory and its contents,
+          // and won't throw an error if the path doesn't exist.
+          await fs.promises.rm(folderPath, { recursive: true, force: true })
+          console.log(`Successfully deleted directory: ${folderPath}`)
+        } catch (error) {
+          // Log error but continue to the next folder and relaunch
+          console.error(`Failed to delete directory ${folderPath}:`, error)
+        }
+      }
+
+      console.log('Cache directories cleared. Relaunching application...')
+      
+      // Relaunch the application
+      app.relaunch()
+      app.quit()
+      
+      // This message will be sent, but the app will quit immediately after.
+      return { success: true, message: '缓存已深度清除，应用即将重启' }
+
+    } catch (error) {
+      console.error('Failed to clear cache and relaunch:', error)
+      return { success: false, message: `清除缓存失败: ${error.message}` }
+    }
   })
 
   createWindow()

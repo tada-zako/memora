@@ -89,6 +89,32 @@
           </div>
         </div>
       </div>
+
+      <!-- 临时清除缓存按钮 -->
+      <div :class="['transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-3']">
+        <button
+          @click="clearCache"
+          :class="[
+            'flex items-center rounded-lg text-left transition-all duration-300 ease-in-out btn-hover w-full',
+            'bg-red-50 text-red-700 hover:bg-red-100',
+            sidebarExpanded ? 'space-x-3 px-3 py-2.5' : 'w-12 h-12 justify-center'
+          ]"
+          title="清除缓存"
+        >
+          <Trash2 :class="[
+            'flex-shrink-0 transition-all duration-300 ease-in-out',
+            sidebarExpanded ? 'w-4 h-4' : 'w-6 h-6'
+          ]" />
+          <span
+            :class="[
+              'font-medium text-sm transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap',
+              sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
+            ]"
+          >
+            清除缓存
+          </span>
+        </button>
+      </div>
     </div>
 
     <!-- 主内容区域 -->
@@ -273,6 +299,11 @@
       </main>
     </div>
 
+    <!-- 状态消息提示 -->
+    <div v-if="statusMessage" class="fixed bottom-5 right-5 bg-gray-900 text-white px-5 py-3 rounded-lg shadow-lg z-50 transition-all duration-300" :class="statusMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'">
+      {{ statusMessage.text }}
+    </div>
+
     <!-- 创建事件模态框 -->
     <div v-if="showCreateEvent" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-xl p-6 max-w-md w-full">
@@ -390,6 +421,8 @@ const attachmentDescription = ref('')
 const isDragging = ref(false)
 const fileInput = ref(null)
 
+// 状态消息
+const statusMessage = ref(null)
 
 
 // 计算属性
@@ -526,6 +559,25 @@ const getFileName = (url) => {
   return url.split('/').pop()
 }
 
+
+// 清除缓存
+const clearCache = async () => {
+  if (window.electronAPI && window.electronAPI.invoke) {
+    try {
+      const result = await window.electronAPI.invoke('clear-cache');
+      if (result.success) {
+        statusMessage.value = { type: 'success', text: result.message };
+        setTimeout(() => { statusMessage.value = null }, 3000);
+      } else {
+        statusMessage.value = { type: 'error', text: result.message };
+        setTimeout(() => { statusMessage.value = null }, 3000);
+      }
+    } catch (error) {
+      statusMessage.value = { type: 'error', text: '调用清除缓存功能失败' };
+      setTimeout(() => { statusMessage.value = null }, 3000);
+    }
+  }
+};
 
 
 // 侧边栏交互处理

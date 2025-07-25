@@ -110,6 +110,11 @@
         <div v-if="statusMessage" class="status-message" :class="statusMessage.type">
           {{ statusMessage.text }}
         </div>
+        
+        <!-- 彩蛋消息 -->
+        <div v-if="showEasterEgg" class="easter-egg-message">
+          rnm，老子都把F11禁用了你还按
+        </div>
       </div>
     </div>
   </template>
@@ -131,6 +136,10 @@
   
   // 事件数据 (简化版，只用于保存事件)
   const events = ref([])
+  
+  // 彩蛋：F11按键计数器
+  const f11PressCount = ref(0)
+  const showEasterEgg = ref(false)
   
   const resetQuickWindowState = () => {
     capturedUrl.value = ''
@@ -339,6 +348,25 @@
         } else {
           detectedBrowser.value = 'NONE'
           hasBrowser.value = false
+        }
+      })
+    }
+    
+    // 监听F11事件，实现彩蛋
+    if (window.electronAPI && window.electronAPI.on) {
+      window.electronAPI.on('f11-pressed', () => {
+        console.log('F11 pressed! Count:', f11PressCount.value + 1) // 调试日志
+        f11PressCount.value++
+        
+        if (f11PressCount.value >= 10) {
+          console.log('Easter egg triggered!') // 调试日志
+          showEasterEgg.value = true
+          f11PressCount.value = 0 // 重置计数器
+          
+          // 3秒后隐藏彩蛋
+          setTimeout(() => {
+            showEasterEgg.value = false
+          }, 3000)
         }
       })
     }
@@ -737,12 +765,44 @@
           border: 1px solid #9ce0d9;
         }
       }
+      
+      // 彩蛋消息样式
+      .easter-egg-message {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
+        z-index: 9999;
+        animation: easterEggPop 0.3s ease-out;
+        border: 2px solid #ff4757;
+      }
     }
   }
   
   @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+  }
+  
+  @keyframes easterEggPop {
+    0% {
+      transform: translate(-50%, -50%) scale(0.8);
+      opacity: 0;
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
   }
   </style>
   
