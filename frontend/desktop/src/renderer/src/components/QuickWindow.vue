@@ -110,20 +110,51 @@
 
           <!-- 处理完成结果 -->
           <div v-if="processedData && !isProcessing" class="processed-result">
-            <div class="result-header">
-              <div class="url-display">
-                {{ capturedUrl }}
+                      <div class="result-header">
+            <div class="url-section">
+              <!-- URL显示/编辑区域 -->
+              <div v-if="!isEditingUrl" class="url-display-container">
+                <div class="url-display">
+                  {{ capturedUrl }}
+                </div>
+                <button @click="startEditingUrl" class="edit-btn" title="编辑URL">
+                  <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              </div>
+              <!-- URL编辑状态 -->
+              <div v-else class="url-edit-container">
+                <input 
+                  v-model="editingUrl" 
+                  type="url" 
+                  class="url-edit-input"
+                  placeholder="输入URL..."
+                  @keydown.enter="confirmAllChanges"
+                  @keydown.esc="cancelEditing"
+                />
+                <div class="edit-actions">
+                  <button @click="cancelEditing" class="cancel-btn" title="取消">
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
 
             <div class="result-content">
               <div v-if="processedData.category" class="info-card category-card">
                 <div class="card-header">
-                  <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                  </svg>
-                  <span class="card-title">分类</span>
+                  <div class="card-title-group">
+                    <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    <span class="card-title">分类</span>
+                  </div>
                 </div>
                 <div class="category-content">
                   <span class="category-tag">{{ processedData.category }}</span>
@@ -135,13 +166,38 @@
 
               <div v-if="processedData.summary" class="info-card summary-card">
                 <div class="card-header">
-                  <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span class="card-title">摘要</span>
+                  <div class="card-title-group">
+                    <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span class="card-title">摘要</span>
+                  </div>
+                  <button v-if="!isEditingSummary" @click="startEditingSummary" class="edit-btn small" title="编辑摘要">
+                    <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
                 </div>
-                <div class="summary-content">{{ processedData.summary }}</div>
+                <!-- 摘要显示/编辑区域 -->
+                <div v-if="!isEditingSummary" class="summary-content">{{ processedData.summary }}</div>
+                <div v-else class="summary-edit-container">
+                  <textarea 
+                    v-model="editingSummary" 
+                    class="summary-edit-textarea"
+                    placeholder="输入摘要..."
+                    @keydown.esc="cancelEditing"
+                    rows="4"
+                  ></textarea>
+                  <div class="edit-actions">
+                    <button @click="cancelEditing" class="cancel-btn" title="取消">
+                      <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -150,12 +206,13 @@
                 <div class="status-indicator completed"></div>
                 <span class="completion-text">解析完成</span>
               </div>
-              <button v-else @click="startNewCollection" class="action-btn primary-btn">
-                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button v-else @click="startNewCollection" class="action-btn primary-btn" :disabled="isUpdating">
+                <svg v-if="!isUpdating" class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                确认修改
+                <div v-else class="spinner btn-spinner"></div>
+                {{ isEditingUrl || isEditingSummary ? (isUpdating ? '保存中...' : '确认修改') : '开始新收集' }}
               </button>
             </div>
           </div>
@@ -245,7 +302,14 @@ const stepCompleted = ref({
 // 解析完成提示状态
 const showCompletionMessage = ref(false)
 
-// 新增：测试连接状态
+// 新增：编辑相关状态
+const isEditingUrl = ref(false)
+const isEditingSummary = ref(false)
+const editingUrl = ref('')
+const editingSummary = ref('')
+const isUpdating = ref(false)
+
+// 新增：测试后端连接
 const isTesting = ref(false)
 
 // 事件数据 (简化版，只用于保存事件)
@@ -293,6 +357,12 @@ const resetQuickWindowState = () => {
   currentStep.value = 0
   isTesting.value = false
   showCompletionMessage.value = false
+  // 重置编辑相关状态
+  isEditingUrl.value = false
+  isEditingSummary.value = false
+  editingUrl.value = ''
+  editingSummary.value = ''
+  isUpdating.value = false
   stepCompleted.value = {
     1: false,
     2: false,
@@ -608,13 +678,132 @@ const captureEdgeUrl = async () => {
   }
 }
 
+// 新增：更新集合详情的API调用
+const updateCollectionDetail = async (key, value) => {
+  try {
+    isUpdating.value = true
+    console.log(`=== 更新集合详情 ===`)
+    console.log('Collection ID:', processedData.value.collectionId)
+    console.log('Key:', key)
+    console.log('Value:', value)
 
+    const response = await fetch(`/api/v1/collection/${processedData.value.collectionId}/details/${key}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ value: value })
+    })
 
+    console.log('更新响应:', {
+      status: response.status,
+      statusText: response.statusText
+    })
 
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('更新失败:', errorText)
+      throw new Error(`更新失败: ${response.status} ${response.statusText}`)
+    }
 
-// 新增：开始新的收集
+    const result = await response.json()
+    console.log('更新成功:', result)
+
+    // 更新本地数据
+    if (key === 'url') {
+      // 这里我们不更新capturedUrl，因为那是原始抓取的URL
+      // processedData中也不包含url字段，所以我们可能需要添加一个显示用的字段
+    } else if (key === 'summary') {
+      processedData.value.summary = value
+    }
+
+    return true
+  } catch (error) {
+    console.error('更新集合详情失败:', error)
+    statusMessage.value = {
+      type: 'error',
+      text: `更新失败: ${error.message}`
+    }
+    setTimeout(() => {
+      statusMessage.value = null
+    }, 5000)
+    return false
+  } finally {
+    isUpdating.value = false
+  }
+}
+
+// 新增：开始编辑URL
+const startEditingUrl = () => {
+  isEditingUrl.value = true
+  editingUrl.value = capturedUrl.value
+}
+
+// 新增：开始编辑摘要
+const startEditingSummary = () => {
+  isEditingSummary.value = true
+  editingSummary.value = processedData.value.summary
+}
+
+// 新增：取消编辑
+const cancelEditing = () => {
+  isEditingUrl.value = false
+  isEditingSummary.value = false
+  editingUrl.value = ''
+  editingSummary.value = ''
+}
+
+// 新增：确认所有修改
+const confirmAllChanges = async () => {
+  let allSuccess = true
+
+  // 更新URL（如果正在编辑且有变化）
+  if (isEditingUrl.value && editingUrl.value !== capturedUrl.value) {
+    const success = await updateCollectionDetail('url', editingUrl.value)
+    if (success) {
+      capturedUrl.value = editingUrl.value
+    } else {
+      allSuccess = false
+    }
+  }
+
+  // 更新摘要（如果正在编辑且有变化）
+  if (isEditingSummary.value && editingSummary.value !== processedData.value.summary) {
+    const success = await updateCollectionDetail('summary', editingSummary.value)
+    if (!success) {
+      allSuccess = false
+    }
+  }
+
+  if (allSuccess) {
+    // 退出编辑模式
+    cancelEditing()
+    
+    // 显示完成消息并自动关闭窗口
+    showCompletionMessage.value = true
+    statusMessage.value = {
+      type: 'success',
+      text: '修改保存成功'
+    }
+    
+    setTimeout(() => {
+      showCompletionMessage.value = false
+      statusMessage.value = null
+      // 自动关闭窗口
+      closeQuickWindow()
+    }, 2000)
+  }
+}
+
+// 修改：原来的确认修改函数
 const startNewCollection = () => {
-  resetQuickWindowState()
+  // 如果有任何编辑状态，先确认修改
+  if (isEditingUrl.value || isEditingSummary.value) {
+    confirmAllChanges()
+  } else {
+    resetQuickWindowState()
+  }
 }
 
 // 新增：测试后端连接
@@ -1822,6 +2011,181 @@ onMounted(() => {
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+// 编辑功能相关样式
+.url-section {
+  width: 100%;
+  
+  .url-display-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .url-display {
+      flex: 1;
+    }
+  }
+  
+  .url-edit-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .url-edit-input {
+      flex: 1;
+      font-size: 13px;
+      color: #1f2937;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+      transition: all 0.2s ease;
+      
+      &:focus {
+        outline: none;
+        border-color: #6b7280;
+        box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.1);
+      }
+    }
+  }
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+  
+  &.small {
+    width: 24px;
+    height: 24px;
+    margin-left: auto;
+  }
+  
+  .edit-icon {
+    width: 14px;
+    height: 14px;
+    color: #6b7280;
+    transition: color 0.2s ease;
+  }
+  
+  &:hover .edit-icon {
+    color: #374151;
+  }
+}
+
+.summary-edit-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  
+  .summary-edit-textarea {
+    width: 100%;
+    min-height: 80px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 8px 12px;
+    resize: vertical;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    
+    &:focus {
+      outline: none;
+      border-color: #6b7280;
+      box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.1);
+    }
+    
+    &::placeholder {
+      color: #9ca3af;
+    }
+  }
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  
+  .cancel-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+    
+    .btn-icon {
+      width: 14px;
+      height: 14px;
+      color: #6b7280;
+      transition: color 0.2s ease;
+    }
+    
+    &:hover .btn-icon {
+      color: #dc2626;
+    }
+  }
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+// 更新按钮禁用状态
+.action-btn:disabled {
+  background: #f3f4f6 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  
+  &:hover {
+    background: #f3f4f6 !important;
+  }
+}
+
+// 让卡片标题行可以容纳编辑按钮
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  
+  .card-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 }
 </style>
