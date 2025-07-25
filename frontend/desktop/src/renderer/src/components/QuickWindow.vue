@@ -313,7 +313,7 @@ const closeQuickWindow = async () => {
 const testBackendConnection = async () => {
   try {
     console.log('测试后端连接...')
-    const testResponse = await fetch('http://localhost:8000/', {
+    const testResponse = await fetch('/api/v1/health', {
       method: 'GET',
       headers: {
         'Accept': 'application/json'
@@ -337,7 +337,7 @@ const processUrlWithAPI = async (url) => {
   try {
     console.log('=== 开始处理URL ===')
     console.log('URL:', url)
-    console.log('API Endpoint: http://localhost:8000/api/v1/collection/url')
+    console.log('API Endpoint: /api/v1/collection/url')
 
     // 先测试后端连接
     const isBackendReachable = await testBackendConnection()
@@ -375,7 +375,7 @@ const processUrlWithAPI = async (url) => {
     requestOptions.signal = controller.signal
 
     console.log('发送fetch请求...')
-    const response = await fetch('http://localhost:8000/api/v1/collection/url', requestOptions)
+    const response = await fetch('/api/v1/collection/url', requestOptions)
 
     clearTimeout(timeoutId)
     console.log('收到响应:', {
@@ -638,7 +638,7 @@ const testConnection = async () => {
 
     // 测试API端点
     console.log('测试API端点...')
-    const testResponse = await fetch('http://localhost:8000/api/v1/collection/url', {
+    const testResponse = await fetch('/api/v1/collection/url', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
