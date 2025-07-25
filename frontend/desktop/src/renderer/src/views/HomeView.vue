@@ -357,8 +357,27 @@
       </main>
     </div>
 
-    <!-- 模态框和状态消息保持不变 -->
-    <!-- ... 其他组件内容 ... -->
+    <!-- 右下角上传按钮 -->
+    <div class="fixed bottom-8 right-8 z-40">
+      <!-- 脉冲动画背景 -->
+      <div class="absolute inset-0 w-16 h-16 bg-blue-400 rounded-full animate-ping opacity-20"></div>
+      
+      <!-- 主按钮 -->
+      <button
+        @click="showUploadModal = true"
+        class="relative w-16 h-16 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center btn-hover group"
+        title="上传图片到收藏"
+      >
+        <Upload class="w-6 h-6 transition-transform group-hover:scale-110" />
+      </button>
+    </div>
+
+    <!-- 上传模态窗口 -->
+    <UploadModal
+      :show="showUploadModal"
+      @close="showUploadModal = false"
+      @success="handleUploadSuccess"
+    />
   </div>
 </template>
 
@@ -369,6 +388,7 @@ import {
   Camera, User, Bell, Settings, Calendar, Upload, Plus, Eye, Edit, Trash2, FileText,
   X, ExternalLink, RotateCcw, Globe, Star, Home
 } from 'lucide-vue-next'
+import UploadModal from '../components/UploadModal.vue'
 
 const router = useRouter()
 
@@ -394,6 +414,9 @@ const events = ref([])
 const attachments = ref([])
 const collections = ref([])
 const isLoadingCollections = ref(false)
+
+// 上传模态窗口状态
+const showUploadModal = ref(false)
 
 // API配置
 const API_BASE_URL = 'http://localhost:8000/api/v1'
@@ -474,6 +497,13 @@ const formatDate = (dateString) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+// 处理上传成功
+const handleUploadSuccess = (data) => {
+  console.log('上传成功:', data)
+  // 刷新收藏列表以显示新上传的内容
+  refreshCollections()
 }
 
 // 初始化
