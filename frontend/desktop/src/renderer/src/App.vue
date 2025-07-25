@@ -34,6 +34,34 @@
         </div>
       </div>
 
+      <!-- 快捷图标 -->
+      <div :class="['border-b border-gray-50 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-3']">
+        <div :class="[!sidebarExpanded ? 'flex justify-center' : '']">
+          <button
+            @click="currentPage = 'collections'"
+            :class="[
+              'flex items-center rounded-lg text-left transition-all duration-300 ease-in-out btn-hover',
+              sidebarExpanded ? 'w-full space-x-3 px-3 py-2.5' : 'w-12 h-12 justify-center',
+              'bg-green-100 text-green-700 hover:bg-green-200'
+            ]"
+            :title="!sidebarExpanded ? '主页' : ''"
+          >
+            <Home :class="[
+              'flex-shrink-0 transition-all duration-300 ease-in-out',
+              sidebarExpanded ? 'w-4 h-4' : 'w-6 h-6'
+            ]" />
+            <span 
+              :class="[
+                'font-medium text-sm transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap',
+                sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
+              ]"
+            >
+              主页
+            </span>
+          </button>
+        </div>
+      </div>
+
       <!-- 导航菜单 -->
       <nav :class="['flex-1 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-4']">
         <ul :class="[sidebarExpanded ? 'space-y-1' : 'space-y-2']">
@@ -120,8 +148,93 @@
     <!-- 主内容区域 -->
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
 
-      <!-- 页面内容 -->
-      <main class="flex-1 overflow-auto p-6 custom-scrollbar">
+              <!-- 页面内容 -->
+        <main class="flex-1 overflow-auto p-6 custom-scrollbar">
+          <!-- 收藏管理页面 -->
+          <div v-if="currentPage === 'collections'" class="h-full">
+            <!-- 主要内容区域 -->
+            <div class="bg-white/90 glass-effect rounded-2xl border border-gray-100 h-full p-8 min-h-0">
+              <!-- 标题区域 -->
+              <div class="flex items-center mb-8">
+                <div class="bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center w-8 h-8 mr-3 shadow-minimal">
+                  <span class="text-white text-lg">✨</span>
+                </div>
+                <div>
+                  <h1 class="text-4xl font-semibold text-gray-900">收藏夹</h1>
+                </div>
+              </div>
+              
+              <!-- 收藏卡片网格 -->
+              <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+                <!-- 添加新收藏按钮 -->
+                <button 
+                  @click="showCreateCollection = true"
+                  class="h-30 w-48 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-xl flex flex-col items-center justify-center transition-all duration-300 ease-out group shadow-md hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1"
+                >
+                  <Plus class="w-5 h-5 text-gray-400 group-hover:text-gray-600 mb-1" />
+                  <span class="text-xs font-medium text-gray-500 group-hover:text-gray-700">添加收藏</span>
+                </button>
+                
+                <!-- 收藏卡片 -->
+                <div 
+                  v-for="collection in collections" 
+                  :key="collection.id"
+                  @click="viewCollection(collection)"
+                  :class="[
+                    'h-30 w-48 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 text-gray-800 relative overflow-hidden group shadow-sm border border-white/60',
+                    collection.color
+                  ]"
+                >
+                  <!-- 背景效果 -->
+                  <div class="absolute inset-0">
+                    <!-- 清新的光泽效果 -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent"></div>
+                    <!-- 背景图案 -->
+                    <div class="absolute top-1 right-1 text-2xl opacity-15">{{ collection.icon }}</div>
+                  </div>
+                  
+                  <!-- 内容 -->
+                  <div class="relative z-10">
+                    <div class="text-xl mb-1">{{ collection.icon }}</div>
+                    <h3 class="text-base font-semibold mb-0.5 truncate text-gray-800">{{ collection.name }}</h3>
+                    <p class="text-gray-600 text-sm truncate leading-tight">{{ collection.description }}</p>
+                  </div>
+                  
+                  <!-- 操作按钮 -->
+                  <div class="relative z-10 flex justify-end space-x-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      @click.stop="editCollection(collection)"
+                      class="p-0.5 bg-gray-800/60 hover:bg-gray-700 text-white rounded transition-colors"
+                      title="编辑"
+                    >
+                      <Edit class="w-2.5 h-2.5" />
+                    </button>
+                    <button 
+                      @click.stop="deleteCollection(collection.id)"
+                      class="p-0.5 bg-gray-800/60 hover:bg-red-500 text-white rounded transition-colors"
+                      title="删除"
+                    >
+                      <Trash2 class="w-2.5 h-2.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 空状态 -->
+              <div v-if="collections.length === 0" class="text-center py-16">
+                <div class="text-6xl mb-4">📚</div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">还没有收藏</h3>
+                <p class="text-gray-500 mb-6">创建您的第一个收藏来开始整理内容</p>
+                <button 
+                  @click="showCreateCollection = true"
+                  class="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-smooth font-medium"
+                >
+                  创建收藏
+                </button>
+              </div>
+            </div>
+          </div>
+
         <!-- 事件列表页面 -->
         <div v-if="currentPage === 'events'" class="space-y-6 max-w-4xl">
           <!-- 创建事件按钮 -->
@@ -348,6 +461,49 @@
       </div>
     </div>
 
+    <!-- 创建收藏模态框 -->
+    <div v-if="showCreateCollection" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-xl p-6 max-w-md w-full">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">创建新收藏</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">收藏名称</label>
+            <input 
+              v-model="newCollectionName" 
+              type="text" 
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white/80 transition-smooth text-sm"
+              placeholder="例如：AI、旅行、游戏开发"
+            >
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">收藏描述（可选）</label>
+            <textarea 
+              v-model="newCollectionDescription" 
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white/80 transition-smooth text-sm resize-none"
+              rows="2"
+              placeholder="描述这个收藏..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex space-x-3 mt-6">
+          <button 
+            @click="showCreateCollection = false"
+            class="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg hover:bg-gray-200 transition-smooth font-medium text-sm"
+          >
+            取消
+          </button>
+          <button 
+            @click="createCollection"
+            class="flex-1 bg-gray-900 text-white py-2.5 rounded-lg hover:bg-gray-800 transition-smooth font-medium text-sm"
+          >
+            创建
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- 恼人弹窗 -->
     <div v-if="showAnnoyanceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-xl p-8 max-w-sm w-full border-4 border-red-500 shadow-2xl animate-bounce">
@@ -371,7 +527,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { 
   Camera, User, Bell, Settings, Calendar, Upload, Plus, Eye, Edit, Trash2, FileText,
-  X, ExternalLink, RotateCcw, Globe
+  X, ExternalLink, RotateCcw, Globe, Star, Home
 } from 'lucide-vue-next'
 
 // 侧边栏展开状态
@@ -380,10 +536,11 @@ const sidebarToggleCount = ref(0)
 const showAnnoyanceModal = ref(false)
 
 // 当前页面
-const currentPage = ref('events')
+const currentPage = ref('collections')
 
 // 菜单项
 const menuItems = [
+  { id: 'collections', name: '我的收藏', icon: Star },
   { id: 'events', name: '事件管理', icon: Calendar },
   { id: 'attachments', name: '附件管理', icon: Upload }
 ]
@@ -407,12 +564,41 @@ const events = ref([
 // 附件数据
 const attachments = ref([])
 
+// 集合数据
+const collections = ref([
+  {
+    id: 1,
+    name: 'AI',
+    color: 'bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300',
+    icon: '🤖',
+    description: 'AI相关资源和工具'
+  },
+  {
+    id: 2,
+    name: '旅行',
+    color: 'bg-gradient-to-br from-sky-100 via-cyan-200 to-blue-300',
+    icon: '✈️',
+    description: '旅行计划和回忆'
+  },
+  {
+    id: 3,
+    name: '游戏开发',
+    color: 'bg-gradient-to-br from-green-100 via-emerald-200 to-green-300',
+    icon: '🎮',
+    description: '游戏开发资源'
+  }
+])
+
 // 表单数据
 const showCreateEvent = ref(false)
 const newEvent = ref({
   description: ''
 })
 const newEventTags = ref('')
+
+const showCreateCollection = ref(false)
+const newCollectionName = ref('')
+const newCollectionDescription = ref('')
 
 // 附件上传
 const selectedEventId = ref('')
@@ -478,6 +664,33 @@ const createEvent = async () => {
   updateTodayEventsCount()
 }
 
+const createCollection = () => {
+  if (!newCollectionName.value.trim()) return
+
+  // 清新的渐变色彩方案
+  const freshColors = [
+    'bg-gradient-to-br from-pink-100 via-rose-200 to-pink-300',
+    'bg-gradient-to-br from-orange-100 via-amber-200 to-yellow-300',
+    'bg-gradient-to-br from-lime-100 via-green-200 to-emerald-300',
+    'bg-gradient-to-br from-cyan-100 via-blue-200 to-indigo-300',
+    'bg-gradient-to-br from-purple-100 via-violet-200 to-fuchsia-300',
+    'bg-gradient-to-br from-slate-100 via-gray-200 to-zinc-300'
+  ]
+
+  const collection = {
+    id: Date.now(),
+    name: newCollectionName.value,
+    color: freshColors[Math.floor(Math.random() * freshColors.length)],
+    icon: '📚', // 默认图标
+    description: newCollectionDescription.value || null,
+    created_at: new Date().toISOString()
+  }
+
+  collections.value.unshift(collection)
+  newCollectionName.value = ''
+  newCollectionDescription.value = ''
+  showCreateCollection.value = false
+}
 
 
 const viewEvent = (event) => {
@@ -493,6 +706,17 @@ const deleteEvent = (eventId) => {
   updateTodayEventsCount()
 }
 
+const viewCollection = (collection) => {
+  console.log('查看收藏:', collection)
+}
+
+const editCollection = (collection) => {
+  console.log('编辑收藏:', collection)
+}
+
+const deleteCollection = (collectionId) => {
+  collections.value = collections.value.filter(collection => collection.id !== collectionId)
+}
 
 
 const updateTodayEventsCount = () => {
@@ -606,6 +830,7 @@ const closeAnnoyanceModal = () => {
 
 // 初始化
 onMounted(() => {
+  currentPage.value = 'collections' // 默认显示收藏页面
   updateTodayEventsCount()
 })
 </script>
