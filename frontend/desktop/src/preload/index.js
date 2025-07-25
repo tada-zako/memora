@@ -15,6 +15,9 @@ const api = {
   // 检测活跃浏览器
   detectActiveBrowser: () => ipcRenderer.invoke('detect-active-browser'),
   
+  // 获取操作系统信息
+  getPlatform: () => process.platform,
+  
   // 其他实用功能
   ping: () => ipcRenderer.send('ping')
 }
@@ -28,7 +31,8 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electronAPI', {
       invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
       send: (channel, ...args) => ipcRenderer.send(channel, ...args),
-      on: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args))
+      on: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args)),
+      getPlatform: () => process.platform
     })
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
@@ -39,7 +43,8 @@ if (process.contextIsolated) {
   window.electronAPI = {
     invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
     send: (channel, ...args) => ipcRenderer.send(channel, ...args),
-    on: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args))
+    on: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args)),
+    getPlatform: () => process.platform
   }
   window.api = api
 }

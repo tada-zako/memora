@@ -1,6 +1,6 @@
 <template>
   <!-- 快速窗口模式 -->
-  <div class="quick-window">
+  <div class="quick-window" :class="{ 'mac-style': platform === 'darwin', 'win-style': platform === 'win32' }">
     <!-- 退出按钮 -->
     <button @click="closeQuickWindow" class="exit-button" title="退出">
       <svg class="exit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,10 +68,6 @@
           <!-- 处理完成结果 -->
           <div v-if="processedData && !isProcessing" class="processed-result">
             <div class="result-header">
-              <div class="completion-status">
-                <div class="status-indicator completed"></div>
-                <span class="status-text">解析完成</span>
-              </div>
               <div class="url-display">
                 {{ capturedUrl }}
               </div>
@@ -107,19 +103,16 @@
             </div>
 
             <div class="result-actions">
-              <button @click="copyUrl" class="action-btn secondary-btn">
-                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                复制链接
-              </button>
-              <button @click="startNewCollection" class="action-btn primary-btn">
+              <div v-if="showCompletionMessage" class="completion-message">
+                <div class="status-indicator completed"></div>
+                <span class="completion-text">解析完成</span>
+              </div>
+              <button v-else @click="startNewCollection" class="action-btn primary-btn">
                 <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                新建收集
+                确认修改
               </button>
             </div>
           </div>
@@ -141,12 +134,9 @@
 
           <!-- Has Browser State -->
           <div v-else-if="hasBrowser" class="button-group">
-            <button @click="captureEdgeUrl" :disabled="isCapturing" class="capture-btn"
-              :class="{ 'capturing': isCapturing }">
-              <div v-if="isCapturing" class="capture-spinner"></div>
-              <Zap v-else class="capture-icon" />
-              <span v-if="!isCapturing">抓取{{ getBrowserDisplayName(detectedBrowser) }}</span>
-              <span v-else>获取中...</span>
+            <button @click="captureEdgeUrl" class="capture-btn">
+              <Zap class="capture-icon" />
+              <span>抓取{{ getBrowserDisplayName(detectedBrowser) }}</span>
             </button>
           </div>
         </div>
@@ -183,7 +173,6 @@ import { ref, onMounted, computed } from 'vue'
 import { Zap } from 'lucide-vue-next'
 
 // 快速窗口相关状态
-const isCapturing = ref(false)
 const capturedUrl = ref('')
 const statusMessage = ref(null)
 const manualUrl = ref('')
@@ -192,6 +181,9 @@ const manualUrl = ref('')
 const detectedBrowser = ref('NONE')
 const hasBrowser = ref(false)
 const isDetectingBrowser = ref(true)
+
+// 操作系统检测
+const platform = ref('win32')
 
 // 新增：解析相关状态
 const isProcessing = ref(false)
@@ -204,6 +196,9 @@ const stepCompleted = ref({
   4: false, // 生成摘要
   5: false  // 完成索引
 })
+
+// 解析完成提示状态
+const showCompletionMessage = ref(false)
 
 // 新增：测试连接状态
 const isTesting = ref(false)
@@ -245,12 +240,12 @@ const resetQuickWindowState = () => {
   capturedUrl.value = ''
   manualUrl.value = ''
   statusMessage.value = null
-  isCapturing.value = false
   isDetectingBrowser.value = true
   isProcessing.value = false
   processedData.value = null
   currentStep.value = 0
   isTesting.value = false
+  showCompletionMessage.value = false
   stepCompleted.value = {
     1: false,
     2: false,
@@ -449,13 +444,10 @@ const processUrlWithAPI = async (url) => {
                 console.log('处理完成，最终数据:', processedData.value)
 
                 isProcessing.value = false
-                statusMessage.value = {
-                  type: 'success',
-                  text: '链接解析完成!'
-                }
+                showCompletionMessage.value = true
 
                 setTimeout(() => {
-                  statusMessage.value = null
+                  showCompletionMessage.value = false
                 }, 2000)
                 break
 
@@ -510,9 +502,7 @@ const captureEdgeUrl = async () => {
   }
 
   try {
-    isCapturing.value = true
-    statusMessage.value = null
-
+    // 立即设置URL和开始处理，不显示"获取中..."状态
     console.log('Starting URL capture for browser:', detectedBrowser.value)
 
     if (window.electronAPI && window.electronAPI.invoke) {
@@ -520,17 +510,10 @@ const captureEdgeUrl = async () => {
 
       if (result.success) {
         capturedUrl.value = result.url
-        statusMessage.value = {
-          type: 'success',
-          text: `成功抓取${getBrowserDisplayName(detectedBrowser.value)}链接!`
-        }
         console.log('Successfully captured URL:', result.url)
 
-        // 自动开始处理URL
-        setTimeout(() => {
-          statusMessage.value = null
-          processUrlWithAPI(result.url)
-        }, 1000)
+        // 立即开始处理URL，不显示成功消息
+        processUrlWithAPI(result.url)
 
       } else {
         statusMessage.value = {
@@ -538,9 +521,15 @@ const captureEdgeUrl = async () => {
           text: result.error || '获取失败'
         }
         console.log('URL capture failed:', result.error)
+        setTimeout(() => {
+          statusMessage.value = null
+        }, 3000)
       }
     } else {
       statusMessage.value = { type: 'error', text: 'API 不可用' }
+      setTimeout(() => {
+        statusMessage.value = null
+      }, 3000)
     }
   } catch (error) {
     console.error('Error capturing URL:', error)
@@ -548,39 +537,19 @@ const captureEdgeUrl = async () => {
       type: 'error',
       text: '获取链接时出错: ' + error.message
     }
+    setTimeout(() => {
+      statusMessage.value = null
+    }, 3000)
   } finally {
-    isCapturing.value = false
     if (window.electronAPI && window.electronAPI.send) {
       window.electronAPI.send('capture-url-end')
     }
-    if (statusMessage.value && statusMessage.value.type !== 'success') {
-      setTimeout(() => {
-        statusMessage.value = null
-      }, 3000)
-    }
   }
 }
 
-const copyUrl = async () => {
-  try {
-    if (capturedUrl.value) {
-      await navigator.clipboard.writeText(capturedUrl.value)
-      statusMessage.value = { type: 'success', text: '链接已复制到剪贴板' }
-      setTimeout(() => {
-        statusMessage.value = null
-      }, 2000)
-    }
-  } catch (error) {
-    console.error('Error copying URL:', error)
-    statusMessage.value = { type: 'error', text: '复制失败' }
-  }
-}
 
-const openUrl = () => {
-  if (capturedUrl.value) {
-    window.open(capturedUrl.value, '_blank')
-  }
-}
+
+
 
 // 新增：开始新的收集
 const startNewCollection = () => {
@@ -735,6 +704,12 @@ const getBrowserDisplayName = (browser) => {
 }
 
 onMounted(() => {
+  // 检测操作系统
+  if (window.electronAPI && window.electronAPI.getPlatform) {
+    platform.value = window.electronAPI.getPlatform()
+    console.log('Detected platform:', platform.value)
+  }
+
   if (window.electronAPI && window.electronAPI.on) {
     window.electronAPI.on('browser-detection-start', () => {
       console.log('Received browser-detection-start event')
@@ -783,23 +758,33 @@ onMounted(() => {
   width: 100vw;
   background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
   border: 1px solid #e5e7eb;
-  border-radius: 0 0 20px 20px;
   overflow: hidden;
   isolation: isolate;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
-  clip-path: inset(0 round 0 0 20px 20px);
   display: flex;
   flex-direction: column;
+
+  // Windows样式 - 无圆角
+  &.win-style {
+    border-radius: 0;
+    clip-path: inset(0);
+  }
+
+  // macOS样式 - 有圆角
+  &.mac-style {
+    border-radius: 0 0 20px 20px;
+    clip-path: inset(0 round 0 0 20px 20px);
+  }
 
   // 退出按钮样式
   .exit-button {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 0px;
+    right: 0px;
     z-index: 1000;
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -842,7 +827,7 @@ onMounted(() => {
     overflow-x: hidden;
 
     &.compact-padding {
-      padding: 0 0 0 10px !important;
+      padding: 0 !important;
     }
 
     // 自定义滚动条样式
@@ -929,8 +914,7 @@ onMounted(() => {
       .processing-section {
         background: #ffffff;
         border: 1px solid #e5e7eb;
-        border-radius: 16px;
-        padding: 24px;
+        padding: 20px;
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -1086,8 +1070,8 @@ onMounted(() => {
           .result-header {
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 6px;
+            margin-bottom: 10px;
 
             .completion-status {
               display: flex;
@@ -1123,14 +1107,14 @@ onMounted(() => {
           .result-content {
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 10px;
+            margin-bottom: 2px;
 
             .info-card {
               background: #ffffff;
               border: 1px solid #e5e7eb;
               border-radius: 12px;
-              padding: 16px;
+              padding: 5px 16px;
               transition: all 0.2s ease;
 
               &:hover {
@@ -1142,7 +1126,7 @@ onMounted(() => {
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                margin-bottom: 12px;
+                margin-bottom: 2px;
 
                 .card-icon {
                   width: 16px;
@@ -1161,13 +1145,13 @@ onMounted(() => {
                 .category-content {
                   display: flex;
                   flex-direction: column;
-                  gap: 12px;
+                  gap: 6px;
 
                   .category-tag {
                     display: inline-block;
                     background: #f3f4f6;
                     color: #374151;
-                    padding: 6px 12px;
+                    padding: 6px 8px;
                     border-radius: 6px;
                     font-size: 13px;
                     font-weight: 500;
@@ -1178,7 +1162,7 @@ onMounted(() => {
                   .tags-container {
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 6px;
+                    gap: 4px;
 
                     .tag {
                       background: #f9fafb;
@@ -1198,7 +1182,7 @@ onMounted(() => {
                   font-size: 14px;
                   line-height: 1.6;
                   color: #374151;
-                  max-height: 200px;
+                  max-height: 130px;
                   overflow-y: auto;
 
                   &::-webkit-scrollbar {
@@ -1217,10 +1201,36 @@ onMounted(() => {
           .result-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            margin-top: 11px;
+
+            .completion-message {
+              width: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+              font-size: 14px;
+              font-weight: 500;
+              padding: 12px 16px;
+              background: #f0fdf4;
+              color: #166534;
+              border: 1px solid #bbf7d0;
+              border-radius: 8px;
+
+              .status-indicator.completed {
+                width: 10px;
+                height: 10px;
+                background: #10b981;
+                border-radius: 50%;
+              }
+
+              .completion-text {
+                color: #166534;
+              }
+            }
 
             .action-btn {
-              flex: 1;
+              width: 100%;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -1236,17 +1246,6 @@ onMounted(() => {
               .btn-icon {
                 width: 16px;
                 height: 16px;
-              }
-
-              &.secondary-btn {
-                background: #ffffff;
-                color: #374151;
-                border: 1px solid #d1d5db;
-
-                &:hover {
-                  background: #f9fafb;
-                  border-color: #9ca3af;
-                }
               }
 
               &.primary-btn {
@@ -1352,20 +1351,7 @@ onMounted(() => {
               cursor: not-allowed;
             }
 
-            &.capturing {
-              background: #f9fafb;
-              color: #9ca3af;
-              border-color: #f3f4f6;
-            }
 
-            .capture-spinner {
-              width: 12px;
-              height: 12px;
-              border: 1px solid #d1d5db;
-              border-top-color: transparent;
-              border-radius: 50%;
-              animation: spin 1s linear infinite;
-            }
 
             .capture-icon {
               width: 16px;
