@@ -352,12 +352,13 @@
     width: 100vw;
     background: linear-gradient(135deg, #f0fdfc 0%, #ffffff 100%);
     border: 1px solid #9ce0d9;
-    border-radius: 20px;
+    border-radius: 0 0 20px 20px;
     overflow: hidden;
     /* 确保在透明窗口中圆角生效 */
     isolation: isolate;
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
+    clip-path: inset(0 round 0 0 20px 20px);
     
     // 退出按钮样式
     .exit-button {
