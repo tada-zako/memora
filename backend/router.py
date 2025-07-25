@@ -42,7 +42,7 @@ mount_static_files(app)
 
 
 # Add root endpoint
-@app.get("/")
+@app.get("/api/v1/health")
 async def root():
     """
     Root endpoint
@@ -51,7 +51,7 @@ async def root():
 
 
 # Add health check endpoint
-@app.get("/health")
+@app.get("/api/v1/health")
 async def health_check():
     """
     Simple health check endpoint
