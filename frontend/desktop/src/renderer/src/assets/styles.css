@@ -13,14 +13,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  background-color: #f9fafb;
+  background-color: transparent;
   font-size: 14px;
   line-height: 1.5;
+  overflow: hidden;
 }
 
 #app {
   height: 100vh;
   overflow: hidden;
+  border-radius: 24px;
+  background-color: transparent;
 }
 
 /* 自定义滚动条样式 */

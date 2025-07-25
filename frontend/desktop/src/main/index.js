@@ -75,7 +75,9 @@ function createQuickWindow() {
       alwaysOnTop: true,
       skipTaskbar: true,
       resizable: false,
-      transparent: false,
+      transparent: true,
+      backgroundColor: '#00000000',
+      hasShadow: false,
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),
         sandbox: false,

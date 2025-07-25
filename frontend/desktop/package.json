@@ -20,7 +20,9 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
-    "lucide-vue-next": "^0.469.0"
+    "lucide-vue-next": "^0.469.0",
+    "sass-embedded": "^1.89.2",
+    "scss": "^0.2.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.0.0",
