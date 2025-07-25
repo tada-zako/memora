@@ -11,7 +11,7 @@
     <!-- 主要内容区域 -->
     <div class="main-content" :class="mainContentClass">
       <!-- 问候语，居于最上方 -->
-      <div v-if="!capturedUrl && !statusMessage && !isProcessing" class="greeting-section">
+      <div v-if="!capturedUrl && !statusMessage && !isProcessing && !showCaptureAnimation" class="greeting-section">
         <div class="greeting-content">
           <span class="greeting-emoji">👋</span>
           <div class="greeting-texts">
@@ -23,6 +23,49 @@
 
       <!-- 居中容器，包含链接显示、输入和捕获按钮 -->
       <div class="center-container" :class="centerContainerClass">
+        <!-- 抓取动画界面 -->
+        <div v-if="showCaptureAnimation" class="capture-animation-section">
+          <div class="animation-container">
+            <!-- 主要动画区域 -->
+            <div class="main-animation">
+              <div class="capture-loading-icon">
+                <svg class="loading-animation" viewBox="0 0 100 100">
+                  <circle class="loading-circle" cx="50" cy="50" r="45" fill="none" stroke="#3b82f6" stroke-width="4" stroke-linecap="round"/>
+                </svg>
+              </div>
+              
+              <!-- 浮动粒子效果 -->
+              <div class="particles">
+                <div v-for="i in 12" :key="i" class="particle" :style="{ '--delay': `${i * 0.1}s`, '--angle': `${i * 30}deg` }"></div>
+              </div>
+              
+              <!-- 脉冲波纹 -->
+              <div class="pulse-waves">
+                <div class="pulse-wave"></div>
+                <div class="pulse-wave"></div>
+                <div class="pulse-wave"></div>
+              </div>
+            </div>
+            
+            <!-- 文字动画 -->
+            <div class="capture-text">
+              <div class="text-line">
+                <span class="text-char" v-for="(char, index) in '正在抓取'" :key="index" :style="{ '--delay': `${0.3 + index * 0.1}s` }">{{ char }}</span>
+              </div>
+              <div class="text-line">
+                <span class="text-char" v-for="(char, index) in '请稍候'" :key="index" :style="{ '--delay': `${0.7 + index * 0.1}s` }">{{ char }}</span>
+              </div>
+            </div>
+            
+            <!-- 进度指示器 -->
+            <div class="progress-dots">
+              <div class="dot" :class="{ 'active': true }" style="--delay: 1.0s"></div>
+              <div class="dot" :class="{ 'active': true }" style="--delay: 1.1s"></div>
+              <div class="dot" :class="{ 'active': true }" style="--delay: 1.2s"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- 解析进度和结果显示区域 -->
         <div v-if="isProcessing || processedData" class="processing-section">
           <!-- 处理中状态 -->
@@ -119,13 +162,13 @@
         </div>
 
         <!-- 手动输入区域 -->
-        <div v-if="!capturedUrl && !statusMessage && !isProcessing && !processedData" class="input-section">
+        <div v-if="!capturedUrl && !statusMessage && !isProcessing && !processedData && !showCaptureAnimation" class="input-section">
           <input v-model="manualUrl" type="url" class="url-input" placeholder="输入或粘贴网页链接..."
             @keydown.enter="useManualUrl" />
         </div>
 
         <!-- 捕获按钮区域 -->
-        <div v-if="!isProcessing && !processedData" class="capture-section">
+        <div v-if="!isProcessing && !processedData && !showCaptureAnimation" class="capture-section">
           <!-- Detecting State -->
           <div v-if="isDetectingBrowser" class="detecting-state">
             <div class="spinner"></div>
@@ -134,7 +177,7 @@
 
           <!-- Has Browser State -->
           <div v-else-if="hasBrowser" class="button-group">
-            <button @click="captureEdgeUrl" class="capture-btn">
+            <button @click="captureEdgeUrl" :disabled="isCapturing" class="capture-btn" :class="{ 'disabled': isCapturing }">
               <Zap class="capture-icon" />
               <span>抓取{{ getBrowserDisplayName(detectedBrowser) }}</span>
             </button>
@@ -176,6 +219,8 @@ import { Zap } from 'lucide-vue-next'
 const capturedUrl = ref('')
 const statusMessage = ref(null)
 const manualUrl = ref('')
+const isCapturing = ref(false)
+const showCaptureAnimation = ref(false)
 
 // 浏览器检测状态
 const detectedBrowser = ref('NONE')
@@ -221,7 +266,7 @@ const stepTextMap = {
 
 // 只有初始状态（问候语/输入）时padding-top为50px，其余为0
 const centerContainerClass = computed(() => {
-  const isInitial = !capturedUrl.value && !statusMessage.value && !isProcessing.value && !processedData.value
+  const isInitial = !capturedUrl.value && !statusMessage.value && !isProcessing.value && !processedData.value && !showCaptureAnimation.value
   return {
     'center-vertically': isInitial,
     'no-padding-top': !isInitial
@@ -240,6 +285,8 @@ const resetQuickWindowState = () => {
   capturedUrl.value = ''
   manualUrl.value = ''
   statusMessage.value = null
+  isCapturing.value = false
+  showCaptureAnimation.value = false
   isDetectingBrowser.value = true
   isProcessing.value = false
   processedData.value = null
@@ -298,6 +345,8 @@ const processUrlWithAPI = async (url) => {
       throw new Error('无法连接到后端服务器 (localhost:8000)')
     }
 
+    // 重置抓取状态，开始解析
+    isCapturing.value = false
     isProcessing.value = true
     currentStep.value = 0
 
@@ -497,12 +546,18 @@ const processUrlWithAPI = async (url) => {
 
 // 修改：抓取URL后自动处理
 const captureEdgeUrl = async () => {
+  if (isCapturing.value) return // 防止重复点击
+  
   if (window.electronAPI && window.electronAPI.send) {
     window.electronAPI.send('capture-url-start')
   }
 
   try {
-    // 立即设置URL和开始处理，不显示"获取中..."状态
+    // 立即显示动画和设置抓取状态
+    isCapturing.value = true
+    showCaptureAnimation.value = true
+    statusMessage.value = null
+
     console.log('Starting URL capture for browser:', detectedBrowser.value)
 
     if (window.electronAPI && window.electronAPI.invoke) {
@@ -512,8 +567,11 @@ const captureEdgeUrl = async () => {
         capturedUrl.value = result.url
         console.log('Successfully captured URL:', result.url)
 
-        // 立即开始处理URL，不显示成功消息
-        processUrlWithAPI(result.url)
+        // 等待动画播放完成后开始处理URL（动画从点击开始计算，这里再等1.5秒）
+        setTimeout(() => {
+          showCaptureAnimation.value = false
+          processUrlWithAPI(result.url)
+        }, 1500)
 
       } else {
         statusMessage.value = {
@@ -523,12 +581,14 @@ const captureEdgeUrl = async () => {
         console.log('URL capture failed:', result.error)
         setTimeout(() => {
           statusMessage.value = null
+          isCapturing.value = false
         }, 3000)
       }
     } else {
       statusMessage.value = { type: 'error', text: 'API 不可用' }
       setTimeout(() => {
         statusMessage.value = null
+        isCapturing.value = false
       }, 3000)
     }
   } catch (error) {
@@ -539,6 +599,7 @@ const captureEdgeUrl = async () => {
     }
     setTimeout(() => {
       statusMessage.value = null
+      isCapturing.value = false
     }, 3000)
   } finally {
     if (window.electronAPI && window.electronAPI.send) {
@@ -891,23 +952,158 @@ onMounted(() => {
       line-height: 1.5;
     }
 
-    .center-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      width: 100%;
-      flex: 1;
-      margin: 0;
-      padding-top: 50px;
-      gap: 4px;
+          .center-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        flex: 1;
+        margin: 0;
+        padding-top: 50px;
+        gap: 4px;
+        position: relative;
 
-      &.center-vertically {
-        min-height: calc(100vh - 150px);
-      }
+        &.center-vertically {
+          min-height: calc(100vh - 150px);
+        }
 
-      &.no-padding-top {
-        padding-top: 0 !important;
+        &.no-padding-top {
+          padding-top: 0 !important;
+        }
+
+      // 抓取动画区域
+      .capture-animation-section {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+        animation: fadeInAnimation 0.3s ease-out;
+
+        .animation-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 24px;
+
+          .main-animation {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .capture-loading-icon {
+              position: relative;
+              z-index: 3;
+              animation: iconPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.1s both;
+
+              .loading-animation {
+                width: 80px;
+                height: 80px;
+
+                .loading-circle {
+                  stroke-dasharray: 200;
+                  stroke-dashoffset: 200;
+                  animation: loadingRotate 1.5s linear infinite;
+                  transform-origin: center;
+                }
+              }
+            }
+
+            .particles {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+
+              .particle {
+                position: absolute;
+                width: 6px;
+                height: 6px;
+                background: linear-gradient(45deg, #3b82f6, #10b981);
+                border-radius: 50%;
+                opacity: 0;
+                animation: particleFloat 1.5s ease-out var(--delay) both;
+                transform-origin: 60px 60px;
+                transform: rotate(var(--angle)) translateX(60px);
+              }
+            }
+
+            .pulse-waves {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+
+              .pulse-wave {
+                position: absolute;
+                width: 120px;
+                height: 120px;
+                border: 2px solid #3b82f6;
+                border-radius: 50%;
+                opacity: 0;
+                transform: scale(0);
+
+                &:nth-child(1) {
+                  animation: pulseWave 2s ease-out 0.5s infinite;
+                }
+
+                &:nth-child(2) {
+                  animation: pulseWave 2s ease-out 0.8s infinite;
+                }
+
+                &:nth-child(3) {
+                  animation: pulseWave 2s ease-out 1.1s infinite;
+                }
+              }
+            }
+          }
+
+          .capture-text {
+            text-align: center;
+
+            .text-line {
+              margin-bottom: 8px;
+
+              .text-char {
+                display: inline-block;
+                font-size: 18px;
+                font-weight: 600;
+                color: #1e293b;
+                opacity: 0;
+                transform: translateY(20px);
+                animation: textAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) var(--delay) both;
+              }
+            }
+          }
+
+          .progress-dots {
+            display: flex;
+            gap: 8px;
+
+            .dot {
+              width: 8px;
+              height: 8px;
+              background: #cbd5e1;
+              border-radius: 50%;
+              opacity: 0;
+              transform: scale(0);
+              animation: dotPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) var(--delay) both;
+
+              &.active {
+                background: #3b82f6;
+              }
+            }
+          }
+        }
       }
 
       // 解析处理区域
@@ -1344,11 +1540,13 @@ onMounted(() => {
               border-color: #9ca3af;
             }
 
-            &:disabled {
+            &:disabled,
+            &.disabled {
               background: #f9fafb;
               color: #9ca3af;
               border-color: #f3f4f6;
               cursor: not-allowed;
+              box-shadow: none;
             }
 
 
@@ -1510,6 +1708,120 @@ onMounted(() => {
   100% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
+  }
+}
+
+// 抓取动画关键帧
+@keyframes iconPop {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  
+  50% {
+    transform: scale(1.2) rotate(-45deg);
+  }
+  
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes loadingRotate {
+  0% {
+    transform: rotate(0deg);
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  
+  50% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -15;
+  }
+  
+  100% {
+    transform: rotate(360deg);
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -125;
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(0) scale(0);
+  }
+  
+  20% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateX(20px) scale(1);
+  }
+  
+  80% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateX(40px) scale(1);
+  }
+  
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(60px) scale(0);
+  }
+}
+
+@keyframes pulseWave {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  
+  50% {
+    opacity: 0.6;
+  }
+  
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes textAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dotPop {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  
+  50% {
+    transform: scale(1.3);
+  }
+  
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInAnimation {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 </style>
