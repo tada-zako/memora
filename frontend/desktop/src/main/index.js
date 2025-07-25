@@ -770,44 +770,6 @@ app.whenReady().then(() => {
     return await detectActiveBrowser()
   })
 
-  // 新增：清除缓存的 IPC 处理器
-  ipcMain.handle('clear-cache', async () => {
-    try {
-      console.log('IPC: clear-cache called. Attempting to manually delete cache directories.')
-      
-      const userDataPath = app.getPath('userData')
-      // Common cache-related folders in Electron
-      const cacheFolders = ['Cache', 'Code Cache', 'GPUCache', 'ShaderCache']
-      
-      for (const folder of cacheFolders) {
-        const folderPath = join(userDataPath, folder)
-        try {
-          // Use fs.promises.rm for modern, async removal.
-          // The { recursive: true, force: true } options will delete the directory and its contents,
-          // and won't throw an error if the path doesn't exist.
-          await fs.promises.rm(folderPath, { recursive: true, force: true })
-          console.log(`Successfully deleted directory: ${folderPath}`)
-        } catch (error) {
-          // Log error but continue to the next folder and relaunch
-          console.error(`Failed to delete directory ${folderPath}:`, error)
-        }
-      }
-
-      console.log('Cache directories cleared. Relaunching application...')
-      
-      // Relaunch the application
-      app.relaunch()
-      app.quit()
-      
-      // This message will be sent, but the app will quit immediately after.
-      return { success: true, message: '缓存已深度清除，应用即将重启' }
-
-    } catch (error) {
-      console.error('Failed to clear cache and relaunch:', error)
-      return { success: false, message: `清除缓存失败: ${error.message}` }
-    }
-  })
-
   createWindow()
 
   app.on('activate', function () {
