@@ -22,7 +22,9 @@ currently, we have the following categories:
 
 {categories}
 
-If the content does not fit into any of the existing categories, you should create a new category and provide 1~3 appropriate tags.
+## Limitations
+- If the content does not fit into any of the existing categories, you should create a new category.
+- Provide at least one tag but MUST no more than 5 tags.
 """
 
 PROMPT_SUMMARIZE_CONTENT = """
