@@ -36,7 +36,7 @@ class ProviderOpenAI:
 
         query = {"role": "user", "content": prompt}
         if images:
-            content = [{"type": "text", "content": prompt}]
+            content = [{"type": "text", "text": prompt}]
             content.extend(
                 [{"type": "image_url", "image_url": {"url": img}} for img in images] # type: ignore
             ) # type: ignore
@@ -45,6 +45,7 @@ class ProviderOpenAI:
         query = [*context, query]
         if system_prompt:
             query.insert(0, {"role": "system", "content": system_prompt})
+
         resp = await self.client.chat.completions.create(
             model=model,
             messages=query,

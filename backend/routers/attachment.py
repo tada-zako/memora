@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
 import uuid
 import shutil
 from pathlib import Path
 
-from model import User, Collection, Attachment
+from model import User, Attachment
 from db import get_db
 
 # Create router instance
@@ -26,13 +26,11 @@ ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
 
 # Pydantic models
 class AttachmentCreate(BaseModel):
-    collection_id: int
     user_id: int
     description: Optional[str] = None
 
 class AttachmentResponse(BaseModel):
-    id: int
-    collection_id: int
+    attachment_id: str
     user_id: int
     url: str
     description: Optional[str]
@@ -40,9 +38,6 @@ class AttachmentResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-class AttachmentUpdate(BaseModel):
-    description: Optional[str] = None
 
 # Helper function to validate file
 def validate_file(file: UploadFile) -> None:
@@ -73,12 +68,11 @@ def save_file(file: UploadFile) -> str:
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    return unique_filename
+    return str(file_path)
 
 # Upload attachment endpoint
 @router.post("/upload/", response_model=AttachmentResponse, status_code=status.HTTP_201_CREATED)
 async def upload_attachment(
-    collection_id: int = Form(...),
     user_id: int = Form(...),
     description: Optional[str] = Form(None),
     file: UploadFile = File(...),
@@ -89,16 +83,6 @@ async def upload_attachment(
     """
     # Validate file
     validate_file(file)
-    
-    # Check if collection exists
-    collection_query = select(Collection).where(Collection.id == collection_id)
-    collection_result = await db.execute(collection_query)
-    collection = collection_result.scalar_one_or_none()
-    if not collection:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Collection with id {collection_id} not found"
-        )
     
     # Check if user exists
     user_query = select(User).where(User.id == user_id)
@@ -116,7 +100,6 @@ async def upload_attachment(
         
         # Create attachment record
         db_attachment = Attachment(
-            collection_id=collection_id,
             user_id=user_id,
             url=file_url,
             description=description
@@ -140,34 +123,13 @@ async def upload_attachment(
             detail=f"Error uploading file: {str(e)}"
         )
 
-# Get all attachments for a collection
-@router.get("/collection/{collection_id}", response_model=List[AttachmentResponse])
-async def get_collection_attachments(collection_id: int, db: AsyncSession = Depends(get_db)):
-    """
-    Get all attachments for a specific collection
-    """
-    # Check if collection exists
-    collection_query = select(Collection).where(Collection.id == collection_id)
-    collection_result = await db.execute(collection_query)
-    collection = collection_result.scalar_one_or_none()
-    if not collection:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Collection with id {collection_id} not found"
-        )
-    
-    attachments_query = select(Attachment).where(Attachment.collection_id == collection_id)
-    attachments_result = await db.execute(attachments_query)
-    attachments = attachments_result.scalars().all()
-    return attachments
-
 # Get attachment by ID
 @router.get("/{attachment_id}", response_model=AttachmentResponse)
-async def get_attachment(attachment_id: int, db: AsyncSession = Depends(get_db)):
+async def get_attachment(attachment_id: str, db: AsyncSession = Depends(get_db)):
     """
     Get a specific attachment by ID
     """
-    attachment_query = select(Attachment).where(Attachment.id == attachment_id)
+    attachment_query = select(Attachment).where(Attachment.attachment_id == attachment_id)
     attachment_result = await db.execute(attachment_query)
     attachment = attachment_result.scalar_one_or_none()
     if not attachment:
@@ -179,11 +141,11 @@ async def get_attachment(attachment_id: int, db: AsyncSession = Depends(get_db))
 
 # Delete attachment
 @router.delete("/{attachment_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_attachment(attachment_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_attachment(attachment_id: str, db: AsyncSession = Depends(get_db)):
     """
     Delete an attachment by ID
     """
-    attachment_query = select(Attachment).where(Attachment.id == attachment_id)
+    attachment_query = select(Attachment).where(Attachment.attachment_id == attachment_id)
     attachment_result = await db.execute(attachment_query)
     attachment = attachment_result.scalar_one_or_none()
     if not attachment:

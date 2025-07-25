@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import (
     Column,
     Integer,
@@ -78,12 +79,22 @@ class Attachment(Base):
     __tablename__ = 'attachments'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    collection_id = Column(Integer, ForeignKey('collections.id'), nullable=False)
+    attachment_id = Column(String(36), default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     url = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     def __repr__(self):
-        return f"<Attachment(id={self.id}, collection_id={self.collection_id}, url='{self.url}')>"
+        return f"<Attachment(attachment_id={self.attachment_id}, url='{self.url}')>"
 
+
+class CollectionAttachment(Base):
+    __tablename__ = 'collection_attachments'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    collection_id = Column(Integer, ForeignKey('collections.id'), nullable=False)
+    attachment_id = Column(String(36), ForeignKey('attachments.attachment_id'), nullable=False)
+
+    def __repr__(self):
+        return f"<CollectionAttachment(attachment_id={self.id}, collection_id={self.collection_id}, attachment_id={self.attachment_id})>"
