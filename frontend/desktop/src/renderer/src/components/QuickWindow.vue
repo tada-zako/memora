@@ -2,21 +2,12 @@
   <!-- 快速窗口模式 -->
   <div class="quick-window">
     <!-- 退出按钮 -->
-    <button 
-      @click="closeQuickWindow"
-      class="exit-button"
-      title="退出"
-    >
-      <svg 
-        class="exit-icon"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+    <button @click="closeQuickWindow" class="exit-button" title="退出">
+      <svg class="exit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
-    
+
     <!-- 主要内容区域 -->
     <div class="main-content" :class="mainContentClass">
       <!-- 问候语，居于最上方 -->
@@ -29,7 +20,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- 居中容器，包含链接显示、输入和捕获按钮 -->
       <div class="center-container" :class="centerContainerClass">
         <!-- 解析进度和结果显示区域 -->
@@ -45,41 +36,35 @@
                 {{ capturedUrl }}
               </div>
             </div>
-            
+
             <!-- 优化的进度步骤显示 -->
             <div class="progress-container">
               <div class="progress-steps">
-                <div 
-                  v-for="step in 5" 
-                  :key="step"
-                  class="step-item"
-                  :class="{
-                    'active': currentStep === step,
-                    'completed': stepCompleted[step],
-                    'pending': currentStep < step
-                  }"
-                >
+                <div v-for="step in 5" :key="step" class="step-item" :class="{
+                  'active': currentStep === step,
+                  'completed': stepCompleted[step],
+                  'pending': currentStep < step
+                }">
                   <div class="step-indicator">
                     <div v-if="currentStep === step && !stepCompleted[step]" class="spinner"></div>
                     <svg v-else-if="stepCompleted[step]" class="check-icon" viewBox="0 0 20 20">
-                      <path fill="currentColor" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                      <path fill="currentColor"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
                     </svg>
                     <span v-else class="step-number">{{ step }}</span>
                   </div>
                   <span class="step-text">{{ stepTextMap[step] }}</span>
                 </div>
               </div>
-              
+
               <!-- 进度条 -->
               <div class="progress-bar">
-                <div 
-                  class="progress-fill" 
-                  :style="{ width: `${(Object.values(stepCompleted).filter(Boolean).length / 5) * 100}%` }"
-                ></div>
+                <div class="progress-fill"
+                  :style="{ width: `${(Object.values(stepCompleted).filter(Boolean).length / 5) * 100}%` }"></div>
               </div>
             </div>
           </div>
-          
+
           <!-- 处理完成结果 -->
           <div v-if="processedData && !isProcessing" class="processed-result">
             <div class="result-header">
@@ -91,12 +76,13 @@
                 {{ capturedUrl }}
               </div>
             </div>
-            
+
             <div class="result-content">
               <div v-if="processedData.category" class="info-card category-card">
                 <div class="card-header">
                   <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
                   <span class="card-title">分类</span>
                 </div>
@@ -107,46 +93,44 @@
                   </div>
                 </div>
               </div>
-              
+
               <div v-if="processedData.summary" class="info-card summary-card">
                 <div class="card-header">
                   <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <span class="card-title">摘要</span>
                 </div>
                 <div class="summary-content">{{ processedData.summary }}</div>
               </div>
             </div>
-            
+
             <div class="result-actions">
               <button @click="copyUrl" class="action-btn secondary-btn">
                 <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 复制链接
               </button>
               <button @click="startNewCollection" class="action-btn primary-btn">
                 <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 新建收集
               </button>
             </div>
           </div>
         </div>
-        
+
         <!-- 手动输入区域 -->
         <div v-if="!capturedUrl && !statusMessage && !isProcessing && !processedData" class="input-section">
-          <input 
-            v-model="manualUrl"
-            type="url"
-            class="url-input"
-            placeholder="输入或粘贴网页链接..."
-            @keydown.enter="useManualUrl"
-          />
+          <input v-model="manualUrl" type="url" class="url-input" placeholder="输入或粘贴网页链接..."
+            @keydown.enter="useManualUrl" />
         </div>
-        
+
         <!-- 捕获按钮区域 -->
         <div v-if="!isProcessing && !processedData" class="capture-section">
           <!-- Detecting State -->
@@ -154,45 +138,38 @@
             <div class="spinner"></div>
             <span>检测中...</span>
           </div>
-          
+
           <!-- Has Browser State -->
           <div v-else-if="hasBrowser" class="button-group">
-            <button
-              @click="captureEdgeUrl"
-              :disabled="isCapturing"
-              class="capture-btn"
-              :class="{ 'capturing': isCapturing }"
-            >
+            <button @click="captureEdgeUrl" :disabled="isCapturing" class="capture-btn"
+              :class="{ 'capturing': isCapturing }">
               <div v-if="isCapturing" class="capture-spinner"></div>
               <Zap v-else class="capture-icon" />
               <span v-if="!isCapturing">抓取{{ getBrowserDisplayName(detectedBrowser) }}</span>
               <span v-else>获取中...</span>
             </button>
-            
-            <!-- 截图按钮 -->
-            <button class="screenshot-btn" title="截图">
-              <svg class="screenshot-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </button>
-          </div>
-          
-          <!-- No Browser State -->
-          <div v-else class="no-browser-state">
-            <div class="no-browser-text">无活跃浏览器</div>
-            <button @click="detectBrowser" class="refresh-btn" title="重新检测浏览器">
-              刷新
-            </button>
           </div>
         </div>
+
+        <!-- 截图按钮 -->
+        <!-- <div style="display: flex; align-items: start; justify-content: start; width: 100%;">
+          <button class="screenshot-btn" title="截图">
+            <svg class="screenshot-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        </div> -->
+
       </div>
-      
+
       <!-- 状态信息 -->
       <div v-if="statusMessage" class="status-message" :class="statusMessage.type">
         {{ statusMessage.text }}
       </div>
-      
+
       <!-- 彩蛋消息 -->
       <div v-if="showEasterEgg" class="easter-egg-message">
         rnm，老子都把F11禁用了你还按
@@ -300,12 +277,12 @@ const testBackendConnection = async () => {
         'Accept': 'application/json'
       }
     })
-    
+
     console.log('测试连接响应:', {
       status: testResponse.status,
       statusText: testResponse.statusText
     })
-    
+
     return testResponse.ok
   } catch (error) {
     console.error('后端连接测试失败:', error)
@@ -319,21 +296,21 @@ const processUrlWithAPI = async (url) => {
     console.log('=== 开始处理URL ===')
     console.log('URL:', url)
     console.log('API Endpoint: http://localhost:8000/api/v1/collection/url')
-    
+
     // 先测试后端连接
     const isBackendReachable = await testBackendConnection()
     if (!isBackendReachable) {
       throw new Error('无法连接到后端服务器 (localhost:8000)')
     }
-    
+
     isProcessing.value = true
     currentStep.value = 0
-    
+
     // 重置步骤状态
     Object.keys(stepCompleted.value).forEach(key => {
       stepCompleted.value[key] = false
     })
-    
+
     // 添加更详细的请求配置
     const requestOptions = {
       method: 'POST',
@@ -343,40 +320,40 @@ const processUrlWithAPI = async (url) => {
       },
       body: JSON.stringify({ url: url })
     }
-    
+
     console.log('请求配置:', requestOptions)
     console.log('请求体:', requestOptions.body)
-    
+
     // 添加超时处理
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 60000) // 60秒超时
-    
+
     requestOptions.signal = controller.signal
-    
+
     console.log('发送fetch请求...')
     const response = await fetch('http://localhost:8000/api/v1/collection/url', requestOptions)
-    
+
     clearTimeout(timeoutId)
     console.log('收到响应:', {
       status: response.status,
       statusText: response.statusText,
       headers: Object.fromEntries(response.headers.entries())
     })
-    
+
     if (!response.ok) {
       const errorText = await response.text()
       console.error('HTTP错误响应:', errorText)
       throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
     }
-    
+
     if (!response.body) {
       throw new Error('响应体为空')
     }
-    
+
     console.log('开始读取流数据...')
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
-    
+
     let buffer = ''
     const tempData = {
       collectionId: null,
@@ -384,25 +361,25 @@ const processUrlWithAPI = async (url) => {
       tags: null,
       summary: ''
     }
-    
+
     let chunkCount = 0
-    
+
     while (true) {
       const { done, value } = await reader.read()
       chunkCount++
       console.log(`读取数据块 ${chunkCount}:`, { done, valueLength: value?.length })
-      
+
       if (done) {
         console.log('流数据读取完成')
         break
       }
-      
+
       buffer += decoder.decode(value, { stream: true })
       const lines = buffer.split('\n')
       buffer = lines.pop() || ''
-      
+
       console.log(`处理 ${lines.length} 行数据`)
-      
+
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           try {
@@ -410,7 +387,7 @@ const processUrlWithAPI = async (url) => {
             console.log('解析SSE数据:', jsonStr)
             const data = JSON.parse(jsonStr)
             console.log('解析结果:', data)
-            
+
             switch (data.type) {
               case 'collection_created':
                 console.log('收到: collection_created')
@@ -418,13 +395,13 @@ const processUrlWithAPI = async (url) => {
                 stepCompleted.value[1] = true
                 tempData.collectionId = data.data.id
                 break
-                
+
               case 'content_fetched':
                 console.log('收到: content_fetched')
                 currentStep.value = 2
                 stepCompleted.value[2] = true
                 break
-                
+
               case 'category_analyzed':
                 console.log('收到: category_analyzed')
                 currentStep.value = 3
@@ -432,7 +409,7 @@ const processUrlWithAPI = async (url) => {
                 tempData.category = data.data.category
                 tempData.tags = data.data.tags
                 break
-                
+
               case 'summary_chunk':
                 console.log('收到: summary_chunk')
                 if (currentStep.value < 4) {
@@ -440,13 +417,13 @@ const processUrlWithAPI = async (url) => {
                 }
                 tempData.summary += data.data.summary
                 break
-                
+
               case 'index_completed':
                 console.log('收到: index_completed')
                 currentStep.value = 5
                 stepCompleted.value[4] = true
                 stepCompleted.value[5] = true
-                
+
                 // 清理摘要数据
                 let cleanSummary = tempData.summary
                 try {
@@ -461,27 +438,27 @@ const processUrlWithAPI = async (url) => {
                 } catch (e) {
                   console.error('清理摘要时出错:', e)
                 }
-                
+
                 processedData.value = {
                   collectionId: tempData.collectionId,
                   category: tempData.category,
                   tags: tempData.tags,
                   summary: cleanSummary
                 }
-                
+
                 console.log('处理完成，最终数据:', processedData.value)
-                
+
                 isProcessing.value = false
                 statusMessage.value = {
                   type: 'success',
                   text: '链接解析完成!'
                 }
-                
+
                 setTimeout(() => {
                   statusMessage.value = null
                 }, 2000)
                 break
-                
+
               default:
                 console.log('未知事件类型:', data.type)
             }
@@ -491,20 +468,20 @@ const processUrlWithAPI = async (url) => {
         }
       }
     }
-    
+
     console.log('=== URL处理完成 ===')
-    
+
   } catch (error) {
     console.error('=== 处理URL时出错 ===')
     console.error('错误类型:', error.name)
     console.error('错误消息:', error.message)
     console.error('错误堆栈:', error.stack)
-    
+
     isProcessing.value = false
     currentStep.value = 0
-    
+
     let errorMessage = '解析失败'
-    
+
     if (error.name === 'AbortError') {
       errorMessage = '请求超时，请检查网络连接'
     } else if (error.message.includes('fetch')) {
@@ -514,12 +491,12 @@ const processUrlWithAPI = async (url) => {
     } else {
       errorMessage = `解析失败: ${error.message}`
     }
-    
+
     statusMessage.value = {
       type: 'error',
       text: errorMessage
     }
-    
+
     setTimeout(() => {
       statusMessage.value = null
     }, 5000)
@@ -531,16 +508,16 @@ const captureEdgeUrl = async () => {
   if (window.electronAPI && window.electronAPI.send) {
     window.electronAPI.send('capture-url-start')
   }
-  
+
   try {
     isCapturing.value = true
     statusMessage.value = null
-    
+
     console.log('Starting URL capture for browser:', detectedBrowser.value)
-    
+
     if (window.electronAPI && window.electronAPI.invoke) {
       const result = await window.electronAPI.invoke('capture-edge-url')
-      
+
       if (result.success) {
         capturedUrl.value = result.url
         statusMessage.value = {
@@ -548,13 +525,13 @@ const captureEdgeUrl = async () => {
           text: `成功抓取${getBrowserDisplayName(detectedBrowser.value)}链接!`
         }
         console.log('Successfully captured URL:', result.url)
-        
+
         // 自动开始处理URL
         setTimeout(() => {
           statusMessage.value = null
           processUrlWithAPI(result.url)
         }, 1000)
-        
+
       } else {
         statusMessage.value = {
           type: 'error',
@@ -615,7 +592,7 @@ const testConnection = async () => {
   try {
     isTesting.value = true
     console.log('=== 手动测试后端连接 ===')
-    
+
     // 测试基本连接
     const isReachable = await testBackendConnection()
     if (!isReachable) {
@@ -628,7 +605,7 @@ const testConnection = async () => {
       }, 5000)
       return
     }
-    
+
     // 测试API端点
     console.log('测试API端点...')
     const testResponse = await fetch('http://localhost:8000/api/v1/collection/url', {
@@ -639,13 +616,13 @@ const testConnection = async () => {
       },
       body: JSON.stringify({ url: 'https://example.com' })
     })
-    
+
     console.log('API测试响应:', {
       status: testResponse.status,
       statusText: testResponse.statusText,
       headers: Object.fromEntries(testResponse.headers.entries())
     })
-    
+
     if (testResponse.ok) {
       statusMessage.value = {
         type: 'success',
@@ -659,11 +636,11 @@ const testConnection = async () => {
         text: `API测试失败: ${testResponse.status} ${testResponse.statusText}`
       }
     }
-    
+
     setTimeout(() => {
       statusMessage.value = null
     }, 3000)
-    
+
   } catch (error) {
     console.error('连接测试失败:', error)
     statusMessage.value = {
@@ -681,14 +658,14 @@ const testConnection = async () => {
 // 修改：手动输入URL后自动处理
 const useManualUrl = () => {
   if (!manualUrl.value.trim()) return
-  
+
   try {
     new URL(manualUrl.value)
     capturedUrl.value = manualUrl.value
     const url = manualUrl.value
     manualUrl.value = ''
     statusMessage.value = { type: 'success', text: '链接已设置' }
-    
+
     // 自动开始处理URL
     setTimeout(() => {
       statusMessage.value = null
@@ -745,7 +722,7 @@ const detectBrowser = async () => {
 const getBrowserDisplayName = (browser) => {
   const names = {
     'EDGE': 'Edge',
-    'CHROME': 'Chrome', 
+    'CHROME': 'Chrome',
     'FIREFOX': 'Firefox',
     'IE': 'IE',
     'OPERA': 'Opera',
@@ -764,7 +741,7 @@ onMounted(() => {
       isDetectingBrowser.value = true
       hasBrowser.value = false
     })
-    
+
     window.electronAPI.on('browser-detected', (result) => {
       console.log('Received browser-detected event:', result)
       isDetectingBrowser.value = false
@@ -777,18 +754,18 @@ onMounted(() => {
       }
     })
   }
-  
+
   // 监听F11事件，实现彩蛋
   if (window.electronAPI && window.electronAPI.on) {
     window.electronAPI.on('f11-pressed', () => {
       console.log('F11 pressed! Count:', f11PressCount.value + 1) // 调试日志
       f11PressCount.value++
-      
+
       if (f11PressCount.value >= 10) {
         console.log('Easter egg triggered!') // 调试日志
         showEasterEgg.value = true
         f11PressCount.value = 0 // 重置计数器
-        
+
         // 3秒后隐藏彩蛋
         setTimeout(() => {
           showEasterEgg.value = false
@@ -814,7 +791,7 @@ onMounted(() => {
   clip-path: inset(0 round 0 0 20px 20px);
   display: flex;
   flex-direction: column;
-  
+
   // 退出按钮样式
   .exit-button {
     position: absolute;
@@ -832,26 +809,26 @@ onMounted(() => {
     cursor: pointer;
     transition: all 0.2s ease;
     backdrop-filter: blur(8px);
-    
+
     &:hover {
       background: rgba(255, 255, 255, 1);
       border-color: #9ca3af;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       transform: translateY(-1px);
     }
-    
+
     .exit-icon {
       width: 14px;
       height: 14px;
       color: #6b7280;
       transition: color 0.2s ease;
     }
-    
+
     &:hover .exit-icon {
       color: #374151;
     }
   }
-  
+
   // 主要内容区域
   .main-content {
     display: flex;
@@ -863,31 +840,31 @@ onMounted(() => {
     min-height: calc(100vh - 48px);
     overflow-y: auto;
     overflow-x: hidden;
-    
+
     &.compact-padding {
       padding: 0 0 0 10px !important;
     }
-    
+
     // 自定义滚动条样式
     &::-webkit-scrollbar {
       width: 6px;
     }
-    
+
     &::-webkit-scrollbar-track {
       background: rgba(229, 231, 235, 0.3);
       border-radius: 3px;
     }
-    
+
     &::-webkit-scrollbar-thumb {
       background: rgba(156, 163, 175, 0.5);
       border-radius: 3px;
       transition: background 0.2s ease;
-      
+
       &:hover {
         background: rgba(156, 163, 175, 0.7);
       }
     }
-    
+
     .greeting-section {
       width: 100%;
       display: flex;
@@ -896,39 +873,39 @@ onMounted(() => {
       padding: 0 40px 0 0;
       margin-bottom: 20px;
     }
-    
+
     .greeting-content {
       display: flex;
       flex-direction: row;
       align-items: center;
       gap: 16px;
     }
-    
+
     .greeting-emoji {
       font-size: 36px;
       margin-right: 0;
     }
-    
+
     .greeting-texts {
       display: flex;
       flex-direction: column;
       justify-content: center;
     }
-    
+
     .greeting-text {
       font-size: 18px;
       color: #111827;
       font-weight: 700;
       line-height: 1.2;
     }
-    
+
     .greeting-question {
       font-size: 18px;
       color: #111827;
       font-weight: 700;
       line-height: 1.5;
     }
-    
+
     .center-container {
       display: flex;
       flex-direction: column;
@@ -939,15 +916,15 @@ onMounted(() => {
       margin: 0;
       padding-top: 50px;
       gap: 4px;
-      
+
       &.center-vertically {
         min-height: calc(100vh - 150px);
       }
-      
+
       &.no-padding-top {
         padding-top: 0 !important;
       }
-      
+
       // 解析处理区域
       .processing-section {
         background: #ffffff;
@@ -959,41 +936,41 @@ onMounted(() => {
         flex-direction: column;
         gap: 20px;
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        
+
         .processing-state {
           .url-info {
             display: flex;
             flex-direction: column;
             gap: 16px;
             margin-bottom: 24px;
-            
+
             .url-header {
               display: flex;
               align-items: center;
               gap: 12px;
-              
+
               .status-indicator {
                 width: 10px;
                 height: 10px;
                 border-radius: 50%;
-                
+
                 &.processing {
                   background: #f59e0b;
                   animation: pulse 2s infinite;
                 }
-                
+
                 &.completed {
                   background: #10b981;
                 }
               }
-              
+
               .status-text {
                 font-size: 15px;
                 font-weight: 600;
                 color: #374151;
               }
             }
-            
+
             .url-display {
               font-size: 13px;
               color: #1f2937;
@@ -1005,49 +982,49 @@ onMounted(() => {
               font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
             }
           }
-          
+
           // 优化的进度容器
           .progress-container {
             display: flex;
             flex-direction: column;
             gap: 16px;
-            
+
             .progress-steps {
               display: flex;
               flex-direction: column;
               gap: 12px;
-              
+
               .step-item {
                 display: flex;
                 align-items: center;
                 gap: 12px;
                 padding: 8px 0;
                 transition: all 0.3s ease;
-                
+
                 &.pending {
                   opacity: 0.4;
                 }
-                
+
                 &.active {
                   opacity: 1;
-                  
+
                   .step-indicator {
                     background: #f3f4f6;
                     border: 2px solid #6b7280;
                     color: #374151;
                   }
                 }
-                
+
                 &.completed {
                   opacity: 1;
-                  
+
                   .step-indicator {
                     background: #111827;
                     border: 2px solid #111827;
                     color: white;
                   }
                 }
-                
+
                 .step-indicator {
                   width: 32px;
                   height: 32px;
@@ -1062,7 +1039,7 @@ onMounted(() => {
                   color: #9ca3af;
                   transition: all 0.3s ease;
                   flex-shrink: 0;
-                  
+
                   .spinner {
                     width: 16px;
                     height: 16px;
@@ -1071,14 +1048,14 @@ onMounted(() => {
                     border-radius: 50%;
                     animation: spin 1s linear infinite;
                   }
-                  
+
                   .check-icon {
                     width: 16px;
                     height: 16px;
                     color: white;
                   }
                 }
-                
+
                 .step-text {
                   font-size: 14px;
                   font-weight: 500;
@@ -1086,7 +1063,7 @@ onMounted(() => {
                 }
               }
             }
-            
+
             // 进度条
             .progress-bar {
               width: 100%;
@@ -1094,7 +1071,7 @@ onMounted(() => {
               background: #f3f4f6;
               border-radius: 2px;
               overflow: hidden;
-              
+
               .progress-fill {
                 height: 100%;
                 background: linear-gradient(90deg, #6b7280, #111827);
@@ -1104,33 +1081,33 @@ onMounted(() => {
             }
           }
         }
-        
+
         .processed-result {
           .result-header {
             display: flex;
             flex-direction: column;
             gap: 16px;
             margin-bottom: 24px;
-            
+
             .completion-status {
               display: flex;
               align-items: center;
               gap: 12px;
-              
+
               .status-indicator.completed {
                 width: 10px;
                 height: 10px;
                 background: #10b981;
                 border-radius: 50%;
               }
-              
+
               .status-text {
                 font-size: 15px;
                 font-weight: 600;
                 color: #374151;
               }
             }
-            
+
             .url-display {
               font-size: 13px;
               color: #1f2937;
@@ -1142,50 +1119,50 @@ onMounted(() => {
               font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
             }
           }
-          
+
           .result-content {
             display: flex;
             flex-direction: column;
             gap: 16px;
             margin-bottom: 24px;
-            
+
             .info-card {
               background: #ffffff;
               border: 1px solid #e5e7eb;
               border-radius: 12px;
               padding: 16px;
               transition: all 0.2s ease;
-              
+
               &:hover {
                 border-color: #d1d5db;
                 box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
               }
-              
+
               .card-header {
                 display: flex;
                 align-items: center;
                 gap: 8px;
                 margin-bottom: 12px;
-                
+
                 .card-icon {
                   width: 16px;
                   height: 16px;
                   color: #6b7280;
                 }
-                
+
                 .card-title {
                   font-size: 14px;
                   font-weight: 600;
                   color: #374151;
                 }
               }
-              
+
               &.category-card {
                 .category-content {
                   display: flex;
                   flex-direction: column;
                   gap: 12px;
-                  
+
                   .category-tag {
                     display: inline-block;
                     background: #f3f4f6;
@@ -1197,12 +1174,12 @@ onMounted(() => {
                     width: fit-content;
                     border: 1px solid #e5e7eb;
                   }
-                  
+
                   .tags-container {
                     display: flex;
                     flex-wrap: wrap;
                     gap: 6px;
-                    
+
                     .tag {
                       background: #f9fafb;
                       color: #6b7280;
@@ -1215,7 +1192,7 @@ onMounted(() => {
                   }
                 }
               }
-              
+
               &.summary-card {
                 .summary-content {
                   font-size: 14px;
@@ -1223,11 +1200,11 @@ onMounted(() => {
                   color: #374151;
                   max-height: 200px;
                   overflow-y: auto;
-                  
+
                   &::-webkit-scrollbar {
                     width: 4px;
                   }
-                  
+
                   &::-webkit-scrollbar-thumb {
                     background: #d1d5db;
                     border-radius: 2px;
@@ -1236,12 +1213,12 @@ onMounted(() => {
               }
             }
           }
-          
+
           .result-actions {
             display: flex;
             align-items: center;
             gap: 12px;
-            
+
             .action-btn {
               flex: 1;
               display: flex;
@@ -1255,27 +1232,27 @@ onMounted(() => {
               border: none;
               cursor: pointer;
               transition: all 0.2s ease;
-              
+
               .btn-icon {
                 width: 16px;
                 height: 16px;
               }
-              
+
               &.secondary-btn {
                 background: #ffffff;
                 color: #374151;
                 border: 1px solid #d1d5db;
-                
+
                 &:hover {
                   background: #f9fafb;
                   border-color: #9ca3af;
                 }
               }
-              
+
               &.primary-btn {
                 background: #111827;
                 color: white;
-                
+
                 &:hover {
                   background: #1f2937;
                 }
@@ -1284,14 +1261,14 @@ onMounted(() => {
           }
         }
       }
-      
+
       // 输入区域
       .input-section {
         width: 100%;
         display: flex;
         flex-direction: column;
         gap: 8px;
-        
+
         .url-input {
           width: 100%;
           height: 90px;
@@ -1302,26 +1279,26 @@ onMounted(() => {
           background: white;
           transition: all 0.2s ease;
           color: #111827;
-          
+
           &:focus {
             outline: none;
             border-color: #6b7280;
             box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
           }
-          
+
           &::placeholder {
             color: #9ca3af;
           }
         }
       }
-      
+
       // 捕获按钮区域
       .capture-section {
         width: 100%;
         display: flex;
         justify-content: flex-start;
         margin-top: 8px;
-        
+
         .detecting-state {
           display: flex;
           align-items: center;
@@ -1332,7 +1309,7 @@ onMounted(() => {
           padding: 8px 12px;
           border-radius: 8px;
           border: 1px solid #f3f4f6;
-          
+
           .spinner {
             width: 12px;
             height: 12px;
@@ -1342,12 +1319,12 @@ onMounted(() => {
             animation: spin 1s linear infinite;
           }
         }
-        
+
         .button-group {
           display: flex;
           align-items: center;
           gap: 12px;
-          
+
           .capture-btn {
             display: flex;
             align-items: center;
@@ -1362,25 +1339,25 @@ onMounted(() => {
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            
+
             &:hover:not(:disabled) {
               background: #f9fafb;
               border-color: #9ca3af;
             }
-            
+
             &:disabled {
               background: #f9fafb;
               color: #9ca3af;
               border-color: #f3f4f6;
               cursor: not-allowed;
             }
-            
+
             &.capturing {
               background: #f9fafb;
               color: #9ca3af;
               border-color: #f3f4f6;
             }
-            
+
             .capture-spinner {
               width: 12px;
               height: 12px;
@@ -1389,48 +1366,20 @@ onMounted(() => {
               border-radius: 50%;
               animation: spin 1s linear infinite;
             }
-            
+
             .capture-icon {
               width: 16px;
               height: 16px;
             }
           }
-          
-          .screenshot-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 42px;
-            height: 42px;
-            background: white;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            
-            &:hover {
-              background: #f9fafb;
-              border-color: #9ca3af;
-            }
-            
-            .screenshot-icon {
-              width: 18px;
-              height: 18px;
-              color: #6b7280;
-              transition: color 0.2s ease;
-            }
-            
-            &:hover .screenshot-icon {
-              color: #374151;
-            }
-          }
+
         }
-        
+
         .no-browser-state {
           display: flex;
           align-items: center;
           gap: 8px;
-          
+
           .no-browser-text {
             font-size: 12px;
             color: #9ca3af;
@@ -1439,7 +1388,7 @@ onMounted(() => {
             border-radius: 8px;
             border: 1px solid #f3f4f6;
           }
-          
+
           .refresh-btn {
             font-size: 12px;
             color: #374151;
@@ -1449,7 +1398,7 @@ onMounted(() => {
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
-            
+
             &:hover {
               color: #111827;
               background: #f9fafb;
@@ -1458,8 +1407,37 @@ onMounted(() => {
           }
         }
       }
+
+      .screenshot-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #f9fafb;
+          border-color: #9ca3af;
+        }
+
+        .screenshot-icon {
+          width: 18px;
+          height: 18px;
+          color: #6b7280;
+          transition: color 0.2s ease;
+        }
+
+        &:hover .screenshot-icon {
+          color: #374151;
+        }
+      }
     }
-    
+
     // 状态信息
     .status-message {
       font-size: 14px;
@@ -1468,26 +1446,26 @@ onMounted(() => {
       border-radius: 8px;
       transition: all 0.3s ease;
       margin-top: 16px;
-      
+
       &.success {
         background: #f0fdf4;
         color: #166534;
         border: 1px solid #bbf7d0;
       }
-      
+
       &.error {
         background: #fef2f2;
         color: #dc2626;
         border: 1px solid #fecaca;
       }
-      
+
       &.info {
         background: #f8fafc;
         color: #475569;
         border: 1px solid #e2e8f0;
       }
     }
-    
+
     // 彩蛋消息样式
     .easter-egg-message {
       position: fixed;
@@ -1510,14 +1488,27 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes easterEggPop {
@@ -1525,9 +1516,11 @@ onMounted(() => {
     transform: translate(-50%, -50%) scale(0.8);
     opacity: 0;
   }
+
   50% {
     transform: translate(-50%, -50%) scale(1.1);
   }
+
   100% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
