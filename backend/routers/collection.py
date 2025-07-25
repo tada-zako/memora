@@ -1,12 +1,13 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Path
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, select
+from sqlalchemy.orm import selectinload
 from entity.response import Response
 from pydantic import BaseModel
 from loguru import logger
 
-from model import User, Collection, Category
+from model import User, Collection, Category, CollectionDetail
 from db import get_db
 from ai.PROMPTS import (
     PROMPT_PARSE_CATEGORY_AND_TAGS,
@@ -16,6 +17,10 @@ from ai.PROMPTS import (
 from ai.openai_provider import provider_openai
 from utils.markdownit_content import markdownit_helper
 
+from typing import Optional
+
+class CollectionDetailUpdate(BaseModel):
+    value: Optional[str] = None
 
 # Create router instance
 router = APIRouter(
@@ -43,23 +48,33 @@ async def streaming_create_collection_url(
     # step 1: created to collection table
     user_id = 1  # TODO(Soulter): This should be replaced with actual user_id from request context or authentication
 
-    db_collection = Collection(
-        user_id=user_id, details={"url": collection.url}
-    )
+    db_collection = Collection(user_id=user_id)
     db.add(db_collection)
     await db.commit()
+    await db.refresh(db_collection)
+
+    url_detail = CollectionDetail(
+        collection_id=db_collection.id, key="url", value=collection.url
+    )
+    db.add(url_detail)
+
     yield CollectionUrlResponseDelta(
         type="collection_created",
         data={
             "id": db_collection.id,
             "user_id": db_collection.user_id,
-            "created_at": db_collection.created_at,
-            "updated_at": db_collection.updated_at,
+            "created_at": db_collection.created_at.isoformat(),
+            "updated_at": db_collection.updated_at.isoformat(),
         },
     )
 
     # step 2: fetching the content of the url
     content = await markdownit_helper.markdownit(collection.url)
+
+    content_detail = CollectionDetail(
+        collection_id=db_collection.id, key="content", value=content
+    )
+    db.add(content_detail)
 
     logger.info(
         f"Fetched content from {collection.url}, length: {len(content)}: {content[:50]}..."
@@ -134,14 +149,22 @@ async def streaming_create_collection_url(
         prompt=content,
         system_prompt=summary_sys_prompt,
     )
+    full_summary = ""
     async for chunk in summary_llm_resp:
+        full_summary += chunk.completion_text
         yield CollectionUrlResponseDelta(
             type="summary_chunk",
             data={
                 "summary": chunk.completion_text,
             },
         )
-        logger.info("")
+    
+    summary_detail = CollectionDetail(
+        collection_id=db_collection.id, key="summary", value=full_summary
+    )
+    db.add(summary_detail)
+    await db.commit()
+
     yield CollectionUrlResponseDelta(
         type="index_completed",
         data={
@@ -188,7 +211,7 @@ async def get_user_collections(user_id: int, category_id: int | None = None, db:
     if category_id:
         user_query = user_query.where(Collection.category_id == category_id)
     user_result = await db.execute(user_query)
-    user = user_result.scalar_one_or_none()
+    user = user_result.first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -199,10 +222,11 @@ async def get_user_collections(user_id: int, category_id: int | None = None, db:
     collections_query = (
         select(Collection)
         .where(Collection.user_id == user_id)
+        .options(selectinload(Collection.details))
         .order_by(desc(Collection.created_at))
     )
     collections_result = await db.execute(collections_query)
-    collections = collections_result.scalars().all()
+    collections = collections_result.scalars().unique().all()
 
     return Response(
         status="success",
@@ -212,11 +236,77 @@ async def get_user_collections(user_id: int, category_id: int | None = None, db:
                 {
                     "id": collection.id,
                     "category_id": collection.category_id,
-                    "details": collection.details,
+                    "tags": collection.tags,
+                    "details": {
+                        detail.key: detail.value for detail in collection.details
+                    },
                     "created_at": collection.created_at.isoformat(),
                     "updated_at": collection.updated_at.isoformat(),
                 }
                 for collection in collections
             ]
         },
+    )
+
+# 详情相关路由
+@router.get("/{collection_id}/details", response_model=Response)
+async def get_collection_details(collection_id: int, db: AsyncSession = Depends(get_db)):
+    details_query = select(CollectionDetail).where(CollectionDetail.collection_id == collection_id)
+    details_result = await db.execute(details_query)
+    details = details_result.scalars().all()
+    return Response(
+        status="success",
+        message="Collection details fetched successfully",
+        data={"details": {d.key: d.value for d in details}}
+    )
+
+@router.get("/{collection_id}/details/{key}", response_model=Response)
+async def get_collection_detail(collection_id: int, key: str, db: AsyncSession = Depends(get_db)):
+    detail_query = select(CollectionDetail).where(CollectionDetail.collection_id == collection_id, CollectionDetail.key == key)
+    detail_result = await db.execute(detail_query)
+    detail = detail_result.scalar_one_or_none()
+    if not detail:
+        raise HTTPException(status_code=404, detail="Detail not found")
+    return Response(
+        status="success",
+        message="Collection detail fetched successfully",
+        data={"key": detail.key, "value": detail.value}
+    )
+
+@router.put("/{collection_id}/details/{key}", response_model=Response)
+async def update_collection_detail(collection_id: int, key: str, update: CollectionDetailUpdate, db: AsyncSession = Depends(get_db)):
+    detail_query = select(CollectionDetail).where(CollectionDetail.collection_id == collection_id, CollectionDetail.key == key)
+    detail_result = await db.execute(detail_query)
+    detail = detail_result.scalar_one_or_none()
+    if detail:
+        detail.value = update.value
+        db.add(detail)
+        await db.commit()
+        await db.refresh(detail)
+        msg = "Detail updated successfully"
+    else:
+        detail = CollectionDetail(collection_id=collection_id, key=key, value=update.value)
+        db.add(detail)
+        await db.commit()
+        await db.refresh(detail)
+        msg = "Detail created successfully"
+    return Response(
+        status="success",
+        message=msg,
+        data={"key": detail.key, "value": detail.value}
+    )
+
+@router.delete("/{collection_id}/details/{key}", response_model=Response)
+async def delete_collection_detail(collection_id: int, key: str, db: AsyncSession = Depends(get_db)):
+    detail_query = select(CollectionDetail).where(CollectionDetail.collection_id == collection_id, CollectionDetail.key == key)
+    detail_result = await db.execute(detail_query)
+    detail = detail_result.scalar_one_or_none()
+    if not detail:
+        raise HTTPException(status_code=404, detail="Detail not found")
+    await db.delete(detail)
+    await db.commit()
+    return Response(
+        status="success",
+        message="Detail deleted successfully",
+        data={"key": key}
     )

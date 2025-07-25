@@ -31,7 +31,7 @@
         </div>
         
         <!-- 居中容器，包含链接显示、输入和捕获按钮 -->
-        <div class="center-container">
+        <div class="center-container" :class="{ 'center-vertically': !capturedUrl && !statusMessage && !isProcessing && !processedData }">
           <!-- 解析进度和结果显示区域 -->
           <div v-if="isProcessing || processedData" class="processing-section">
             <!-- 处理中状态 -->
@@ -802,6 +802,8 @@
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     clip-path: inset(0 round 0 0 20px 20px);
+    display: flex;
+    flex-direction: column;
     
     // 退出按钮样式
     .exit-button {
@@ -845,17 +847,40 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       flex: 1;
-      padding: 0 24px;
-      min-height: 100vh;
+      padding: 48px 24px 24px 24px; // 为退出按钮留出空间
+      min-height: calc(100vh - 48px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      
+      // 自定义滚动条样式
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: rgba(156, 224, 217, 0.1);
+        border-radius: 3px;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: rgba(156, 224, 217, 0.5);
+        border-radius: 3px;
+        transition: background 0.2s ease;
+        
+        &:hover {
+          background: rgba(156, 224, 217, 0.7);
+        }
+      }
       
       .greeting-section {
         width: 100%;
         display: flex;
         justify-content: flex-start;
         margin: 0;
-        padding-right: 40px; // 为退出按钮留出空间
+        padding: 0 40px 0 0; // 为退出按钮留出空间
+        margin-bottom: 20px; // 与下方内容的间距
       }
 
       .greeting-content {
@@ -896,10 +921,16 @@
         align-items: center;
         justify-content: flex-start;
         width: 100%;
-        min-height: 340px;
+        flex: 1;
         margin: 0;
         padding-top: 50px;
         gap: 4px;
+        
+        // 当没有内容时垂直居中
+        &.center-vertically {
+          justify-content: center;
+          min-height: calc(100vh - 150px); // 为顶部和底部留出空间
+        }
         
         // 新增：解析处理区域
         .processing-section {
@@ -1409,9 +1440,10 @@
         font-size: 16px;
         font-weight: 600;
         box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
-        z-index: 9999;
+        z-index: 10000; // 确保在滚动内容之上
         animation: easterEggPop 0.3s ease-out;
         border: 2px solid #ff4757;
+        pointer-events: none; // 不阻挡鼠标事件
       }
     }
   }

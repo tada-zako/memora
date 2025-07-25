@@ -44,7 +44,6 @@ class Collection(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=True)
     tags = Column(String(255), nullable=True) # splited by comma
-    details = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), 
                        onupdate=lambda: datetime.now(timezone.utc), nullable=False)
@@ -52,9 +51,27 @@ class Collection(Base):
     # Relationship to user
     user = relationship("User", back_populates="collections")
     category = relationship("Category")
+    details = relationship("CollectionDetail", back_populates="collection", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Collection(id={self.id}, user_id={self.user_id}, category='{self.category}...')>"
+
+
+class CollectionDetail(Base):
+    __tablename__ = 'collection_details'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    collection_id = Column(Integer, ForeignKey('collections.id'), nullable=False)
+    key = Column(String(255), nullable=False)
+    value = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), 
+                       onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    collection = relationship("Collection", back_populates="details")
+
+    def __repr__(self):
+        return f"<CollectionDetail(id={self.id}, collection_id={self.collection_id}, key='{self.key}')>"
 
 
 class Attachment(Base):
