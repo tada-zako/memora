@@ -1,6 +1,6 @@
 <template>
   <!-- 快速窗口模式 -->
-  <div class="quick-window" :class="{ mac: isMac }">
+  <div class="quick-window">
     <!-- 退出按钮 -->
     <button 
       @click="closeQuickWindow"
@@ -204,8 +204,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { Zap } from 'lucide-vue-next'
-// 判断平台
-const isMac = /Mac|Macintosh|MacIntel|MacPPC|Mac68K/i.test(navigator.userAgent)
 
 // 快速窗口相关状态
 const isCapturing = ref(false)
@@ -806,22 +804,10 @@ onMounted(() => {
   position: relative;
   height: 100vh;
   width: 100vw;
-  background: linear-gradient(135deg, #f0fdfc 0%, #ffffff 100%);
-  border: 1px solid #d1d5db;
-  border-radius: 0;
-  // Mac下保留圆角
-  @media not all and (min--moz-device-pixel-ratio:0) {
-    border-radius: 0 0 20px 20px;
-  }
-  html.mac & {
-    border-radius: 0 0 20px 20px;
-  }
-  /* 动态js控制 */
-  &.mac {
-    border-radius: 0 0 20px 20px;
-  }
+  background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 20px 20px;
   overflow: hidden;
-  /* 确保在透明窗口中圆角生效 */
   isolation: isolate;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
