@@ -7,6 +7,7 @@ from sqlalchemy import (
     JSON,
     ForeignKey,
     Text,
+    Boolean,
 )
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
@@ -52,6 +53,8 @@ class Collection(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=True)
     tags = Column(String(255), nullable=True) # splited by comma
+    is_shared = Column(Boolean, default=False, nullable=False)  # 是否分享到社区
+    shared_description = Column(Text, nullable=True)  # 分享时的描述
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), 
                        onupdate=lambda: datetime.now(timezone.utc), nullable=False)
@@ -60,6 +63,8 @@ class Collection(Base):
     user = relationship("User", back_populates="collections")
     category = relationship("Category")
     details = relationship("CollectionDetail", back_populates="collection", cascade="all, delete-orphan")
+    likes = relationship("CollectionLike", back_populates="collection", cascade="all, delete-orphan")
+    comments = relationship("CollectionComment", back_populates="collection", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Collection(id={self.id}, user_id={self.user_id}, category='{self.category}...')>"
@@ -105,3 +110,38 @@ class CollectionAttachment(Base):
 
     def __repr__(self):
         return f"<CollectionAttachment(attachment_id={self.id}, collection_id={self.collection_id}, attachment_id={self.attachment_id})>"
+
+
+class CollectionLike(Base):
+    __tablename__ = 'collection_likes'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    collection_id = Column(Integer, ForeignKey('collections.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    
+    # Relationships
+    collection = relationship("Collection", back_populates="likes")
+    user = relationship("User")
+
+    def __repr__(self):
+        return f"<CollectionLike(id={self.id}, collection_id={self.collection_id}, user_id={self.user_id})>"
+
+
+class CollectionComment(Base):
+    __tablename__ = 'collection_comments'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    collection_id = Column(Integer, ForeignKey('collections.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), 
+                       onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    
+    # Relationships
+    collection = relationship("Collection", back_populates="comments")
+    user = relationship("User")
+
+    def __repr__(self):
+        return f"<CollectionComment(id={self.id}, collection_id={self.collection_id}, user_id={self.user_id})>"

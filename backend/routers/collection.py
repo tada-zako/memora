@@ -347,6 +347,8 @@ async def get_current_user_collections(
                     "id": collection.id,
                     "category_id": collection.category_id,
                     "tags": collection.tags,
+                    "is_shared": collection.is_shared,
+                    "shared_description": collection.shared_description,
                     "details": {
                         detail.key: detail.value for detail in collection.details
                     },
@@ -385,6 +387,8 @@ async def get_collections_by_category(
                     "id": collection.id,
                     "category_id": collection.category_id,
                     "tags": collection.tags,
+                    "is_shared": collection.is_shared,
+                    "shared_description": collection.shared_description,
                     "details": {
                         detail.key: detail.value for detail in collection.details
                     },

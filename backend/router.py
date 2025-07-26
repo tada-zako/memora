@@ -7,6 +7,7 @@ from routers.collection import router as collection_router, collections_router
 from routers.attachment import router as attachment_router
 from routers.category import router as category_router
 from routers.auth import router as auth_router
+from routers.community import router as community_router
 from routers.static import mount_static_files
 
 
@@ -38,6 +39,7 @@ app.include_router(collection_router, prefix="/api/v1")
 app.include_router(collections_router, prefix="/api/v1")
 app.include_router(attachment_router, prefix="/api/v1")
 app.include_router(category_router, prefix="/api/v1")
+app.include_router(community_router, prefix="/api/v1")
 
 # Mount static files for uploads
 mount_static_files(app)
