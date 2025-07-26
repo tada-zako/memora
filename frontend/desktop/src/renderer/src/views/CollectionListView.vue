@@ -43,8 +43,17 @@
                   标签: {{ item.tags }}
                 </p>
                 <div class="flex items-center justify-between text-xs text-gray-500">
-                  <span>创建时间: {{ formatDate(item.created_at) }}</span>
-                  <span>更新: {{ formatDate(item.updated_at) }}</span>
+                  <div>
+                    <div>创建时间: {{ formatDate(item.created_at) }}</div>
+                    <div>更新: {{ formatDate(item.updated_at) }}</div>
+                  </div>
+                  <button
+                    @click.stop="showPublishModal(item.id)"
+                    class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                  >
+                    <ShareIcon class="w-3 h-3" />
+                    分享
+                  </button>
                 </div>
                 <div v-if="item.details && item.details.attachment" class="mt-4 pt-4 border-t border-gray-100">
                   <div class="flex items-center gap-2">
@@ -63,20 +72,33 @@
           <div class="text-center text-sm text-gray-500">
             <p>© 2025 网页收藏系统 · 简约 · 现代 · 高效</p>
           </div>
-        </div>
-      </footer>
-    </div>
-  </template>
+              </div>
+    </footer>
+
+    <!-- 发布到社区模态框 -->
+    <PublishToCommunityModal
+      :show="publishModalShow"
+      :collection-id="selectedCollectionId"
+      @close="publishModalShow = false"
+      @success="handlePublishSuccess"
+    />
+  </div>
+</template>
   
   <script setup>
   import { ref, onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { getCollectionsByCategory } from '../services/collection'
   import { isAuthenticated } from '../services/auth'
+  import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
 
   // Icons
   const BookmarkIcon = {
     template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`
+  }
+
+  const ShareIcon = {
+    template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>`
   }
   
   // 路由参数
@@ -86,6 +108,8 @@
 
   const collections = ref([])
   const loading = ref(false)
+  const publishModalShow = ref(false)
+  const selectedCollectionId = ref(null)
 
   const fetchCollectionsByCategory = async () => {
     // 检查用户是否已登录
@@ -128,6 +152,16 @@
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const showPublishModal = (collectionId) => {
+    selectedCollectionId.value = collectionId
+    publishModalShow.value = true
+  }
+
+  const handlePublishSuccess = (result) => {
+    console.log('发布成功:', result)
+    alert('已成功发布到社区！')
   }
   </script>
   

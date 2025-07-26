@@ -24,13 +24,22 @@
               <h2 class="text-2xl font-bold text-black mb-3 leading-tight">{{ details.title }}</h2>
               <p class="text-base text-gray-600 leading-relaxed">{{ details.summary }}</p>
             </div>
-            <button
-              @click="openOriginalLink"
-              class="shrink-0 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 bg-transparent transition-colors flex items-center gap-2 text-sm"
-            >
-              <ExternalLinkIcon class="w-4 h-4" />
-              访问原文
-            </button>
+            <div class="flex gap-2">
+              <button
+                @click="showPublishModal = true"
+                class="shrink-0 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
+              >
+                <ShareIcon class="w-4 h-4" />
+                分享到社区
+              </button>
+              <button
+                @click="openOriginalLink"
+                class="shrink-0 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 bg-transparent transition-colors flex items-center gap-2 text-sm"
+              >
+                <ExternalLinkIcon class="w-4 h-4" />
+                访问原文
+              </button>
+            </div>
           </div>
 
           <div class="border-t border-gray-200 my-6"></div>
@@ -143,6 +152,14 @@
         </div>
       </div>
     </footer>
+
+    <!-- 发布到社区模态框 -->
+    <PublishToCommunityModal
+      :show="showPublishModal"
+      :collection-id="collectionId"
+      @close="showPublishModal = false"
+      @success="handlePublishSuccess"
+    />
   </div>
 </template>
 
@@ -151,6 +168,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getCollectionDetails } from '../services/collection'
 import { isAuthenticated } from '../services/auth'
+import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
 
 // Icons (你可以使用任何图标库，这里用简单的SVG组件)
 const BookmarkIcon = {
@@ -177,12 +195,17 @@ const MessageSquareIcon = {
   template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
 }
 
+const ShareIcon = {
+  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>`
+}
+
 const route = useRoute()
 const router = useRouter()
 const collectionId = route.params.collection_id
 
 const details = ref({})
 const loading = ref(true)
+const showPublishModal = ref(false)
 
 const fetchDetails = async () => {
   // 检查用户是否已登录
@@ -225,5 +248,11 @@ const openOriginalLink = () => {
   if (details.value.url) {
     window.open(details.value.url, '_blank', 'noopener,noreferrer')
   }
+}
+
+const handlePublishSuccess = (result) => {
+  console.log('发布成功:', result)
+  // 可以添加成功提示或其他处理逻辑
+  alert('已成功发布到社区！')
 }
 </script>
