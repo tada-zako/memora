@@ -1,11 +1,11 @@
 <template>
-  <div class="flex-1 flex flex-col bg-gray-50/80">
+  <div class="flex-1 flex flex-col bg-white">
     <!-- 主内容区 -->
     <div class="bg-white/90 glass-effect border border-gray-100 h-full min-h-0" style="padding: 16px;">
 
 
       <!-- 标题区域 -->
-          <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center justify-between sticky top-0 z-10 bg-white/90 glass-effect  w-full px-4 py-4">
             <div class="flex items-center">
               <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
                 <span class="text-white text-2xl">🌏</span>
@@ -39,10 +39,10 @@
           <div
             v-for="post in posts"
             :key="post.id"
-            class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200"
+            class="bg-white rounded-lg overflow-hidden transition-all duration-200"
           >
             <!-- 推文头部 -->
-            <div class="p-4 border-b border-gray-100">
+            <div class="p-4 ">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
@@ -92,17 +92,21 @@
                 @click="viewCollectionDetail(post.refer_collection_id)"
               >
                 <div class="flex items-center justify-between mb-2">
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2 flex-wrap">
                     <BookmarkIcon class="w-4 h-4 text-gray-500" />
-                    <span class="text-sm font-medium text-gray-700">分享的收藏</span>
                     <span v-if="post.category_name" class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
                       {{ post.category_name }}
                     </span>
+                    <!-- 标签 -->
+                    <span
+                      v-for="tag in post.tags?.split(',') || []"
+                      :key="tag"
+                      class="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded"
+                    >
+                      #{{ tag.trim() }}
+                    </span>
                   </div>
-                  <div class="text-xs text-gray-400 flex items-center gap-1">
-                    <span>点击查看详情</span>
-                    <ExternalLinkIcon class="w-3 h-3" />
-                  </div>
+                  <!-- 删除“点击查看详情”按钮及图标 -->
                 </div>
                 
                 <!-- 收藏详情 -->
@@ -113,35 +117,12 @@
                   <p v-if="post.collection_details.summary" class="text-sm text-gray-600 line-clamp-2">
                     {{ parseSummary(post.collection_details.summary) }}
                   </p>
-                  <div v-if="post.collection_details.url" class="mt-2">
-                    <a 
-                      :href="post.collection_details.url"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="text-xs text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
-                      @click.stop
-                    >
-                      <ExternalLinkIcon class="w-3 h-3" />
-                      访问原文
-                    </a>
-                  </div>
-                </div>
-
-                <!-- 标签 -->
-                <div v-if="post.tags" class="flex flex-wrap gap-1 mt-2">
-                  <span
-                    v-for="tag in post.tags.split(',')"
-                    :key="tag"
-                    class="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded"
-                  >
-                    #{{ tag.trim() }}
-                  </span>
                 </div>
               </div>
             </div>
 
             <!-- 操作栏 -->
-            <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+            <div class="px-4 py-3  flex items-center justify-between">
               <div class="flex items-center gap-4">
                 <!-- 点赞 -->
                 <button
@@ -168,30 +149,32 @@
             </div>
 
             <!-- 评论区域 -->
-            <div v-if="post.showComments" class="border-t border-gray-100">
+            <div v-if="post.showComments">
               <!-- 评论输入 -->
               <div class="p-4">
-                <div class="flex gap-3">
+                <div class="flex gap-3 items-center">
                   <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                     <img v-if="currentUser && currentUser.avatar_attachment_id" :src="buildAvatarUrl(currentUser.avatar_attachment_id)" alt="My Avatar" class="w-full h-full object-cover">
                     <span v-else class="text-white font-semibold text-xs">我</span>
                   </div>
-                  <div class="flex-1">
-                    <textarea
+                  <div class="flex-1 flex items-center bg-gray-100 rounded-lg px-2">
+                    <input
                       v-model="post.newComment"
+                      type="text"
                       placeholder="写下你的评论..."
-                      class="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      rows="2"
-                    ></textarea>
-                    <div class="flex justify-end mt-2">
-                      <button
-                        @click="submitComment(post)"
-                        :disabled="!post.newComment?.trim() || post.commentLoading"
-                        class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {{ post.commentLoading ? '发布中...' : '发布评论' }}
-                      </button>
-                    </div>
+                      class="flex-1 bg-transparent border-none border-radius-lg outline-none py-3 text-sm"
+                      @keyup.enter="submitComment(post)"
+                      :disabled="post.commentLoading"
+                    />
+                    <button
+                      @click="submitComment(post)"
+                      :disabled="!post.newComment?.trim() || post.commentLoading"
+                      class="ml-2 text-grey-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base px-2 py-1 rounded"
+                      style="min-width: 48px;"
+                    >
+                      <template v-if="post.commentLoading">...</template>
+                      <template v-else>➤</template>
+                    </button>
                   </div>
                 </div>
               </div>
