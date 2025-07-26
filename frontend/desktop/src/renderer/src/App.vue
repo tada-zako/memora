@@ -72,7 +72,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Star, Earth } from 'lucide-vue-next'
+import { Star, Earth, User } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -83,6 +83,7 @@ const sidebarToggleCount = ref(0)
 const menuItems = [
   { id: 'collections', name: '收藏', icon: Star, route: { name: 'Home' } },
   { id: 'community', name: '社区', icon: Earth, route: { name: 'Community' } },
+  { id: 'profile', name: '我', icon: User, route: { name: 'Profile' } },
 ]
 
 const handleSidebarEnter = () => {
@@ -112,6 +113,10 @@ const isActiveMenu = (item) => {
     // 对于社区菜单
     if (item.id === 'community') {
       return route.name === 'Community'
+    }
+    // 对于个人中心菜单
+    if (item.id === 'profile') {
+      return route.name === 'Profile' || route.name === 'Login'
     }
     // 默认匹配
     return route.name === item.route.name

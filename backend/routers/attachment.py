@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
@@ -137,6 +138,36 @@ async def get_attachment(
         )
     return attachment
 
+@router.get("/file/{attachment_id}")
+async def get_attachment_file(
+    attachment_id: str, 
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get the file of a specific attachment by ID
+    """
+    attachment_query = select(Attachment).where(
+        Attachment.attachment_id == attachment_id
+    )
+    attachment_result = await db.execute(attachment_query)
+    attachment = attachment_result.scalar_one_or_none()
+    
+    if not attachment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Attachment with id {attachment_id} not found"
+        )
+    
+    file_path = UPLOAD_DIR / Path(attachment.url).name # type: ignore
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found"
+        )
+
+    return FileResponse(file_path, media_type="application/octet-stream", filename=file_path.name)
+
+
 # Delete attachment
 @router.delete("/{attachment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_attachment(
@@ -172,3 +203,4 @@ async def delete_attachment(
     await db.commit()
     
     return None
+

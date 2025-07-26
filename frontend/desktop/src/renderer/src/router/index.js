@@ -5,6 +5,8 @@ import CollectionDetailView from '../views/CollectionDetailView.vue'
 import CollectionAttachmentListView from '../views/CollectionAttachmentListView.vue'
 import CollectionAttachmentDetailView from '../views/CollectionAttachmentDetailView.vue'
 import CommunityView from '../views/CommunityView.vue'
+import LoginView from '../views/LoginView.vue'
+import ProfileView from '../views/ProfileView.vue'
 
 const routes = [
   {
@@ -46,6 +48,16 @@ const routes = [
     name: 'CollectionAttachmentDetail',
     component: CollectionAttachmentDetailView,
     props: true
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: LoginView
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: ProfileView
   }
 ]
 

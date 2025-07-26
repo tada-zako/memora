@@ -1,0 +1,118 @@
+import api from './api'
+import { uploadAvatar } from './attachment'
+
+// 用户注册
+export const register = async (userData) => {
+  try {
+    const response = await api.post('/api/v1/auth/register', userData)
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error.message
+  }
+}
+
+// 用户登录
+export const login = async (credentials) => {
+  try {
+    const response = await api.post('/api/v1/auth/login', credentials)
+    if (response.data.status === 'success') {
+      const { access_token } = response.data.data
+      // 存储token
+      localStorage.setItem('access_token', access_token)
+    }
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error.message
+  }
+}
+
+// 获取用户信息
+export const getUserProfile = async () => {
+  try {
+    const response = await api.get('/api/v1/auth/profile')
+    if (response.data.status === 'success') {
+      // 存储用户信息
+      localStorage.setItem('user_info', JSON.stringify(response.data.data))
+    }
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error.message
+  }
+}
+
+// 更新用户信息
+export const updateUserProfile = async (userData) => {
+  try {
+    const response = await api.put('/api/v1/auth/profile', userData)
+    if (response.data.status === 'success') {
+      // 更新本地存储的用户信息
+      localStorage.setItem('user_info', JSON.stringify(response.data.data))
+    }
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error.message
+  }
+}
+
+// 上传头像
+export const uploadUserAvatar = async (file) => {
+  try {
+    // 验证文件类型
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp']
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('不支持的文件类型，请上传 JPG、PNG、GIF、WebP 或 BMP 格式的图片')
+    }
+
+    // 验证文件大小 (10MB)
+    const maxSize = 10 * 1024 * 1024
+    if (file.size > maxSize) {
+      throw new Error('文件大小不能超过 10MB')
+    }
+
+    // 上传头像
+    const attachment = await uploadAvatar(file)
+    
+    // 更新用户头像信息
+    const updateData = {
+      avatar_attachment_id: attachment.attachment_id
+    }
+    
+    const response = await updateUserProfile(updateData)
+    return response
+  } catch (error) {
+    throw error
+  }
+}
+
+// 获取用户头像URL
+export const getUserAvatarUrl = async (userInfo) => {
+  if (!userInfo || !userInfo.avatar_attachment_id) {
+    return null
+  }
+  
+  try {
+    const { getAttachment } = await import('./attachment')
+    const attachment = await getAttachment(userInfo.avatar_attachment_id)
+    return `/${attachment.url}`
+  } catch (error) {
+    console.error('获取头像URL失败:', error)
+    return null
+  }
+}
+
+// 登出
+export const logout = () => {
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('user_info')
+}
+
+// 检查是否已登录
+export const isAuthenticated = () => {
+  return !!localStorage.getItem('access_token')
+}
+
+// 获取本地存储的用户信息
+export const getLocalUserInfo = () => {
+  const userInfo = localStorage.getItem('user_info')
+  return userInfo ? JSON.parse(userInfo) : null
+}
