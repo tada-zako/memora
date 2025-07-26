@@ -36,10 +36,9 @@
               v-for="collection in collections" 
               :key="collection.id"
               @click="viewCollection(collection)"
-              :class="[
-                'h-36 w-64 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out hover:shadow-lg text-gray-800 relative overflow-hidden group shadow-sm'
+              :class="[ 
+              'h-36 w-64 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out text-gray-800 relative overflow-hidden group collection-card',
               ]"
-              style="background-color: #f6f2f8;"
             >
               <!-- 内容 -->
               <div class="relative" style="height: 100%;">
@@ -438,5 +437,13 @@ onMounted(async () => {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.5);
+}
+
+.collection-card {
+  background-color: #f7f1f6;
+}
+
+.collection-card:hover {
+  background: #e5e0e8;
 }
 </style> 
