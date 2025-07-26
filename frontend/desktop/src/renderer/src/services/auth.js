@@ -101,6 +101,14 @@ export const getUserAvatarUrl = async (userInfo) => {
   }
 }
 
+// 直接构造头像URL（避免额外的API调用）
+export const buildAvatarUrl = (avatarAttachmentId) => {
+  if (!avatarAttachmentId) {
+    return null
+  }
+  return `/api/v1/attachments/file/${avatarAttachmentId}`
+}
+
 // 登出
 export const logout = () => {
   localStorage.removeItem('access_token')

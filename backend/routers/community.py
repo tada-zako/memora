@@ -4,6 +4,7 @@ from sqlalchemy import desc, select, and_, func
 from entity.response import Response
 from pydantic import BaseModel
 from typing import Optional
+from datetime import timezone
 
 from model import (
     User,
@@ -41,15 +42,23 @@ class LikeRequest(BaseModel):
     asset_type: str  # 'post' or 'comment'
 
 
+class UserInfo(BaseModel):
+    id: int
+    username: str
+    avatar_attachment_id: Optional[str] = None
+
+
 class CommentResponse(BaseModel):
     id: int
     content: str
     user_id: int
     username: str
+    avatar_attachment_id: Optional[str] = None
     likes_count: int
     is_liked_by_me: bool
     created_at: str
     updated_at: str
+    user: Optional[UserInfo] = None
 
 
 class PostResponse(BaseModel):
@@ -58,6 +67,7 @@ class PostResponse(BaseModel):
     description: Optional[str]
     user_id: int
     username: str
+    avatar_attachment_id: Optional[str] = None
     refer_collection_id: int
     collection_details: dict
     category_id: Optional[int]
@@ -68,6 +78,7 @@ class PostResponse(BaseModel):
     is_liked_by_me: bool
     created_at: str
     updated_at: str
+    user: Optional[UserInfo] = None
 
 
 @router.post("/posts", response_model=Response)
@@ -163,7 +174,7 @@ async def get_posts(
     posts_query = (
         select(
             Post,
-            User.username,
+            User,
             Collection,
             Category.name.label('category_name'),
             func.count(Like.id.distinct()).label('likes_count'),
@@ -174,7 +185,7 @@ async def get_posts(
         .outerjoin(Category, Collection.category_id == Category.id)
         .outerjoin(Like, and_(Like.asset_id == Post.id, Like.asset_type == AssetType.post))
         .outerjoin(Comment, Comment.post_id == Post.id)
-        .group_by(Post.id, User.username, Collection.id, Category.name)
+        .group_by(Post.id, User.id, User.username, User.avatar_attachment_id, Collection.id, Category.name)
         .order_by(desc(Post.created_at))
         .offset(offset)
         .limit(limit)
@@ -186,7 +197,7 @@ async def get_posts(
     posts = []
     for row in posts_data:
         post = row[0]
-        username = row[1]
+        user = row[1]
         collection = row[2]
         category_name = row[3]
         likes_count = row[4]
@@ -216,7 +227,8 @@ async def get_posts(
                 post_id=post.post_id,
                 description=post.description,
                 user_id=post.user_id,
-                username=username,
+                username=user.username,
+                avatar_attachment_id=user.avatar_attachment_id,
                 refer_collection_id=post.refer_collection_id,
                 collection_details={detail.key: detail.value for detail in details},
                 category_id=collection.category_id,
@@ -225,8 +237,9 @@ async def get_posts(
                 likes_count=likes_count,
                 comments_count=comments_count,
                 is_liked_by_me=is_liked_by_me,
-                created_at=post.created_at.isoformat(),
-                updated_at=post.updated_at.isoformat()
+                created_at=post.created_at.replace(tzinfo=timezone.utc).isoformat(),
+                updated_at=post.updated_at.replace(tzinfo=timezone.utc).isoformat(),
+                user=UserInfo(id=user.id, username=user.username, avatar_attachment_id=user.avatar_attachment_id)
             )
         )
     
@@ -399,10 +412,12 @@ async def create_comment(
                 content=new_comment.content,
                 user_id=new_comment.user_id,
                 username=current_user.username,
+                avatar_attachment_id=current_user.avatar_attachment_id,
                 likes_count=0,
                 is_liked_by_me=False,
-                created_at=new_comment.created_at.isoformat(),
-                updated_at=new_comment.updated_at.isoformat()
+                created_at=new_comment.created_at.replace(tzinfo=timezone.utc).isoformat(),
+                updated_at=new_comment.updated_at.replace(tzinfo=timezone.utc).isoformat(),
+                user=UserInfo(id=current_user.id, username=current_user.username, avatar_attachment_id=current_user.avatar_attachment_id)
             )
         }
     )
@@ -436,13 +451,13 @@ async def get_post_comments(
     comments_query = (
         select(
             Comment,
-            User.username,
+            User,
             func.count(Like.id).label('likes_count')
         )
         .join(User, Comment.user_id == User.id)
         .outerjoin(Like, and_(Like.asset_id == Comment.id, Like.asset_type == AssetType.comment))
         .where(Comment.post_id == post.id)
-        .group_by(Comment.id, User.username)
+        .group_by(Comment.id, User.id, User.username, User.avatar_attachment_id)
         .order_by(desc(Comment.created_at))
         .offset(offset)
         .limit(limit)
@@ -453,7 +468,7 @@ async def get_post_comments(
     comments = []
     for row in comments_data:
         comment = row[0]
-        username = row[1]
+        user = row[1]
         likes_count = row[2]
         
         # 检查当前用户是否已点赞该评论
@@ -472,11 +487,13 @@ async def get_post_comments(
                 id=comment.id,
                 content=comment.content,
                 user_id=comment.user_id,
-                username=username,
+                username=user.username,
+                avatar_attachment_id=user.avatar_attachment_id,
                 likes_count=likes_count,
                 is_liked_by_me=is_liked_by_me,
-                created_at=comment.created_at.isoformat(),
-                updated_at=comment.updated_at.isoformat()
+                created_at=comment.created_at.replace(tzinfo=timezone.utc).isoformat(),
+                updated_at=comment.updated_at.replace(tzinfo=timezone.utc).isoformat(),
+                user=UserInfo(id=user.id, username=user.username, avatar_attachment_id=user.avatar_attachment_id)
             )
         )
     

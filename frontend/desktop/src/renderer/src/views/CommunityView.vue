@@ -173,7 +173,7 @@
               <div class="p-4">
                 <div class="flex gap-3">
                   <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    <img v-if="currentUser && currentUser.avatar_url" :src="currentUser.avatar_url" alt="My Avatar" class="w-full h-full object-cover">
+                    <img v-if="currentUser && currentUser.avatar_attachment_id" :src="buildAvatarUrl(currentUser.avatar_attachment_id)" alt="My Avatar" class="w-full h-full object-cover">
                     <span v-else class="text-white font-semibold text-xs">我</span>
                   </div>
                   <div class="flex-1">
@@ -318,7 +318,7 @@ import {
   deletePost, 
   deleteComment 
 } from '../services/community'
-import { isAuthenticated, getUserAvatarUrl } from '../services/auth'
+import { isAuthenticated, buildAvatarUrl } from '../services/auth'
 
 const router = useRouter()
 
@@ -329,7 +329,6 @@ const loadingMore = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(1)
 const currentUser = ref(null)
-const avatarCache = ref({})
 
 // 解析summary
 const parseSummary = (summary) => {
@@ -369,13 +368,7 @@ onMounted(async () => {
   // 从localStorage获取用户信息
   const userInfo = localStorage.getItem('user_info')
   if (userInfo) {
-    const parsedInfo = JSON.parse(userInfo)
-    if (parsedInfo.avatar_attachment_id) {
-      const avatarUrl = await getUserAvatarUrl(parsedInfo)
-      avatarCache.value[parsedInfo.id] = avatarUrl
-      parsedInfo.avatar_url = avatarUrl
-    }
-    currentUser.value = parsedInfo
+    currentUser.value = JSON.parse(userInfo)
   }
 
   await loadPosts()
@@ -393,16 +386,7 @@ const loadPosts = async (page = 1) => {
     const result = await getPosts(page, 10)
     
     if (result.status === 'success' && result.data && result.data.posts) {
-      const newPosts = await Promise.all(result.data.posts.map(async (post) => {
-        let avatar_url = null
-        if (post.user?.avatar_attachment_id) {
-          if (avatarCache.value[post.user.id]) {
-            avatar_url = avatarCache.value[post.user.id]
-          } else {
-            avatar_url = await getUserAvatarUrl(post.user)
-            avatarCache.value[post.user.id] = avatar_url
-          }
-        }
+      const newPosts = result.data.posts.map((post) => {
         return {
           ...post,
           showComments: false,
@@ -413,9 +397,9 @@ const loadPosts = async (page = 1) => {
           hasMoreComments: post.comments_count > 0,
           commentsPage: 1,
           showFullDescription: false,
-          avatar_url
+          avatar_url: buildAvatarUrl(post.user?.avatar_attachment_id)
         }
-      }))
+      })
 
       if (page === 1) {
         posts.value = newPosts
@@ -487,18 +471,12 @@ const loadComments = async (post, page = 1) => {
     const result = await getPostComments(post.post_id, page, 5)
     
     if (result.status === 'success' && result.data && result.data.comments) {
-      const newComments = await Promise.all(result.data.comments.map(async (comment) => {
-        let avatar_url = null
-        if (comment.user?.avatar_attachment_id) {
-          if (avatarCache.value[comment.user.id]) {
-            avatar_url = avatarCache.value[comment.user.id]
-          } else {
-            avatar_url = await getUserAvatarUrl(comment.user)
-            avatarCache.value[comment.user.id] = avatar_url
-          }
+      const newComments = result.data.comments.map((comment) => {
+        return { 
+          ...comment, 
+          avatar_url: buildAvatarUrl(comment.user?.avatar_attachment_id)
         }
-        return { ...comment, avatar_url }
-      }))
+      })
 
       if (page === 1) {
         post.comments = newComments
@@ -629,9 +607,15 @@ const goToCollections = () => {
   router.push({ name: 'Home' })
 }
 
-// 格式化日期
+// 格式化日期 - 转换为北京时间显示
 const formatDate = (dateString) => {
-  const date = new Date(dateString)
+  // 如果后端返回的是UTC时间（没有时区信息），需要手动添加Z标识
+  let isoString = dateString
+  if (!dateString.includes('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
+    isoString = dateString + 'Z'
+  }
+  
+  const date = new Date(isoString)
   const now = new Date()
   const diff = now - date
   
@@ -650,8 +634,9 @@ const formatDate = (dateString) => {
     return `${Math.floor(diff / 3600000)}小时前`
   }
   
-  // 超过24小时，显示具体日期
+  // 超过24小时，显示具体日期（北京时间）
   return date.toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
