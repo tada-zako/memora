@@ -8,7 +8,7 @@
           <div class="flex items-center justify-between sticky top-0 z-10 bg-white/90 glass-effect  w-full px-4 py-4">
             <div class="flex items-center">
               <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
-                <span class="text-white text-2xl">🌏</span>
+                <Earth class="text-black-400 w-8 h-8" />
               </div>
               <div>
                 <h1 class="text-2xl font-bold text-gray-900">社区</h1>

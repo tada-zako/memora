@@ -10,10 +10,10 @@
           <div class="flex items-center justify-between mb-8">
             <div class="flex items-center">
               <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
-                <span class="text-white text-2xl">✨</span>
+                <Star class="text-black-400 w-8 h-8" />
               </div>
               <div>
-                <h1 class="text-2xl font-bold text-gray-900">收藏夹</h1>
+                <h1 class="text-2xl font-bold text-gray-900">收藏</h1>
               </div>
             </div>
             <!-- 刷新按钮 -->
@@ -440,7 +440,7 @@ onMounted(async () => {
 }
 
 .collection-card {
-  background-color: #f7f1f6;
+  background-color: #f4f4f6;
 }
 
 .collection-card:hover {
