@@ -41,7 +41,7 @@ function createWindow() {
     title: 'Memora',
     windowTitle: 'Memora',
     titleBarStyle: process.platform === 'darwin' ? 'default' : 'default',
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon: join(__dirname, '../../resources/icon-L.png'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -91,6 +91,7 @@ function createQuickWindow() {
       resizable: false,
       backgroundColor: '#fff',
       hasShadow: false,
+      icon: join(__dirname, '../../resources/icon.png'),
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),
         sandbox: false,
