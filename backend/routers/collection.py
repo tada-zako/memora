@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +7,7 @@ from sqlalchemy.orm import selectinload
 from entity.response import Response
 from pydantic import BaseModel
 from loguru import logger
+from utils.web_parser import get_web_title
 
 from model import (
     User,
@@ -87,10 +89,17 @@ async def streaming_create_collection_url(
     # step 2: fetching the content of the url
     content = await markdownit_helper.markdownit(collection.url)
 
+    # step 2.1: get url title
+    title = await get_web_title(collection.url)
+
     content_detail = CollectionDetail(
         collection_id=db_collection.id, key="content", value=content
     )
     db.add(content_detail)
+    content_title = CollectionDetail(
+        collection_id=db_collection.id, key="title", value=title
+    )
+    db.add(content_title)
 
     logger.info(
         f"Fetched content from {collection.url}, length: {len(content)}: {content[:50]}..."
@@ -101,6 +110,7 @@ async def streaming_create_collection_url(
         data={
             "url": collection.url,
             "content": f"{content[:100]}...",
+            "title": title,
         },
     )
 
