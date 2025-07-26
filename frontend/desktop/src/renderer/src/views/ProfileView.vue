@@ -1,6 +1,27 @@
 <template>
-    <div class="h-full bg-gray-50 overflow-y-auto">
-        <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div class="h-full bg-gray-50 overflow-y-auto relative">
+        <!-- 背景动画 -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div class="particles-container">
+                <div 
+                    v-for="i in 20" 
+                    :key="i" 
+                    class="particle"
+                    :style="{
+                        left: Math.random() * 100 + '%',
+                        animationDelay: Math.random() * 10 + 's',
+                        animationDuration: (8 + Math.random() * 4) + 's'
+                    }"
+                ></div>
+            </div>
+            <div class="geometric-shapes">
+                <div class="shape shape-circle"></div>
+                <div class="shape shape-square"></div>
+                <div class="shape shape-triangle"></div>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
 
             <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 24px;">
                 <div class="relative">
@@ -285,5 +306,98 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 自定义样式可以在这里添加 */
+.particles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    animation: float linear infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.geometric-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.shape {
+    position: absolute;
+    opacity: 0.08; /* 颜色加深：0.03 -> 0.08 */
+}
+
+.shape-circle {
+    width: 200px;
+    height: 200px;
+    border: 2px solid #222; /* 颜色加深：#000 -> #222 */
+    border-radius: 50%;
+    top: 20%;
+    right: 10%;
+    animation: rotate 20s linear infinite;
+}
+
+.shape-square {
+    width: 150px;
+    height: 150px;
+    border: 2px solid #222; /* 颜色加深：#000 -> #222 */
+    top: 60%;
+    left: 5%;
+    animation: rotate 25s linear infinite reverse;
+}
+
+.shape-triangle {
+    width: 0;
+    height: 0;
+    border-left: 75px solid transparent;
+    border-right: 75px solid transparent;
+    border-bottom: 130px solid rgba(34, 34, 34, 0.08); /* 颜色加深：rgba(0,0,0,0.03) -> rgba(34,34,34,0.08) */
+    top: 40%;
+    right: 20%;
+    animation: float-shape 15s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes float-shape {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
 </style>
