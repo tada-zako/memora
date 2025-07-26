@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-gray-50/80 overflow-hidden">
+  <div class="flex h-full bg-gray-50/80 overflow-hidden">
     <!-- 侧边栏 -->
     <div 
       @mouseenter="handleSidebarEnter"
@@ -63,8 +63,8 @@
       </nav>
     </div>
     <!-- 主内容区 -->
-    <div class="flex-1 flex flex-col overflow-hidden min-w-0">
-      <router-view />
+    <div class="flex-1 flex flex-col min-w-0">
+      <router-view style="overflow-y: scroll;"/>
     </div>
   </div>
 </template>
