@@ -35,7 +35,18 @@ const routes = [
     component: CollectionDetailView,
     props: true
   },
-
+  {
+    path: '/attachment/:category_id',
+    name: 'CollectionAttachmentList',
+    component: CollectionAttachmentListView,
+    props: true
+  },
+  {
+    path: '/attachment/detail/:collection_id',
+    name: 'CollectionAttachmentDetail',
+    component: CollectionAttachmentDetailView,
+    props: true
+  }
 ]
 
 const router = createRouter({
