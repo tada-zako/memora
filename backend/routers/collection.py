@@ -368,6 +368,44 @@ async def get_user_collections(
     )
 
 
+# 通过category_id获取所有collection
+@router.get("/by_category/{category_id}", response_model=Response)
+async def get_collections_by_category(
+    category_id: int, db: AsyncSession = Depends(get_db)
+):
+    """
+    根据category_id获取所有collection
+    """
+    collections_query = (
+        select(Collection)
+        .where(Collection.category_id == category_id)
+        .options(selectinload(Collection.details))
+        .order_by(desc(Collection.created_at))
+    )
+    collections_result = await db.execute(collections_query)
+    collections = collections_result.scalars().unique().all()
+
+    return Response(
+        status="success",
+        message="Collections fetched by category successfully",
+        data={
+            "collections": [
+                {
+                    "id": collection.id,
+                    "category_id": collection.category_id,
+                    "tags": collection.tags,
+                    "details": {
+                        detail.key: detail.value for detail in collection.details
+                    },
+                    "created_at": collection.created_at.isoformat(),
+                    "updated_at": collection.updated_at.isoformat(),
+                }
+                for collection in collections
+            ]
+        },
+    )
+
+
 # 详情相关路由
 @router.get("/{collection_id}/details", response_model=Response)
 async def get_collection_details(

@@ -1,6 +1,9 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import CollectionDetail from '../components/CollectionDetail.vue'
+import CollectionListView from '../views/CollectionListView.vue'
+import CollectionDetailView from '../views/CollectionDetailView.vue'
+import CollectionAttachmentListView from '../views/CollectionAttachmentListView.vue'
+import CollectionAttachmentDetailView from '../views/CollectionAttachmentDetailView.vue'
 
 const routes = [
   {
@@ -9,11 +12,24 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/collection/:id',
-    name: 'CollectionDetail',
-    component: CollectionDetail,
+    path: '/collection',
+    name: 'CollectionList',
+    component: CollectionListView,
     props: true
-  }
+  },
+  {
+    path: '/collection/:category_id',
+    name: 'CollectionList',
+    component: CollectionListView,
+    props: true
+  },
+  {
+    path: '/collection/:collection_id',
+    name: 'CollectionDetail',
+    component: CollectionDetailView,
+    props: true
+  },
+
 ]
 
 const router = createRouter({
