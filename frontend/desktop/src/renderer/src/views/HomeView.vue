@@ -41,9 +41,11 @@
               ]"
             >
               <!-- 内容 -->
-              <div class="relative" style="height: 100%;">
-                <div class="text-xl mb-1">{{ collection.icon }}</div>
-                <h3 class="text-2xl font-bold mb-0.5 truncate text-gray-1000">{{ collection.name }}</h3>
+              <div class="relative flex flex-col justify-between" style="height: 100%;">
+                <div>
+                  <div class="text-xl mb-1">{{ collection.icon }}</div>
+                  <h3 class="text-2xl font-bold mb-0 truncate text-gray-1000">{{ collection.name }}</h3>
+                </div>
                 <p class="text-gray-600 text-sm truncate leading-tight">{{ collection.collection_count }} 个收藏</p>
               </div>
 

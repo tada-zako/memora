@@ -105,9 +105,8 @@
                       <div>创建时间: {{ formatDate(item.created_at) }}</div>
                     </div>
                     <button @click.stop="showPublishModal(item.id)"
-                      class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center gap-1">
-                      <ShareIcon class="w-3 h-3" />
-                      分享
+                      class="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 flex items-center justify-center">
+                      <MessageSquareShare class="w-4 h-4 text-gray-600" />
                     </button>
                   </div>
                   <div v-if="item.details && item.details.attachment" class="mt-4 pt-4 border-t border-gray-100">
@@ -218,15 +217,14 @@ import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
 import { Sparkle } from 'lucide-vue-next'
 import { Sparkles } from 'lucide-vue-next'
 import { ArrowUp } from 'lucide-vue-next'
+import { MessageSquareShare } from 'lucide-vue-next'
 
 // Icons
 const BookmarkIcon = {
   template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`
 }
 
-const ShareIcon = {
-  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>`
-}
+
 
 const SearchIcon = {
   template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`
