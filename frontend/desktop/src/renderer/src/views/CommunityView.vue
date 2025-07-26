@@ -111,7 +111,7 @@
                     {{ post.collection_details.title }}
                   </h4>
                   <p v-if="post.collection_details.summary" class="text-sm text-gray-600 line-clamp-2">
-                    {{ post.collection_details.summary }}
+                    {{ parseSummary(post.collection_details.summary) }}
                   </p>
                   <div v-if="post.collection_details.url" class="mt-2">
                     <a 
@@ -330,6 +330,33 @@ const hasMore = ref(true)
 const currentPage = ref(1)
 const currentUser = ref(null)
 const avatarCache = ref({})
+
+// 解析summary
+const parseSummary = (summary) => {
+  if (typeof summary !== 'string') {
+    return summary
+  }
+
+  let currentSummary = summary.trim()
+
+  // 移除 markdown 代码块
+  if (currentSummary.startsWith('```json')) {
+    currentSummary = currentSummary.replace(/^```json\n/, '').replace(/\n```$/, '').trim()
+  }
+
+  // 尝试解析JSON
+  try {
+    const parsed = JSON.parse(currentSummary)
+    // 如果解析成功并且包含summary字段，则递归解析
+    if (parsed && typeof parsed.summary === 'string') {
+      return parseSummary(parsed.summary)
+    }
+    return currentSummary
+  } catch (e) {
+    // 如果不是一个JSON字符串，则按原样返回
+    return currentSummary
+  }
+}
 
 // 初始化
 onMounted(async () => {
