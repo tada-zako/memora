@@ -31,28 +31,30 @@
               <span>{{ isLoadingCollections ? '刷新中...' : '刷新' }}</span>
             </button>
           </div>
-          <div style="width: 92%; display: flex; gap: 16px;margin-left:20px;">
-            <!-- 收藏卡片 -->
-            <div 
-              v-for="collection in collections" 
-              :key="collection.id"
-              @click="viewCollection(collection)"
-              :class="[ 
-              'h-36 w-64 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out text-gray-800 relative overflow-hidden group collection-card',
-              ]"
-            >
-              <!-- 内容 -->
-              <div class="relative flex flex-col justify-between" style="height: 100%;">
-                <div>
-                  <div class="text-xl mb-1">{{ collection.icon }}</div>
-                  <h3 class="text-2xl font-bold mb-0 truncate text-gray-1000">{{ collection.name }}</h3>
-                </div>
-                <p class="text-gray-600 text-sm truncate leading-tight">{{ collection.collection_count }} 个收藏</p>
-              </div>
+<div style="width: 92%; margin-left: 20px;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; max-width: 100%;">
+    <!-- 收藏卡片 -->
+    <div 
+      v-for="collection in collections" 
+      :key="collection.id"
+      @click="viewCollection(collection)"
+      :class="[ 
+        'h-36 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out text-gray-800 relative overflow-hidden group collection-card',
+      ]"
+      style="width: 100%; max-width: 280px;"
+    >
+      <!-- 内容 -->
+      <div class="relative flex flex-col justify-between" style="height: 100%;">
+        <div>
+          <div class="text-xl mb-1">{{ collection.icon }}</div>
+          <h3 class="text-2xl font-bold mb-0 truncate text-gray-1000">{{ collection.name }}</h3>
+        </div>
+        <p class="text-gray-600 text-sm truncate leading-tight">{{ collection.collection_count }} 个收藏</p>
+      </div>
+    </div>
+  </div>
+</div>
 
-
-            </div>
-          </div>
           <!-- 空状态 -->
           <div v-if="collections.length === 0 && !isLoadingCollections" class="text-center" style="height: calc(100% - 84px); display: flex; justify-content: center; align-items: center; flex-direction: column;">
             <div class="text-6xl mb-4">📚</div>

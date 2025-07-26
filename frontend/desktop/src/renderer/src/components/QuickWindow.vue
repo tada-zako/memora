@@ -277,7 +277,7 @@
           <div v-else-if="hasBrowser" class="button-group">
             <button @click="captureEdgeUrl" :disabled="isCapturing" class="capture-btn" :class="{ 'disabled': isCapturing }">
               <Zap class="capture-icon" />
-              <span>抓取{{ getBrowserDisplayName(detectedBrowser) }}</span>
+              <span>抓取浏览器网址</span>
             </button>
           </div>
         </div>
