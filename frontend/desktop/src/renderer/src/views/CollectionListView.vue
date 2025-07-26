@@ -309,7 +309,8 @@ const showPublishModal = (collectionId) => {
 
 const handlePublishSuccess = (result) => {
   console.log('发布成功:', result)
-  alert('已成功发布到社区！')
+  // 不再弹窗提示，直接由模态框内部提示
+  // alert('已成功发布到社区！')
 }
 
 const createKnowledgeBase = async () => {

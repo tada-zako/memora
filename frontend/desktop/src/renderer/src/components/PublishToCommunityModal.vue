@@ -19,6 +19,11 @@
 
       <!-- 模态框内容 -->
       <div class="p-6">
+        <!-- 成功提示 -->
+        <div v-if="successMessage" class="mb-4 text-green-600 text-center font-semibold">
+          {{ successMessage }}
+        </div>
+
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">
             分享描述 (可选)
@@ -34,20 +39,13 @@
             {{ description.length }}/500
           </div>
         </div>
-
-        <div class="bg-gray-50 rounded-lg p-4 mb-6">
-          <div class="text-sm text-gray-600 mb-2">即将分享的收藏：</div>
-          <div class="text-sm font-medium text-gray-900">
-            收藏ID: {{ collectionId }}
-          </div>
-        </div>
       </div>
 
       <!-- 模态框底部 -->
       <div class="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
         <button
           @click="closeModal"
-          class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          class="px-4 py-2 bg-white text-black border border-black rounded-lg hover:bg-gray-100 transition-colors font-medium"
           :disabled="loading"
         >
           取消
@@ -55,7 +53,7 @@
         <button
           @click="handlePublish"
           :disabled="loading"
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          class="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <span v-if="loading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
           {{ loading ? '发布中...' : '发布到社区' }}
@@ -85,12 +83,14 @@ const emit = defineEmits(['close', 'success'])
 
 const description = ref('')
 const loading = ref(false)
+const successMessage = ref('')
 
-// 监听模态框显示状态，重置表单
+// 监听模态框显示状态，重置表单和提示
 watch(() => props.show, (newVal) => {
   if (newVal) {
     description.value = ''
     loading.value = false
+    successMessage.value = ''
   }
 })
 
@@ -113,10 +113,13 @@ const handlePublish = async () => {
     
     if (result.status === 'success') {
       emit('success', result)
-      closeModal()
-      
-      // 显示成功提示（如果有全局提示组件）
-      console.log('发布成功:', result.message)
+      successMessage.value = '已成功发布到社区！'
+      // 保持 loading 为 true，禁止再次点击
+      setTimeout(() => {
+        loading.value = false
+        closeModal()
+      }, 1500)
+      return // 不再执行 finally 的 closeModal
     }
   } catch (error) {
     console.error('发布失败:', error)
@@ -131,7 +134,11 @@ const handlePublish = async () => {
     
     alert(errorMessage) // 简单的错误提示，可以替换为更好的提示组件
   } finally {
-    loading.value = false
+    // 只有未成功时才关闭和重置 loading
+    if (!successMessage.value) {
+      loading.value = false
+      closeModal()
+    }
   }
 }
 </script>
@@ -155,4 +162,4 @@ const handlePublish = async () => {
 .modal-leave-to .modal-content {
   transform: scale(0.9);
 }
-</style> 
+</style>
