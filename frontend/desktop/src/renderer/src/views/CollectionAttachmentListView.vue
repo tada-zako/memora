@@ -91,6 +91,9 @@
 <script setup>
 import { ref, onMounted, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getCollectionsByCategory } from '../services/collection'
+import { getAttachment } from '../services/attachment'
+import { isAuthenticated } from '../services/auth'
 
 // Icons
 const createIcon = (paths) => ({
@@ -128,13 +131,17 @@ const categoryId = route.params.category_id
 const collections = ref([])
 const loading = ref(false)
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'
-
 const fetchAttachmentCollectionsByCategory = async () => {
+  // 检查用户是否已登录
+  if (!isAuthenticated()) {
+    console.log('用户未登录，跳转到登录页面')
+    router.push('/login')
+    return
+  }
+
   loading.value = true
   try {
-    const response = await fetch(`${API_BASE_URL}/collection/by_category/${categoryId}`)
-    const result = await response.json()
+    const result = await getCollectionsByCategory(categoryId)
     if (result.status === 'success' && result.data && result.data.collections) {
       const filteredCollections = result.data.collections.filter(item => 
         item.details && item.details.attachment
@@ -144,22 +151,19 @@ const fetchAttachmentCollectionsByCategory = async () => {
         filteredCollections.map(async (collection) => {
           try {
             const attachmentId = collection.details.attachment
-            const attachmentResponse = await fetch(`${API_BASE_URL}/attachments/${attachmentId}`)
-            if (attachmentResponse.ok) {
-              const attachmentDetails = await attachmentResponse.json()
-              return { 
-                ...collection, 
-                description: attachmentDetails.description, 
-                imageUrl: attachmentDetails.url 
-              }
+            const attachmentDetails = await getAttachment(attachmentId)
+            return { 
+              ...collection, 
+              description: attachmentDetails.description, 
+              imageUrl: attachmentDetails.url 
             }
           } catch (e) {
             console.error(`获取 collection ${collection.id} 的附件详情失败:`, e)
-          }
-          return { 
-            ...collection, 
-            description: '描述加载失败', 
-            imageUrl: null 
+            return { 
+              ...collection, 
+              description: '描述加载失败', 
+              imageUrl: null 
+            }
           }
         })
       )
@@ -171,6 +175,11 @@ const fetchAttachmentCollectionsByCategory = async () => {
   } catch (e) {
     console.error('获取附件收藏失败:', e)
     collections.value = []
+    // 如果是认证错误，重定向到登录页面
+    if (e.detail === 'Not authenticated' || e.message?.includes('401')) {
+      console.log('认证失败，跳转到登录页面')
+      router.push('/login')
+    }
   } finally {
     loading.value = false
   }
@@ -190,7 +199,7 @@ const getFullUrl = (url) => {
   if (url.startsWith('http')) return url
   // Handle one or more backslashes and convert to a single forward slash
   const normalizedUrl = url.replace(/\\+/g, '/')
-  return `${API_BASE_URL.replace('/api/v1', '')}/${normalizedUrl}`
+  return `http://localhost:8000/${normalizedUrl}`
 }
 
 const isImage = (url) => {

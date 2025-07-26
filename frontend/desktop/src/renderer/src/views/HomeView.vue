@@ -266,6 +266,10 @@ import {
   X, ExternalLink, RotateCcw, Globe, Star, Home
 } from 'lucide-vue-next'
 import UploadModal from '../components/UploadModal.vue'
+import { getCategories, deleteCategory } from '../services/category'
+import { getCollectionsByCategory } from '../services/collection'
+import { isAuthenticated, getLocalUserInfo, refreshAuthStatus } from '../services/auth'
+import '../services/debug' // 引入调试工具
 
 const router = useRouter()
 
@@ -295,14 +299,17 @@ const isLoadingCollections = ref(false)
 // 上传模态窗口状态
 const showUploadModal = ref(false)
 
-// API配置
-const API_BASE_URL = 'http://localhost:8000/api/v1'
-
 // 获取收藏列表
 const fetchCollections = async () => {
+  // 检查用户是否已登录
+  if (!isAuthenticated()) {
+    console.log('用户未登录，跳转到登录页面')
+    router.push('/login')
+    return
+  }
+
   try {
-    const response = await fetch(`${API_BASE_URL}/category`)
-    const result = await response.json()
+    const result = await getCategories()
     
     if (result.status === 'success' && result.data && result.data.categories) {
       collections.value = result.data.categories.map((category, index) => ({
@@ -316,6 +323,14 @@ const fetchCollections = async () => {
     }
   } catch (error) {
     console.error('获取分类失败:', error)
+    // 如果是认证错误，重定向到登录页面
+    const is401or403 = error.response?.status === 401 || error.response?.status === 403
+    const hasAuthError = error.detail === 'Not authenticated' || error.message?.includes('401') || error.message?.includes('403')
+    
+    if (is401or403 || hasAuthError) {
+      console.log('认证失败，跳转到登录页面')
+      router.push('/login')
+    }
   }
 }
 
@@ -323,8 +338,7 @@ const fetchCollections = async () => {
 const viewCollection = async (collection) => {
   try {
     // 先获取该分类下的collections来检查是否有attachment
-    const response = await fetch(`${API_BASE_URL}/collection/by_category/${collection.id}`)
-    const result = await response.json()
+    const result = await getCollectionsByCategory(collection.id)
     
     if (result.status === 'success' && result.data && result.data.collections) {
       const collections = result.data.collections
@@ -369,13 +383,8 @@ const editCollection = (collection) => {
 
 const deleteCollection = async (collectionId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/category/${collectionId}`, {
-      method: 'DELETE'
-    })
-
-    if (response.ok) {
-      collections.value = collections.value.filter(collection => collection.id !== collectionId)
-    }
+    await deleteCategory(collectionId)
+    collections.value = collections.value.filter(collection => collection.id !== collectionId)
   } catch (error) {
     console.error('删除分类失败:', error)
   }
@@ -397,8 +406,17 @@ const handleUploadSuccess = (data) => {
   refreshCollections()
 }
 
+// 调试功能
+const runDebug = async () => {
+  if (window.debugAuth) {
+    await window.debugAuth.full()
+  }
+}
+
 // 初始化
 onMounted(async () => {
+  // 先检查认证状态
+  refreshAuthStatus()
   await fetchCollections()
 })
 </script>

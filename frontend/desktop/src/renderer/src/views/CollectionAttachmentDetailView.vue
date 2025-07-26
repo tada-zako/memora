@@ -152,7 +152,10 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, h, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { getCollectionDetails, getCollectionTags } from '../services/collection'
+import { getAttachment } from '../services/attachment'
+import { isAuthenticated } from '../services/auth'
 
 // Icons
 const createIcon = (paths) => ({
@@ -178,6 +181,7 @@ const ZoomInIcon = createIcon(["M11 11m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0", "m21
 const UserIcon = createIcon(["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2", "M12 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0"])
 
 const route = useRoute()
+const router = useRouter()
 const collectionId = route.params.collection_id
 
 const collection = ref(null)
@@ -186,21 +190,23 @@ const loading = ref(true)
 const error = ref(null)
 const showImageModal = ref(false)
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'
-
 const fetchCollectionAndAttachment = async () => {
+  // 检查用户是否已登录
+  if (!isAuthenticated()) {
+    console.log('用户未登录，跳转到登录页面')
+    router.push('/login')
+    return
+  }
+
   loading.value = true
   error.value = null
   
   try {
     // 并行获取数据以提高性能
-    const [detailsResponse, tagsResponse] = await Promise.all([
-      fetch(`${API_BASE_URL}/collection/${collectionId}/details`),
-      fetch(`${API_BASE_URL}/collection/${collectionId}/tags`)
+    const [detailsResult, tagsResult] = await Promise.all([
+      getCollectionDetails(collectionId),
+      getCollectionTags(collectionId)
     ])
-    
-    // 处理详情响应
-    const detailsResult = await detailsResponse.json()
     
     if (detailsResult.status !== 'success' || !detailsResult.data?.details) {
       throw new Error('无法获取收藏详情')
@@ -213,23 +219,13 @@ const fetchCollectionAndAttachment = async () => {
       throw new Error('此收藏没有关联的附件')
     }
     
-    // 处理标签响应
-    const tagsResult = await tagsResponse.json()
-    
     const tags = tagsResult.status === 'success' && tagsResult.data?.tags 
       ? tagsResult.data.tags.join(',') 
       : ''
     
     // 获取附件信息
     const attachmentId = collectionDetails.attachment
-    
-    const attachmentResponse = await fetch(`${API_BASE_URL}/attachments/${attachmentId}`)
-    
-    if (!attachmentResponse.ok) {
-      throw new Error('无法获取附件详情')
-    }
-    
-    const attachmentResult = await attachmentResponse.json()
+    const attachmentResult = await getAttachment(attachmentId)
     
     attachment.value = attachmentResult
     
@@ -245,6 +241,11 @@ const fetchCollectionAndAttachment = async () => {
     
   } catch (e) {
     error.value = e.message
+    // 如果是认证错误，重定向到登录页面
+    if (e.detail === 'Not authenticated' || e.message?.includes('401')) {
+      console.log('认证失败，跳转到登录页面')
+      router.push('/login')
+    }
   } finally {
     loading.value = false
   }
@@ -296,7 +297,7 @@ const getFullUrl = (url) => {
   if (url.startsWith('http')) return url
   // Handle one or more backslashes and convert to a single forward slash
   const normalizedUrl = url.replace(/\\+/g, '/')
-  return `${API_BASE_URL.replace('/api/v1', '')}/${normalizedUrl}`
+  return `http://localhost:8000/${normalizedUrl}`
 }
 
 const openImageModal = () => {

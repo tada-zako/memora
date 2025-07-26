@@ -19,6 +19,7 @@ export const login = async (credentials) => {
       const { access_token } = response.data.data
       // 存储token
       localStorage.setItem('access_token', access_token)
+      console.log('登录成功，token已保存:', access_token.substring(0, 20) + '...')
     }
     return response.data
   } catch (error) {
@@ -108,11 +109,25 @@ export const logout = () => {
 
 // 检查是否已登录
 export const isAuthenticated = () => {
-  return !!localStorage.getItem('access_token')
+  const token = localStorage.getItem('access_token')
+  console.log('检查认证状态:', token ? '有token' : '无token')
+  return !!token
 }
 
 // 获取本地存储的用户信息
 export const getLocalUserInfo = () => {
   const userInfo = localStorage.getItem('user_info')
   return userInfo ? JSON.parse(userInfo) : null
+}
+
+// 强制刷新认证状态（用于调试）
+export const refreshAuthStatus = () => {
+  const token = localStorage.getItem('access_token')
+  const userInfo = localStorage.getItem('user_info')
+  console.log('当前认证状态:', {
+    hasToken: !!token,
+    tokenPreview: token ? token.substring(0, 20) + '...' : null,
+    hasUserInfo: !!userInfo
+  })
+  return !!token
 }

@@ -152,6 +152,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { X, Upload, CheckCircle, AlertCircle } from 'lucide-vue-next'
+import { uploadAttachment } from '../services/attachment'
+import { createPictureCollection } from '../services/collection'
 
 const props = defineProps({
   show: {
@@ -187,8 +189,6 @@ const notification = ref({
   message: ''
 })
 
-// API 配置
-const API_BASE_URL = 'http://localhost:8000/api/v1'
 const USER_ID = 1
 
 // 计算属性
@@ -287,44 +287,16 @@ const handleUpload = async () => {
 
   try {
     // 第一步：上传文件
-    const formData = new FormData()
-    formData.append('user_id', USER_ID)
-    formData.append('file', selectedFile.value)
-    if (description.value.trim()) {
-      formData.append('description', description.value.trim())
-    }
-
     uploadStatus.value = '正在上传文件...'
-    const uploadResponse = await fetch(`${API_BASE_URL}/attachments/upload/`, {
-      method: 'POST',
-      body: formData
-    })
-
-    if (!uploadResponse.ok) {
-      throw new Error('文件上传失败')
-    }
-
-    const uploadResult = await uploadResponse.json()
+    const uploadResult = await uploadAttachment(selectedFile.value, description.value.trim() || null)
     const attachmentId = uploadResult.attachment_id
 
     // 第二步：创建收藏
     uploadStatus.value = '正在创建收藏...'
-    const collectionResponse = await fetch(`${API_BASE_URL}/collection/picture`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        attachment_id: attachmentId,
-        category: category.value.trim()
-      })
+    const collectionResult = await createPictureCollection({
+      attachment_id: attachmentId,
+      category: category.value.trim()
     })
-
-    if (!collectionResponse.ok) {
-      throw new Error('创建收藏失败')
-    }
-
-    const collectionResult = await collectionResponse.json()
     
     if (collectionResult.status === 'success') {
       // 显示成功通知

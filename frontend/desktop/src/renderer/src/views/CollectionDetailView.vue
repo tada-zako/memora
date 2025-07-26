@@ -148,7 +148,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { getCollectionDetails } from '../services/collection'
+import { isAuthenticated } from '../services/auth'
 
 // Icons (你可以使用任何图标库，这里用简单的SVG组件)
 const BookmarkIcon = {
@@ -176,16 +178,23 @@ const MessageSquareIcon = {
 }
 
 const route = useRoute()
+const router = useRouter()
 const collectionId = route.params.collection_id
 
 const details = ref({})
 const loading = ref(true)
 
 const fetchDetails = async () => {
+  // 检查用户是否已登录
+  if (!isAuthenticated()) {
+    console.log('用户未登录，跳转到登录页面')
+    router.push('/login')
+    return
+  }
+
   loading.value = true
   try {
-    const response = await fetch(`http://localhost:8000/api/v1/collection/${collectionId}/details`)
-    const result = await response.json()
+    const result = await getCollectionDetails(collectionId)
     if (result.status === 'success' && result.data && result.data.details) {
       details.value = result.data.details
     } else {
@@ -193,6 +202,11 @@ const fetchDetails = async () => {
     }
   } catch (e) {
     details.value = {}
+    // 如果是认证错误，重定向到登录页面
+    if (e.detail === 'Not authenticated' || e.message?.includes('401')) {
+      console.log('认证失败，跳转到登录页面')
+      router.push('/login')
+    }
   } finally {
     loading.value = false
   }

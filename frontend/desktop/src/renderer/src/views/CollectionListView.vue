@@ -70,7 +70,9 @@
   
   <script setup>
   import { ref, onMounted } from 'vue'
-  import { useRoute } from 'vue-router'
+  import { useRoute, useRouter } from 'vue-router'
+  import { getCollectionsByCategory } from '../services/collection'
+  import { isAuthenticated } from '../services/auth'
 
   // Icons
   const BookmarkIcon = {
@@ -79,16 +81,23 @@
   
   // 路由参数
   const route = useRoute()
+  const router = useRouter()
   const categoryId = route.params.category_id
 
   const collections = ref([])
   const loading = ref(false)
 
   const fetchCollectionsByCategory = async () => {
+    // 检查用户是否已登录
+    if (!isAuthenticated()) {
+      console.log('用户未登录，跳转到登录页面')
+      router.push('/login')
+      return
+    }
+
     loading.value = true
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/collection/by_category/${categoryId}`)
-      const result = await response.json()
+      const result = await getCollectionsByCategory(categoryId)
       if (result.status === 'success' && result.data && result.data.collections) {
         collections.value = result.data.collections
       } else {
@@ -96,6 +105,11 @@
       }
     } catch (e) {
       collections.value = []
+      // 如果是认证错误，重定向到登录页面
+      if (e.detail === 'Not authenticated' || e.message?.includes('401')) {
+        console.log('认证失败，跳转到登录页面')
+        router.push('/login')
+      }
     } finally {
       loading.value = false
     }

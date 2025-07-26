@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 __file__ = os.path.abspath(__file__)
 PROJ_DIR = os.path.dirname(os.path.dirname(__file__))
 
-# os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
-# os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
+os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
+os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
 
 ENV = os.getenv("ENV", "dev")
 if ENV == "dev":

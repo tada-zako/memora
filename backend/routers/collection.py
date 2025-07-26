@@ -347,8 +347,6 @@ async def get_current_user_collections(
                     "id": collection.id,
                     "category_id": collection.category_id,
                     "tags": collection.tags,
-                    "is_shared": collection.is_shared,
-                    "shared_description": collection.shared_description,
                     "details": {
                         detail.key: detail.value for detail in collection.details
                     },
@@ -364,14 +362,16 @@ async def get_current_user_collections(
 # 通过category_id获取所有collection
 @router.get("/by_category/{category_id}", response_model=Response)
 async def get_collections_by_category(
-    category_id: int, db: AsyncSession = Depends(get_db)
+    category_id: int, 
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
-    根据category_id获取所有collection
+    根据category_id获取当前用户的collection
     """
     collections_query = (
         select(Collection)
-        .where(Collection.category_id == category_id)
+        .where(Collection.category_id == category_id, Collection.user_id == current_user.id)
         .options(selectinload(Collection.details))
         .order_by(desc(Collection.created_at))
     )
@@ -387,8 +387,6 @@ async def get_collections_by_category(
                     "id": collection.id,
                     "category_id": collection.category_id,
                     "tags": collection.tags,
-                    "is_shared": collection.is_shared,
-                    "shared_description": collection.shared_description,
                     "details": {
                         detail.key: detail.value for detail in collection.details
                     },

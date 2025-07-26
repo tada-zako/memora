@@ -312,6 +312,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { Zap } from 'lucide-vue-next'
+import { updateCollectionTags as updateTagsAPI, updateCollectionDetail as updateDetailAPI, healthCheck, getCollectionTags } from '../services/collection'
+import { isAuthenticated } from '../services/auth'
 
 // 快速窗口相关状态
 const capturedUrl = ref('')
@@ -428,21 +430,22 @@ const closeQuickWindow = async () => {
 const testBackendConnection = async () => {
   try {
     console.log('测试后端连接...')
-    const testResponse = await fetch('/api/v1/health', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      }
-    })
-
-    console.log('测试连接响应:', {
-      status: testResponse.status,
-      statusText: testResponse.statusText
-    })
-
-    return testResponse.ok
+    await healthCheck()
+    return true
   } catch (error) {
     console.error('后端连接测试失败:', error)
+    
+    // 如果是认证错误，显示登录提示
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      statusMessage.value = {
+        type: 'error',
+        text: '认证失败，请先登录'
+      }
+      setTimeout(() => {
+        statusMessage.value = null
+      }, 5000)
+    }
+    
     return false
   }
 }
@@ -453,6 +456,18 @@ const processUrlWithAPI = async (url) => {
     console.log('=== 开始处理URL ===')
     console.log('URL:', url)
     console.log('API Endpoint: /api/v1/collection/url')
+
+    // 检查用户认证状态
+    if (!isAuthenticated()) {
+      statusMessage.value = {
+        type: 'error',
+        text: '请先登录后再使用此功能'
+      }
+      setTimeout(() => {
+        statusMessage.value = null
+      }, 5000)
+      return
+    }
 
     // 先测试后端连接
     const isBackendReachable = await testBackendConnection()
@@ -470,12 +485,19 @@ const processUrlWithAPI = async (url) => {
       stepCompleted.value[key] = false
     })
 
-    // 添加更详细的请求配置
+    // 检查认证状态
+    if (!isAuthenticated()) {
+      throw new Error('用户未登录，请先登录')
+    }
+
+    // 获取token并添加到请求头
+    const token = localStorage.getItem('access_token')
     const requestOptions = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'text/event-stream',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ url: url })
     }
@@ -490,7 +512,7 @@ const processUrlWithAPI = async (url) => {
     requestOptions.signal = controller.signal
 
     console.log('发送fetch请求...')
-    const response = await fetch('/api/v1/collection/url', requestOptions)
+    const response = await fetch('http://localhost:8000/api/v1/collection/url', requestOptions)
 
     clearTimeout(timeoutId)
     console.log('收到响应:', {
@@ -638,7 +660,10 @@ const processUrlWithAPI = async (url) => {
 
     let errorMessage = '解析失败'
 
-    if (error.name === 'AbortError') {
+    // 检查认证相关错误
+    if (error.message.includes('403') || error.message.includes('Not authenticated') || error.message.includes('未登录')) {
+      errorMessage = '认证失败，请先登录'
+    } else if (error.name === 'AbortError') {
       errorMessage = '请求超时，请检查网络连接'
     } else if (error.message.includes('fetch')) {
       errorMessage = '网络连接失败，请确认后端服务是否启动'
@@ -729,25 +754,7 @@ const fetchCollectionTags = async (collectionId) => {
     console.log(`=== 获取集合标签 ===`)
     console.log('Collection ID:', collectionId)
 
-    const response = await fetch(`/api/v1/collection/${collectionId}/tags`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      }
-    })
-
-    console.log('获取标签响应:', {
-      status: response.status,
-      statusText: response.statusText
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('获取标签失败:', errorText)
-      throw new Error(`获取标签失败: ${response.status} ${response.statusText}`)
-    }
-
-    const result = await response.json()
+    const result = await getCollectionTags(collectionId)
     console.log('获取标签成功:', result)
     return result.data.tags
   } catch (error) {
@@ -770,28 +777,8 @@ const updateCollectionTags = async (collectionId, tags) => {
     console.log('Collection ID:', collectionId)
     console.log('Tags:', tags)
 
-    const response = await fetch(`/api/v1/collection/${collectionId}/tags`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ tags: tags })
-    })
-
-    console.log('更新标签响应:', {
-      status: response.status,
-      statusText: response.statusText
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('更新标签失败:', errorText)
-      throw new Error(`更新标签失败: ${response.status} ${response.statusText}`)
-    }
-
-    const result = await response.json()
-    console.log('更新标签成功:', result)
+    const result = await updateTagsAPI(collectionId, tags)
+    console.log('更新标签响应:', result)
     return result.data.tags
   } catch (error) {
     console.error('更新集合标签失败:', error)
@@ -815,27 +802,7 @@ const updateCollectionDetail = async (key, value) => {
     console.log('Key:', key)
     console.log('Value:', value)
 
-    const response = await fetch(`/api/v1/collection/${processedData.value.collectionId}/details/${key}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ value: value })
-    })
-
-    console.log('更新响应:', {
-      status: response.status,
-      statusText: response.statusText
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('更新失败:', errorText)
-      throw new Error(`更新失败: ${response.status} ${response.statusText}`)
-    }
-
-    const result = await response.json()
+    const result = await updateDetailAPI(processedData.value.collectionId, key, value)
     console.log('更新成功:', result)
 
     // 更新本地数据
@@ -986,6 +953,18 @@ const testConnection = async () => {
     isTesting.value = true
     console.log('=== 手动测试后端连接 ===')
 
+    // 检查用户认证状态
+    if (!isAuthenticated()) {
+      statusMessage.value = {
+        type: 'error',
+        text: '请先登录后再测试连接'
+      }
+      setTimeout(() => {
+        statusMessage.value = null
+      }, 5000)
+      return
+    }
+
     // 测试基本连接
     const isReachable = await testBackendConnection()
     if (!isReachable) {
@@ -1001,11 +980,13 @@ const testConnection = async () => {
 
     // 测试API端点
     console.log('测试API端点...')
-    const testResponse = await fetch('/api/v1/collection/url', {
+    const token = localStorage.getItem('access_token')
+    const testResponse = await fetch('http://localhost:8000/api/v1/collection/url', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'text/event-stream'
+        'Accept': 'text/event-stream',
+        'Authorization': token ? `Bearer ${token}` : ''
       },
       body: JSON.stringify({ url: 'https://example.com' })
     })
@@ -1128,6 +1109,17 @@ const getBrowserDisplayName = (browser) => {
 }
 
 onMounted(() => {
+  // 检查认证状态
+  const authenticated = isAuthenticated()
+  console.log('QuickWindow认证状态:', authenticated)
+  if (!authenticated) {
+    console.log('用户未登录，QuickWindow功能受限')
+    statusMessage.value = {
+      type: 'error',
+      text: '请先登录后再使用QuickWindow功能'
+    }
+  }
+
   // 检测操作系统
   if (window.electronAPI && window.electronAPI.getPlatform) {
     platform.value = window.electronAPI.getPlatform()
