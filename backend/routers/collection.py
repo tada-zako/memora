@@ -172,6 +172,8 @@ async def streaming_create_collection_url(
             },
         )
 
+    full_summary = parse_json(full_summary).get("summary", "")
+
     summary_detail = CollectionDetail(
         collection_id=db_collection.id, key="summary", value=full_summary
     )
@@ -378,10 +380,23 @@ async def get_collections_by_category(
     collections_result = await db.execute(collections_query)
     collections = collections_result.scalars().unique().all()
 
+    # get category
+    category_query = select(Category).where(
+        Category.id == category_id, Category.user_id == current_user.id
+    )
+    category_result = await db.execute(category_query)
+    category = category_result.scalar_one_or_none()
+
     return Response(
         status="success",
         message="Collections fetched by category successfully",
         data={
+            "category": {
+                "id": category.id,
+                "name": category.name,
+                "emoji": category.emoji,
+                "knowledge_base_id": category.knowledge_base_id,
+            } if category else None,
             "collections": [
                 {
                     "id": collection.id,

@@ -37,16 +37,12 @@
               :key="collection.id"
               @click="viewCollection(collection)"
               :class="[
-                'h-30 w-48 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 text-gray-800 relative overflow-hidden group shadow-sm border border-white/60'
+                'h-36 w-64 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out hover:shadow-lg text-gray-800 relative overflow-hidden group shadow-sm'
               ]"
+              style="background-color: #f6f2f8;"
             >
-              <!-- 背景效果 -->
-              <div class="absolute">
-                <!-- 清新的光泽效果 -->
-                <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent"></div>
-              </div>
               <!-- 内容 -->
-              <div class="relative z-10">
+              <div class="relative" style="height: 100%;">
                 <div class="text-xl mb-1">{{ collection.icon }}</div>
                 <h3 class="text-2xl font-bold mb-0.5 truncate text-gray-1000">{{ collection.name }}</h3>
                 <p class="text-gray-600 text-sm truncate leading-tight">{{ collection.collection_count }} 个收藏</p>

@@ -1,183 +1,502 @@
 <template>
-    <div class="min-h-screen bg-white">
-      <!-- Header -->
-      <header class="border-b border-gray-200">
-        <div class="max-w-6xl mx-auto px-6 py-8">
-          <button @click="$router.back()" class="mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+  <div class="h-screen bg-white flex flex-col">
+    <!-- Header -->
+    <header class="border-b border-gray-200 flex-shrink-0">
+      <div class="max-w-6xl mx-auto px-6 py-5">
+        <div class="flex justify-between items-start mb-2">
+          <button @click="$router.back()"
+            class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
+            style="font-size: 12px;">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M15 19l-7-7 7-7" />
+            </svg>
             返回
           </button>
-          <div class="flex items-center gap-3 mb-2">
-            <BookmarkIcon class="w-6 h-6 text-black" />
-            <h1 class="text-2xl font-bold text-black">分类 #{{ categoryId }} 的收藏</h1>
-          </div>
         </div>
-      </header>
-  
-      <!-- Main Content -->
-      <main class="max-w-6xl mx-auto px-6 py-12">
-        <div v-if="loading" class="text-center py-16 text-gray-500">加载中...</div>
-        <div v-else>
-          <div v-if="collections.length === 0" class="text-center py-16">
-            <BookmarkIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 class="text-lg font-medium text-gray-900 mb-2">没有找到相关收藏</h3>
-            <p class="text-gray-500">该分类下暂无收藏</p>
+
+        <div class="flex items-center gap-3 mb-2" style="justify-content: space-between;">
+          <div>
+            <BookmarkIcon class="w-6 h-6 text-black" />
+            <h1 class="text-2xl font-bold text-black"> {{ category?.emoji }} {{ category?.name }}</h1>
           </div>
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div
-              v-for="item in collections"
-              :key="item.id"
-              class="border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow cursor-pointer group"
-              @click="$router.push({ name: 'CollectionDetail', params: { collection_id: item.id } })"
-            >
-              <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
-                    分类ID: {{ item.category_id }}
-                  </span>
-                </div>
-                <h3 class="text-lg font-semibold text-black mb-3 line-clamp-2 group-hover:text-gray-700 transition-colors">
-                  Collection #{{ item.id }}
-                </h3>
-                <p class="text-sm text-gray-600 mb-4 line-clamp-3">
-                  标签: {{ item.tags }}
-                </p>
-                <div class="flex items-center justify-between text-xs text-gray-500">
-                  <div>
-                    <div>创建时间: {{ formatDate(item.created_at) }}</div>
-                    <div>更新: {{ formatDate(item.updated_at) }}</div>
+          <div class="flex items-center gap-3">
+            <!-- Knowledge Base Button -->
+            <button v-if="!category?.knowledge_base_id" @click="createKnowledgeBase"
+              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path
+                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+              </svg>
+              创建知识库
+            </button>
+            <!-- Ask AI Button -->
+            <button v-else @click="showAskAIPanel = true"
+              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path
+                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+              </svg>
+              Ask AI
+            </button>
+            
+            <!-- Search Box -->
+            <div class="relative">
+              <input
+                v-model="searchQuery"
+                @input="handleSearch"
+                @keydown.enter="handleSearch"
+                type="text"
+                placeholder="搜索收藏..."
+                class="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-64"
+              />
+              <button
+                v-if="searchQuery"
+                @click="clearSearch"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <svg class="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+        </div>
+        <p class="text-gray-500 text-sm">
+          共 {{ filteredCollections.length }} 个收藏
+          <span v-if="searchQuery">(已过滤 {{ collections.length - filteredCollections.length }} 个)</span>
+        </p>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl px-6 py-6 flex-1 min-h-0">
+      <div v-if="loading" class="text-center py-16 text-gray-500">加载中...</div>
+      <div v-else class="h-full">
+        <div v-if="filteredCollections.length === 0" class="text-center py-16">
+          <BookmarkIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            {{ searchQuery ? '没有找到匹配的收藏' : '没有找到相关收藏' }}
+          </h3>
+          <p class="text-gray-500">
+            {{ searchQuery ? '尝试使用不同的搜索词' : '该分类下暂无收藏' }}
+          </p>
+        </div>
+        <div v-else class="h-full">
+          <div class="flex h-full gap-2">
+            <div class="flex-1 overflow-y-auto pr-2">
+              <div v-for="item in filteredCollections" :key="item.id"
+                class="border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow cursor-pointer group mb-4"
+                @click="onCollectionClick(item)">
+                <div class="p-6">
+                  <h3
+                    class="text-lg font-semibold text-black mb-2 line-clamp-2 group-hover:text-gray-700 transition-colors">
+                    Collection #{{ item.id }}
+                  </h3>
+                  <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                    <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium"
+                      v-for="tag in item.tags">
+                      {{ tag }}
+                    </span>
                   </div>
-                  <button
-                    @click.stop="showPublishModal(item.id)"
-                    class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
-                  >
-                    <ShareIcon class="w-3 h-3" />
-                    分享
-                  </button>
-                </div>
-                <div v-if="item.details && item.details.attachment" class="mt-4 pt-4 border-t border-gray-100">
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs text-gray-500 truncate">附件ID: {{ item.details.attachment }}</span>
+
+                  <div class="flex items-center justify-between text-xs text-gray-500 mt-2">
+                    <div>
+                      <div>创建时间: {{ formatDate(item.created_at) }}</div>
+                    </div>
+                    <button @click.stop="showPublishModal(item.id)"
+                      class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center gap-1">
+                      <ShareIcon class="w-3 h-3" />
+                      分享
+                    </button>
+                  </div>
+                  <div v-if="item.details && item.details.attachment" class="mt-4 pt-4 border-t border-gray-100">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs text-gray-500 truncate">附件ID: {{ item.details.attachment }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </main>
-  
-      <!-- Footer -->
-      <footer class="border-t border-gray-200 mt-16">
-        <div class="max-w-6xl mx-auto px-6 py-8">
-          <div class="text-center text-sm text-gray-500">
-            <p>© 2025 网页收藏系统 · 简约 · 现代 · 高效</p>
-          </div>
+            <transition name="slide-panel" mode="out-in">
+              <div v-if="selectedCollection || showAskAIPanel"
+                class="w-2/5 border border-gray-200 rounded-lg bg-white flex flex-col h-full">
+                <div class="flex items-center justify-between p-4 flex-shrink-0">
+                  <div class="flex items-center gap-2">
+                    <Sparkles class="w-6 h-6" fill="#4577e5" style="color: #4577e5;" />
+                    <h1 class="text-2xl font-semibold text-black">{{ showAskAIPanel ? 'Ask AI' : 'AI Overview' }}</h1>
+                  </div>
+
+                  <!-- 关闭 -->
+                  <button @click="selectedCollection = null; showAskAIPanel = false"
+                    class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Collection AI Overview -->
+                <transition name="fade-content" mode="out-in">
+                  <div v-if="selectedCollection && !showAskAIPanel" key="overview" class="p-4 flex-1 overflow-y-auto">
+                    <p>{{ selectedCollection?.details?.summary }}</p>
+                  </div>
+
+                  <!-- Ask AI Panel -->
+                  <div v-else-if="showAskAIPanel" key="askAI" class="flex flex-col" style="height: 100%;">
+                    <div v-if="aiResponse" class="flex-1 p-4 m-4 rounded-lg overflow-y-auto">
+                      <p class="text-gray-700 whitespace-pre-wrap">{{ aiResponse }}</p>
+                    </div>
+                    <div v-else class="flex-1 p-4 flex items-center justify-center text-gray-500">
+                      Ask me anything about this category's knowledge base!
+                    </div>
+
+                    <div class="p-4 flex-shrink-0">
+                      <div class="border border-gray-300 rounded-2xl">
+                        <textarea id="input-field" v-model="aiQuery" @keydown="handleInputKeyDown"
+                          @click:clear="clearMessage" placeholder="Ask AI..."
+                          class="w-full resize-none outline-none border-none rounded-t-2xl p-4 min-h-[60px] font-inherit text-base bg-transparent"
+                        ></textarea>
+                        <div class="flex justify-between items-center px-2 pb-2">
+                          <div></div>
+                          <button 
+                            @click="askAI" 
+                            :disabled="!aiQuery.trim() || aiLoading"
+                            :class="[
+                              'send-button',
+                              { 'disabled': !aiQuery.trim() || aiLoading }
+                            ]"
+                            class="flex justify-center items-center bg-black rounded-full p-2 border-none cursor-pointer transition-all duration-200"
+                          >
+                            <ArrowUp 
+                              v-if="!aiLoading" 
+                              :size="16" 
+                              style="color: #fff;" 
+                            />
+                            <svg 
+                              v-else 
+                              class="animate-spin" 
+                              width="16" 
+                              height="16" 
+                              viewBox="0 0 24 24" 
+                              fill="none"
+                            >
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </transition>
+
               </div>
-    </footer>
+            </transition>
+
+          </div>
+
+        </div>
+      </div>
+    </main>
 
     <!-- 发布到社区模态框 -->
-    <PublishToCommunityModal
-      :show="publishModalShow"
-      :collection-id="selectedCollectionId"
-      @close="publishModalShow = false"
-      @success="handlePublishSuccess"
-    />
+    <PublishToCommunityModal :show="publishModalShow" :collection-id="selectedCollectionId"
+      @close="publishModalShow = false" @success="handlePublishSuccess" />
+
+    <!-- Ask AI 模态框 - 已移除，现在使用卡片显示 -->
   </div>
 </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
-  import { getCollectionsByCategory } from '../services/collection'
-  import { isAuthenticated } from '../services/auth'
-  import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
 
-  // Icons
-  const BookmarkIcon = {
-    template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { getCollectionsByCategory } from '../services/collection'
+import { createKnowledgeBase as apiCreateKnowledgeBase, queryKnowledgeBase } from '../services/category'
+import { isAuthenticated } from '../services/auth'
+import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
+import { Sparkle } from 'lucide-vue-next'
+import { Sparkles } from 'lucide-vue-next'
+import { ArrowUp } from 'lucide-vue-next'
+
+// Icons
+const BookmarkIcon = {
+  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`
+}
+
+const ShareIcon = {
+  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>`
+}
+
+const SearchIcon = {
+  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`
+}
+
+// 路由参数
+const route = useRoute()
+const router = useRouter()
+const categoryId = route.params.category_id
+
+
+const collections = ref([])
+const category = ref(null)
+const loading = ref(false)
+const publishModalShow = ref(false)
+const selectedCollectionId = ref(null)
+const showAskAIPanel = ref(false)
+const aiQuery = ref('')
+const aiResponse = ref('')
+const aiLoading = ref(false)
+const selectedCollection = ref(null)
+const searchQuery = ref('')
+const filteredCollections = ref([])
+
+const fetchCollectionsByCategory = async () => {
+  // 检查用户是否已登录
+  if (!isAuthenticated()) {
+    console.log('用户未登录，跳转到登录页面')
+    router.push('/login')
+    return
   }
 
-  const ShareIcon = {
-    template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>`
-  }
-  
-  // 路由参数
-  const route = useRoute()
-  const router = useRouter()
-  const categoryId = route.params.category_id
-
-  const collections = ref([])
-  const loading = ref(false)
-  const publishModalShow = ref(false)
-  const selectedCollectionId = ref(null)
-
-  const fetchCollectionsByCategory = async () => {
-    // 检查用户是否已登录
-    if (!isAuthenticated()) {
-      console.log('用户未登录，跳转到登录页面')
-      router.push('/login')
-      return
-    }
-
-    loading.value = true
-    try {
-      const result = await getCollectionsByCategory(categoryId)
-      if (result.status === 'success' && result.data && result.data.collections) {
-        collections.value = result.data.collections
-      } else {
-        collections.value = []
-      }
-    } catch (e) {
+  loading.value = true
+  try {
+    const result = await getCollectionsByCategory(categoryId)
+    if (result.status === 'success' && result.data && result.data.collections) {
+      let collectionsData = result.data.collections || []
+      // 将 tag 转成数组
+      collectionsData = collectionsData.map(item => ({
+        ...item,
+        tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : []
+      }))
+      collections.value = collectionsData
+      filteredCollections.value = collectionsData // 初始化过滤列表
+      category.value = result.data.category
+    } else {
       collections.value = []
-      // 如果是认证错误，重定向到登录页面
-      if (e.detail === 'Not authenticated' || e.message?.includes('401')) {
-        console.log('认证失败，跳转到登录页面')
-        router.push('/login')
-      }
-    } finally {
-      loading.value = false
+      filteredCollections.value = []
     }
+  } catch (e) {
+    collections.value = []
+    filteredCollections.value = []
+    // 如果是认证错误，重定向到登录页面
+    if (e.detail === 'Not authenticated' || e.message?.includes('401')) {
+      console.log('认证失败，跳转到登录页面')
+      router.push('/login')
+    }
+  } finally {
+    loading.value = false
   }
+}
 
-  onMounted(() => {
-    fetchCollectionsByCategory()
+onMounted(() => {
+  fetchCollectionsByCategory()
+})
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
   })
+}
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+const showPublishModal = (collectionId) => {
+  selectedCollectionId.value = collectionId
+  publishModalShow.value = true
+}
 
-  const showPublishModal = (collectionId) => {
-    selectedCollectionId.value = collectionId
-    publishModalShow.value = true
-  }
+const handlePublishSuccess = (result) => {
+  console.log('发布成功:', result)
+  alert('已成功发布到社区！')
+}
 
-  const handlePublishSuccess = (result) => {
-    console.log('发布成功:', result)
-    alert('已成功发布到社区！')
+const createKnowledgeBase = async () => {
+  if (!categoryId) return
+
+  try {
+    loading.value = true
+    const result = await apiCreateKnowledgeBase(categoryId)
+    if (result.status === 'success') {
+      alert('知识库创建成功！')
+      // 重新获取分类信息以更新知识库状态
+      await fetchCollectionsByCategory()
+    }
+  } catch (error) {
+    console.error('创建知识库失败:', error)
+    alert('创建知识库失败: ' + (error.detail || error.message || '未知错误'))
+  } finally {
+    loading.value = false
   }
-  </script>
-  
-  <style scoped>
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+}
+
+const onCollectionClick = (collection) => {
+  // router.push({ name: 'CollectionDetail', params: { collection_id: collectionId } })
+  selectedCollection.value = collection
+  showAskAIPanel.value = false // 关闭 Ask AI 面板
+}
+
+const askAI = async () => {
+  if (!aiQuery.value.trim() || !categoryId) return
+
+  try {
+    aiLoading.value = true
+    aiResponse.value = ''
+
+    const result = await queryKnowledgeBase(categoryId, aiQuery.value)
+    if (result.status === 'success' && result.data) {
+      aiResponse.value = result.data.response || '抱歉，没有找到相关信息。'
+    }
+  } catch (error) {
+    console.error('AI查询失败:', error)
+    aiResponse.value = 'AI查询失败: ' + (error.detail || error.message || '未知错误')
+  } finally {
+    aiLoading.value = false
+  }
+}
+
+const handleInputKeyDown = (event) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    askAI()
+  }
+}
+
+// 搜索功能
+const handleSearch = () => {
+  if (!searchQuery.value.trim()) {
+    filteredCollections.value = collections.value
+    return
   }
   
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  </style>
-  
+  const query = searchQuery.value.toLowerCase()
+  filteredCollections.value = collections.value.filter(item => {
+    // 搜索 ID
+    if (item.id.toString().includes(query)) return true
+    
+    // 搜索标签
+    if (item.tags && item.tags.some(tag => tag.toLowerCase().includes(query))) return true
+    
+    // 搜索创建时间
+    if (formatDate(item.created_at).toLowerCase().includes(query)) return true
+    
+    // 搜索附件ID
+    if (item.details?.attachment && item.details.attachment.toLowerCase().includes(query)) return true
+    
+    return false
+  })
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  filteredCollections.value = collections.value
+}
+</script>
+
+<style scoped>
+/* 面板滑入/滑出动画 */
+.slide-panel-enter-active,
+.slide-panel-leave-active {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-panel-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.slide-panel-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.slide-panel-enter-to,
+.slide-panel-leave-from {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* 内容切换淡入/淡出动画 */
+.fade-content-enter-active,
+.fade-content-leave-active {
+  transition: all 0.3s ease-in-out;
+}
+
+.fade-content-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-content-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.fade-content-enter-to,
+.fade-content-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.send-button {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.send-button:hover:not(.disabled) {
+  background-color: #333 !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.send-button:active:not(.disabled) {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.send-button.disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+.send-button.disabled:hover {
+  transform: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 确保滚动条样式美观 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+</style>

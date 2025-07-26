@@ -48,4 +48,28 @@ export const deleteCategory = async (categoryId) => {
   } catch (error) {
     throw error.response?.data || error.message
   }
-} 
+}
+
+// 创建知识库
+export const createKnowledgeBase = async (categoryId) => {
+  try {
+    const response = await api.post('/api/v1/category/create_knowledge_base', null, {
+      params: { category_id: categoryId }
+    })
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error.message
+  }
+}
+
+// 查询知识库
+export const queryKnowledgeBase = async (categoryId, query) => {
+  try {
+    const response = await api.get(`/api/v1/category/knowledge_base/${categoryId}`, {
+      params: { query }
+    })
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error.message
+  }
+}
