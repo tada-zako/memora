@@ -1181,7 +1181,6 @@ onMounted(() => {
     height: 100vh;
     width: 100vw;
     background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
-    border: 1px solid #e5e7eb;
     overflow: hidden;
     isolation: isolate;
     transform: translateZ(0);
@@ -1207,28 +1206,19 @@ onMounted(() => {
       top: 0px;
       right: 0px;
       z-index: 1000;
-      width: 22px;
-      height: 22px;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: rgba(255, 255, 255, 0.95);
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s ease;
       backdrop-filter: blur(8px);
   
-      &:hover {
-        background: rgba(255, 255, 255, 1);
-        border-color: #9ca3af;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transform: translateY(-1px);
-      }
-  
       .exit-icon {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         color: #6b7280;
         transition: color 0.2s ease;
       }

@@ -17,12 +17,6 @@
       clip-path: inset(0);
     }
   
-    // macOS样式 - 有圆角
-    &.mac-style {
-      border-radius: 0 0 20px 20px;
-      clip-path: inset(0 round 0 0 20px 20px);
-    }
-  
     // 退出按钮样式
     .exit-button {
       position: absolute;
@@ -35,8 +29,6 @@
       align-items: center;
       justify-content: center;
       background: rgba(255, 255, 255, 0.95);
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s ease;
       backdrop-filter: blur(8px);
@@ -45,7 +37,6 @@
         background: rgba(255, 255, 255, 1);
         border-color: #9ca3af;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transform: translateY(-1px);
       }
   
       .exit-icon {
