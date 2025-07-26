@@ -10,8 +10,8 @@
       ]"
     >
       <!-- Logo区域 -->
-      <div :class="['transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-6' : 'p-4']">
-        <div :class="['flex items-center', sidebarExpanded ? 'space-x-3' : 'justify-center']">
+      <div style="margin-left: 8px;"  :class="['transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-6' : 'p-4']">
+        <div :class="['flex items-center']" style="gap: 8px;">
           <img src="./assets/icon.png" alt="Memora Logo" :class="[
             'transition-all duration-300 ease-in-out',
             sidebarExpanded ? 'w-8 h-8' : 'w-12 h-12'
@@ -23,7 +23,7 @@
               sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
             ]"
           >
-            <h1 class="text-base font-bold text-gray-900 whitespace-nowrap">Memora</h1>
+            <h1 class="text-xl font-bold text-gray-900 whitespace-nowrap">Memora</h1>
           </div>
         </div>
       </div>
