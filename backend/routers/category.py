@@ -1,7 +1,7 @@
 import uuid
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from typing import Optional
 from pydantic import BaseModel
 from loguru import logger
@@ -95,9 +95,15 @@ async def get_categories(
     """
     user_id = current_user.id
 
-    stmt = select(Category).where(Category.user_id == user_id).order_by(Category.name)
+    stmt = (
+        select(Category, func.count(Collection.id))
+        .outerjoin(Collection, Category.id == Collection.category_id)
+        .where(Category.user_id == user_id)
+        .group_by(Category.id)
+        .order_by(Category.name)
+    )
     result = await db.execute(stmt)
-    categories = result.scalars().all()
+    categories_with_counts = result.all()
 
     return Response(
         status="success",
@@ -110,8 +116,9 @@ async def get_categories(
                     "name": category.name,
                     "emoji": category.emoji,
                     "knowledge_base_id": category.knowledge_base_id,
+                    "collection_count": collection_count,
                 }
-                for category in categories
+                for category, collection_count in categories_with_counts
             ]
         },
     )
