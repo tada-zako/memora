@@ -38,8 +38,8 @@ function createWindow() {
     resizable: true,
     maximizable: true,
     fullscreenable: false,
-    title: 'Memora - 事件记录管理',
-    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    title: 'Memora',
+    titleBarStyle: process.platform === 'darwin' ? 'default' : 'default',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
