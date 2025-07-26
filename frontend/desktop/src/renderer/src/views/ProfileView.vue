@@ -21,8 +21,8 @@
             </div>
         </div>
 
-        <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
-
+        <!-- 头像、信息、推文悬浮层 -->
+        <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-20">
             <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 24px;">
                 <div class="relative">
                     <div 
@@ -63,6 +63,61 @@
 
             </div>
 
+            <!-- 最近发布的推文展示（悬浮在最上层） -->
+            <div class="mt-6 mb-8" style="margin-top: 105px;">
+                <h3 class="text-lg font-semibold text-gray-900 mb-3" style="margin-bottom: 30px;">最近发布的推文</h3>
+                <div v-if="recentPostsLoading" class="py-6 flex justify-center text-gray-500">
+                    <RefreshCw class="h-5 w-5 animate-spin mr-2" /> 加载中...
+                </div>
+                <div v-else-if="recentPostsError" class="py-6 flex flex-col items-center text-red-500">
+                    <span>{{ recentPostsError }}</span>
+                    <button @click="loadRecentPosts" class="mt-2 px-4 py-1 bg-red-100 rounded hover:bg-red-200 text-sm text-red-700">重试</button>
+                </div>
+                <div v-else-if="recentPosts.length" class="space-y-3">
+                    <div
+                        v-for="post in recentPosts.slice(0, 2)"
+                        :key="post.id"
+                        class="p-4 rounded shadow  transition cursor-pointer  backdrop-blur-sm"
+                        style="margin-bottom: 20px; background-color: rgba(255,255,255,0.9);border-radius: 15px;"
+                        @click="goToPost(post.id)"
+                    >
+                        <div class="flex flex-col gap-2">
+                            <!-- 分类/标签/发布时间 一行均匀分布 -->
+                            <div class="flex flex-row items-center justify-between gap-2 mb-1">
+
+                                <!-- 标签 -->
+                                <div class="flex items-center gap-1">
+
+                                    <!-- 分类 -->
+                                    <div class="flex items-center gap-1" style="margin-right: 10px;">
+                                        <span class="text-xs font-bold text-gray-900">{{ post.category_name || '未分类' }}</span>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-1">
+                                        <span
+                                            v-for="(tag, idx) in getTagList(post.tags)"
+                                            :key="idx"
+                                            class="px-2 py-0.5 text-gray-700 rounded text-xs hover:bg-gray-50"
+                                        >
+                                            #{{ tag }}
+                                        </span>
+                                        <span v-if="getTagList(post.tags).length === 0" class="text-xs text-gray-500">无标签</span>
+                                    </div>
+                                </div>
+                                <!-- 发布时间 -->
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs text-gray-500">{{ formatDate(post.created_at) }}</span>
+                                </div>
+                            </div>
+                            <!-- 摘要 -->
+                            <div class="text-sm text-gray-600 summary-ellipsis">
+                                摘要: {{ getSummary(post.collection_details?.summary) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="py-6 text-gray-400 text-sm text-center">暂无推文</div>
+            </div>
         </div>
 
         <!-- 全局消息提示 -->
@@ -138,6 +193,7 @@ import {
     uploadUserAvatar,
     getUserAvatarUrl
 } from '../services/auth'
+import { getUserPosts } from '../services/community' // 新增：引入获取用户推文API
 
 const router = useRouter()
 const isLoggedIn = ref(false)
@@ -150,6 +206,9 @@ const editSuccessMessage = ref('')
 const avatarUrl = ref(null)
 const avatarInput = ref(null)
 const avatarUploading = ref(false)
+const recentPosts = ref([])
+const recentPostsLoading = ref(false)
+const recentPostsError = ref('')
 
 const editForm = reactive({
     email: ''
@@ -292,6 +351,31 @@ const handleAvatarUpload = async (event) => {
     }
 }
 
+// 获取最近发布的推文
+const loadRecentPosts = async () => {
+    recentPostsLoading.value = true
+    recentPostsError.value = ''
+    try {
+        const res = await getUserPosts({ limit: 3 })
+        if (res.status === 'success' && res.data?.posts) {
+            recentPosts.value = res.data.posts
+        } else {
+            recentPostsError.value = res.message || '推文获取失败'
+            recentPosts.value = []
+        }
+    } catch (e) {
+        recentPostsError.value = e?.message || '网络错误，无法获取推文'
+        recentPosts.value = []
+    } finally {
+        recentPostsLoading.value = false
+    }
+}
+
+// 跳转到推文详情
+const goToPost = (postId) => {
+    router.push({ name: 'PostDetail', params: { post_id: postId } })
+}
+
 // 退出登录
 const handleLogout = () => {
     logout()
@@ -300,8 +384,42 @@ const handleLogout = () => {
     router.push({ name: 'Home' })
 }
 
+// tag列表
+const getTagList = (tags) => {
+    if (!tags) return []
+    return tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+}
+
+// 摘要解析（移植自PostCollectionDetailView）
+const getSummary = (summary) => {
+    if (!summary) return '无摘要'
+    let cleanSummary = summary
+    if (typeof cleanSummary === 'string') {
+        cleanSummary = cleanSummary.trim()
+        if (cleanSummary.startsWith('```') && cleanSummary.endsWith('```')) {
+            cleanSummary = cleanSummary.slice(3, -3).trim()
+        }
+        try {
+            if (cleanSummary.startsWith('{')) {
+                const obj = JSON.parse(cleanSummary)
+                if (obj && typeof obj === 'object' && obj.summary) return obj.summary
+            }
+            const match = cleanSummary.match(/"summary"\s*:\s*"([^"]+)"/)
+            if (match && match[1]) return match[1]
+            return cleanSummary
+        } catch {
+            const match = cleanSummary.match(/"summary"\s*:\s*"([^"]+)"/)
+            if (match && match[1]) return match[1]
+            return cleanSummary
+        }
+    }
+    if (typeof cleanSummary === 'object' && cleanSummary.summary) return cleanSummary.summary
+    return String(cleanSummary)
+}
+
 onMounted(() => {
     checkAuthAndLoadUser()
+    loadRecentPosts()
 })
 </script>
 
@@ -399,5 +517,14 @@ onMounted(() => {
     50% {
         transform: translateY(-20px);
     }
+}
+
+.summary-ellipsis {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-all;
 }
 </style>

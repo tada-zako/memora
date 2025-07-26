@@ -114,4 +114,17 @@ export const getPostCollectionDetails = async (post_id) => {
     console.error('获取推文收藏详情失败:', error)
     throw error.response?.data || error
   }
-} 
+}
+
+// 获取当前用户推文列表
+export const getUserPosts = async ({ page = 1, limit = 20 } = {}) => {
+  try {
+    const response = await api.get('/api/v1/community/my-posts', {
+      params: { page, limit }
+    })
+    return response.data
+  } catch (error) {
+    console.error('获取我的推文失败:', error)
+    throw error.response?.data || error
+  }
+}

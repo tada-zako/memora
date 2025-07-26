@@ -254,6 +254,102 @@ async def get_posts(
     )
 
 
+@router.get("/my-posts", response_model=Response)
+async def get_my_posts(
+    page: int = 1,
+    limit: int = 20,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    获取当前用户发送的推文列表
+    """
+    offset = (page - 1) * limit
+
+    posts_query = (
+        select(
+            Post,
+            User,
+            Collection,
+            Category.name.label('category_name'),
+            func.count(Like.id.distinct()).label('likes_count'),
+            func.count(Comment.id.distinct()).label('comments_count')
+        )
+        .join(User, Post.user_id == User.id)
+        .join(Collection, Post.refer_collection_id == Collection.id)
+        .outerjoin(Category, Collection.category_id == Category.id)
+        .outerjoin(Like, and_(Like.asset_id == Post.id, Like.asset_type == AssetType.post))
+        .outerjoin(Comment, Comment.post_id == Post.id)
+        .where(Post.user_id == current_user.id)
+        .group_by(Post.id, User.id, User.username, User.avatar_attachment_id, Collection.id, Category.name)
+        .order_by(desc(Post.created_at))
+        .offset(offset)
+        .limit(limit)
+    )
+
+    posts_result = await db.execute(posts_query)
+    posts_data = posts_result.all()
+
+    posts = []
+    for row in posts_data:
+        post = row[0]
+        user = row[1]
+        collection = row[2]
+        category_name = row[3]
+        likes_count = row[4]
+        comments_count = row[5]
+
+        # 检查当前用户是否已点赞
+        like_query = select(Like).where(
+            and_(
+                Like.asset_id == post.id,
+                Like.asset_type == AssetType.post,
+                Like.user_id == current_user.id
+            )
+        )
+        like_result = await db.execute(like_query)
+        is_liked_by_me = like_result.scalar_one_or_none() is not None
+
+        # 获取收藏详情
+        details_query = select(CollectionDetail).where(
+            CollectionDetail.collection_id == collection.id
+        )
+        details_result = await db.execute(details_query)
+        details = details_result.scalars().all()
+
+        posts.append(
+            PostResponse(
+                id=post.id,
+                post_id=post.post_id,
+                description=post.description,
+                user_id=post.user_id,
+                username=user.username,
+                avatar_attachment_id=user.avatar_attachment_id,
+                refer_collection_id=post.refer_collection_id,
+                collection_details={detail.key: detail.value for detail in details},
+                category_id=collection.category_id,
+                category_name=category_name,
+                tags=collection.tags,
+                likes_count=likes_count,
+                comments_count=comments_count,
+                is_liked_by_me=is_liked_by_me,
+                created_at=post.created_at.replace(tzinfo=timezone.utc).isoformat(),
+                updated_at=post.updated_at.replace(tzinfo=timezone.utc).isoformat(),
+                user=UserInfo(id=user.id, username=user.username, avatar_attachment_id=user.avatar_attachment_id)
+            )
+        )
+
+    return Response(
+        status="success",
+        message="当前用户推文列表获取成功",
+        data={
+            "posts": posts,
+            "page": page,
+            "limit": limit
+        }
+    )
+
+
 @router.post("/like", response_model=Response)
 async def like_asset(
     request: LikeRequest,
@@ -602,4 +698,4 @@ async def get_post_collection_details(
                 "updated_at": collection.updated_at.replace(tzinfo=timezone.utc).isoformat(),
             }
         }
-    ) 
+    )
