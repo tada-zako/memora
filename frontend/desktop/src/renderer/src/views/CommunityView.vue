@@ -86,7 +86,7 @@
             </div>
 
             <!-- 收藏内容 -->
-            <div class="p-4">
+            <div class="p-4" style="padding-top: 2px;">
               <div 
                 class="bg-gray-50 rounded-lg p-4 cursor-pointer hover:bg-gray-100 transition-colors"
                 @click="viewCollectionDetail(post.refer_collection_id, post.post_id)"

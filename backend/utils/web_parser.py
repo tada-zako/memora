@@ -25,6 +25,7 @@ class AIOHTTPWebParser(WebParser):
                 raise Exception(
                     f"Failed to fetch {url}, status code: {response.status}"
                 )
+            return await response.text()
             # result = await response.text()
             # # markdownit_result = await asyncio.to_thread(, result)
             # return markdownit_result

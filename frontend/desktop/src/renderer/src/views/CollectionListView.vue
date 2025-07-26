@@ -91,7 +91,8 @@
                 <div class="p-6">
                   <h3
                     class="text-lg font-semibold text-black mb-2 line-clamp-2 group-hover:text-gray-700 transition-colors">
-                    Collection #{{ item.id }}
+                    <!-- Collection #{{ item.id }} -->
+                     {{ item.details.title }}
                   </h3>
                   <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                     <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium"
