@@ -250,10 +250,10 @@
               <button v-else @click="startNewCollection" class="action-btn primary-btn" :disabled="isUpdating">
                 <svg v-if="!isUpdating" class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    d="M5 13l4 4L19 7" />
                 </svg>
                 <div v-else class="spinner btn-spinner"></div>
-                {{ isEditingUrl || isEditingSummary || isEditingTags ? (isUpdating ? '保存中...' : '确认修改') : '开始新收集' }}
+                {{ isEditingUrl || isEditingSummary || isEditingTags ? (isUpdating ? '保存中...' : '确认修改') : '完成添加' }}
               </button>
             </div>
           </div>
@@ -869,7 +869,8 @@ const startNewCollection = () => {
   if (isEditingUrl.value || isEditingSummary.value || isEditingTags.value) {
     confirmAllChanges()
   } else {
-    resetQuickWindowState()
+    // 直接关闭窗口，不重置状态
+    closeQuickWindow()
   }
 }
 
