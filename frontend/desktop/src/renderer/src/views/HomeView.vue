@@ -23,8 +23,8 @@
               class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-smooth font-medium text-sm btn-hover flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               title="刷新收藏列表"
             >
-              <RotateCcw :class="[
-                'w-4 h-4 transition-transform duration-300',
+              <RefreshIcon :class="[
+                'w-4 h-4',
                 isLoadingCollections ? 'animate-spin' : ''
               ]" />
               <span>{{ isLoadingCollections ? '刷新中...' : '刷新' }}</span>
@@ -49,25 +49,10 @@
               <div class="relative z-10">
                 <div class="text-xl mb-1">{{ collection.icon }}</div>
                 <h3 class="text-2xl font-bold mb-0.5 truncate text-gray-1000">{{ collection.name }}</h3>
-                <p class="text-gray-600 text-sm truncate leading-tight">3 个收藏</p>
+                <p class="text-gray-600 text-sm truncate leading-tight">{{ collection.collection_count }} 个收藏</p>
               </div>
-              <!-- 操作按钮 -->
-              <div class="relative z-10 flex justify-end space-x-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
-                  @click.stop="editCollection(collection)"
-                  class="p-0.5 bg-gray-800/60 hover:bg-gray-700 text-white rounded transition-colors"
-                  title="编辑"
-                >
-                  <Edit class="w-2.5 h-2.5" />
-                </button>
-                <button 
-                  @click.stop="deleteCollection(collection.id)"
-                  class="p-0.5 bg-gray-800/60 hover:bg-red-500 text-white rounded transition-colors"
-                  title="删除"
-                >
-                  <Trash2 class="w-2.5 h-2.5" />
-                </button>
-              </div>
+
+
             </div>
           </div>
           <!-- 空状态 -->
@@ -263,7 +248,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   Camera, User, Bell, Settings, Calendar, Upload, Plus, Eye, Edit, Trash2, FileText,
-  X, ExternalLink, RotateCcw, Globe, Star, Home
+  X, ExternalLink, RefreshCw as RefreshIcon, Globe, Star, Home
 } from 'lucide-vue-next'
 import UploadModal from '../components/UploadModal.vue'
 import { getCategories, deleteCategory } from '../services/category'
@@ -316,7 +301,8 @@ const fetchCollections = async () => {
         id: category.id,
         name: category.name,
         icon: category.emoji || '📚',
-        description: `${category.name} 相关内容`
+        description: `${category.name} 相关内容`,
+        collection_count: category.collection_count
       }))
     } else {
       console.error('获取分类失败')

@@ -1,37 +1,31 @@
 <template>
   <div class="flex-1 flex flex-col bg-gray-50/80">
-    <!-- 顶部标题栏 -->
-    <div class="bg-white/90 glass-effect border-b border-gray-100 px-6 py-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-xl font-semibold text-gray-900">社区</h1>
-          <p class="text-sm text-gray-600 mt-1">发现和分享精彩内容</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button
-            @click="scrollToTop"
-            class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
-            title="回到顶部"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M7 14l5-5 5 5"/>
-            </svg>
-          </button>
+    <!-- 主内容区 -->
+    <div class="bg-white/90 glass-effect border border-gray-100 h-full min-h-0" style="padding: 16px;">
+
+
+      <!-- 标题区域 -->
+          <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center">
+              <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
+                <span class="text-white text-2xl">🌏</span>
+              </div>
+              <div>
+                <h1 class="text-2xl font-bold text-gray-900">社区</h1>
+              </div>
+            </div>
+          <!-- 刷新按钮 -->
           <button
             @click="refreshPosts"
             :disabled="loading"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-smooth font-medium text-sm btn-hover flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="刷新"
           >
             <RefreshIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-            刷新
+            <span>{{ loading ? '刷新中...' : '刷新' }}</span>
           </button>
         </div>
-      </div>
-    </div>
 
-    <!-- 主内容区 -->
-    <div class="flex-1 overflow-auto custom-scrollbar" style="scroll-behavior: smooth;">
-      <div class="max-w-2xl mx-auto p-6">
         <!-- 加载状态 -->
         <div v-if="loading && posts.length === 0" class="flex justify-center py-12">
           <div class="flex items-center gap-2 text-gray-500">
@@ -51,8 +45,9 @@
             <div class="p-4 border-b border-gray-100">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span class="text-white font-semibold text-sm">{{ post.username.charAt(0).toUpperCase() }}</span>
+                  <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                    <img v-if="post.avatar_url" :src="post.avatar_url" alt="Avatar" class="w-full h-full object-cover">
+                    <User v-else class="w-6 h-6 text-gray-500" />
                   </div>
                   <div>
                     <div class="font-medium text-gray-900">{{ post.username }}</div>
@@ -177,8 +172,9 @@
               <!-- 评论输入 -->
               <div class="p-4">
                 <div class="flex gap-3">
-                  <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span class="text-white font-semibold text-xs">我</span>
+                  <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <img v-if="currentUser && currentUser.avatar_url" :src="currentUser.avatar_url" alt="My Avatar" class="w-full h-full object-cover">
+                    <span v-else class="text-white font-semibold text-xs">我</span>
                   </div>
                   <div class="flex-1">
                     <textarea
@@ -207,8 +203,9 @@
                   :key="comment.id"
                   class="flex gap-3 mb-4 last:mb-0"
                 >
-                  <div class="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span class="text-white font-semibold text-xs">{{ comment.username.charAt(0).toUpperCase() }}</span>
+                  <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <img v-if="comment.avatar_url" :src="comment.avatar_url" alt="Comment Avatar" class="w-full h-full object-cover">
+                    <User v-else class="w-6 h-6 text-gray-500" />
                   </div>
                   <div class="flex-1">
                     <div class="bg-gray-50 rounded-lg p-3">
@@ -295,7 +292,6 @@
             🎉 没有更多内容了，快去分享一些收藏吧！
           </div>
         </div>
-      </div>
     </div>
   </div>
 </template>
@@ -310,7 +306,8 @@ import {
   MessageCircle as MessageCircleIcon,
   ExternalLink as ExternalLinkIcon,
   Bookmark as BookmarkIcon,
-  Trash2 as TrashIcon
+  Trash2 as TrashIcon,
+  User
 } from 'lucide-vue-next'
 import { 
   getPosts, 
@@ -321,7 +318,7 @@ import {
   deletePost, 
   deleteComment 
 } from '../services/community'
-import { isAuthenticated } from '../services/auth'
+import { isAuthenticated, getUserAvatarUrl } from '../services/auth'
 
 const router = useRouter()
 
@@ -332,6 +329,7 @@ const loadingMore = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(1)
 const currentUser = ref(null)
+const avatarCache = ref({})
 
 // 初始化
 onMounted(async () => {
@@ -344,7 +342,13 @@ onMounted(async () => {
   // 从localStorage获取用户信息
   const userInfo = localStorage.getItem('user_info')
   if (userInfo) {
-    currentUser.value = JSON.parse(userInfo)
+    const parsedInfo = JSON.parse(userInfo)
+    if (parsedInfo.avatar_attachment_id) {
+      const avatarUrl = await getUserAvatarUrl(parsedInfo)
+      avatarCache.value[parsedInfo.id] = avatarUrl
+      parsedInfo.avatar_url = avatarUrl
+    }
+    currentUser.value = parsedInfo
   }
 
   await loadPosts()
@@ -362,16 +366,28 @@ const loadPosts = async (page = 1) => {
     const result = await getPosts(page, 10)
     
     if (result.status === 'success' && result.data && result.data.posts) {
-      const newPosts = result.data.posts.map(post => ({
-        ...post,
-        showComments: false,
-        comments: [],
-        newComment: '',
-        commentLoading: false,
-        loadingComments: false,
-        hasMoreComments: post.comments_count > 0,
-        commentsPage: 1,
-        showFullDescription: false
+      const newPosts = await Promise.all(result.data.posts.map(async (post) => {
+        let avatar_url = null
+        if (post.user?.avatar_attachment_id) {
+          if (avatarCache.value[post.user.id]) {
+            avatar_url = avatarCache.value[post.user.id]
+          } else {
+            avatar_url = await getUserAvatarUrl(post.user)
+            avatarCache.value[post.user.id] = avatar_url
+          }
+        }
+        return {
+          ...post,
+          showComments: false,
+          comments: [],
+          newComment: '',
+          commentLoading: false,
+          loadingComments: false,
+          hasMoreComments: post.comments_count > 0,
+          commentsPage: 1,
+          showFullDescription: false,
+          avatar_url
+        }
       }))
 
       if (page === 1) {
@@ -401,17 +417,6 @@ const refreshPosts = () => {
   currentPage.value = 1
   hasMore.value = true
   loadPosts(1)
-}
-
-// 滚动到顶部
-const scrollToTop = () => {
-  const scrollContainer = document.querySelector('.custom-scrollbar')
-  if (scrollContainer) {
-    scrollContainer.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    })
-  }
 }
 
 // 加载更多推文
@@ -455,10 +460,23 @@ const loadComments = async (post, page = 1) => {
     const result = await getPostComments(post.post_id, page, 5)
     
     if (result.status === 'success' && result.data && result.data.comments) {
+      const newComments = await Promise.all(result.data.comments.map(async (comment) => {
+        let avatar_url = null
+        if (comment.user?.avatar_attachment_id) {
+          if (avatarCache.value[comment.user.id]) {
+            avatar_url = avatarCache.value[comment.user.id]
+          } else {
+            avatar_url = await getUserAvatarUrl(comment.user)
+            avatarCache.value[comment.user.id] = avatar_url
+          }
+        }
+        return { ...comment, avatar_url }
+      }))
+
       if (page === 1) {
-        post.comments = result.data.comments
+        post.comments = newComments
       } else {
-        post.comments.push(...result.data.comments)
+        post.comments.push(...newComments)
       }
       
       post.hasMoreComments = result.data.comments.length === 5
@@ -648,6 +666,15 @@ const formatDate = (dateString) => {
 .custom-scrollbar {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+.btn-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .line-clamp-2 {
