@@ -5,9 +5,10 @@
       <!-- 收藏管理页面 -->
       <div v-if="currentPage === 'collections'" class="h-full">
         <!-- 主要内容区域 -->
-        <div class="bg-white/90 glass-effect border border-gray-100 h-full min-h-0" style="padding: 16px;">
+        <div class="bg-white/90 glass-effect border border-gray-100 h-full min-h-0" style="padding: 16px;">  
+          
           <!-- 标题区域 -->
-          <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center justify-between sticky top-0 z-10 bg-white/90 glass-effect  w-full px-4 py-4" style="margin-bottom: 40px;">
             <div class="flex items-center">
               <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
                 <Star class="text-black-400 w-8 h-8" />
@@ -30,7 +31,7 @@
               <span>{{ isLoadingCollections ? '刷新中...' : '刷新' }}</span>
             </button>
           </div>
-          <div style="width: 100%; display: flex; gap: 16px;">
+          <div style="width: 92%; display: flex; gap: 16px;margin-left:20px;">
             <!-- 收藏卡片 -->
             <div 
               v-for="collection in collections" 

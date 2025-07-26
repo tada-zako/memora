@@ -14,16 +14,16 @@
                 <h1 class="text-2xl font-bold text-gray-900">社区</h1>
               </div>
             </div>
-          <!-- 刷新按钮 -->
-          <button
-            @click="refreshPosts"
-            :disabled="loading"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-smooth font-medium text-sm btn-hover flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="刷新"
-          >
-            <RefreshIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-            <span>{{ loading ? '刷新中...' : '刷新' }}</span>
-          </button>
+            <!-- 刷新按钮 -->
+            <button
+              @click="refreshPosts"
+              :disabled="loading"
+              class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-smooth font-medium text-sm btn-hover flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="刷新"
+            >
+              <RefreshIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+              <span>{{ loading ? '刷新中...' : '刷新' }}</span>
+            </button>
         </div>
 
         <!-- 加载状态 -->
