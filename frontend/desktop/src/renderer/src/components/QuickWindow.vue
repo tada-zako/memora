@@ -312,7 +312,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { Zap } from 'lucide-vue-next'
-import { updateCollectionTags as updateTagsAPI, updateCollectionDetail as updateDetailAPI, healthCheck, getCollectionTags } from '../services/collection'
+import { updateCollectionTags as updateTagsAPI, updateCollectionDetail as updateDetailAPI, healthCheck, getCollectionTags, processUrlWithStreaming } from '../services/collection'
 import { isAuthenticated } from '../services/auth'
 
 // 快速窗口相关状态
@@ -444,18 +444,25 @@ const testBackendConnection = async () => {
       setTimeout(() => {
         statusMessage.value = null
       }, 5000)
+    } else {
+      statusMessage.value = {
+        type: 'error',
+        text: '后端连接失败，请检查服务是否运行'
+      }
+       setTimeout(() => {
+        statusMessage.value = null
+      }, 5000)
     }
     
     return false
   }
 }
 
-// 新增：调用API解析链接
+// 新增：调用API解析链接（使用services统一管理）
 const processUrlWithAPI = async (url) => {
   try {
     console.log('=== 开始处理URL ===')
     console.log('URL:', url)
-    console.log('API Endpoint: /api/v1/collection/url')
 
     // 检查用户认证状态
     if (!isAuthenticated()) {
@@ -472,7 +479,7 @@ const processUrlWithAPI = async (url) => {
     // 先测试后端连接
     const isBackendReachable = await testBackendConnection()
     if (!isBackendReachable) {
-      throw new Error('无法连接到后端服务器 (localhost:8000)')
+      throw new Error('无法连接到后端服务器')
     }
 
     // 重置抓取状态，开始解析
@@ -485,57 +492,6 @@ const processUrlWithAPI = async (url) => {
       stepCompleted.value[key] = false
     })
 
-    // 检查认证状态
-    if (!isAuthenticated()) {
-      throw new Error('用户未登录，请先登录')
-    }
-
-    // 获取token并添加到请求头
-    const token = localStorage.getItem('access_token')
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'text/event-stream',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ url: url })
-    }
-
-    console.log('请求配置:', requestOptions)
-    console.log('请求体:', requestOptions.body)
-
-    // 添加超时处理
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60秒超时
-
-    requestOptions.signal = controller.signal
-
-    console.log('发送fetch请求...')
-    const response = await fetch('http://localhost:8000/api/v1/collection/url', requestOptions)
-
-    clearTimeout(timeoutId)
-    console.log('收到响应:', {
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries())
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('HTTP错误响应:', errorText)
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
-    }
-
-    if (!response.body) {
-      throw new Error('响应体为空')
-    }
-
-    console.log('开始读取流数据...')
-    const reader = response.body.getReader()
-    const decoder = new TextDecoder()
-
-    let buffer = ''
     const tempData = {
       collectionId: null,
       category: null,
@@ -543,109 +499,80 @@ const processUrlWithAPI = async (url) => {
       summary: ''
     }
 
-    let chunkCount = 0
+    // 使用新的流式处理方法
+    await processUrlWithStreaming(url, (data) => {
+      console.log('收到流数据:', data)
 
-    while (true) {
-      const { done, value } = await reader.read()
-      chunkCount++
-      console.log(`读取数据块 ${chunkCount}:`, { done, valueLength: value?.length })
+      switch (data.type) {
+        case 'collection_created':
+          console.log('收到: collection_created')
+          currentStep.value = 1
+          stepCompleted.value[1] = true
+          tempData.collectionId = data.data.id
+          break
 
-      if (done) {
-        console.log('流数据读取完成')
-        break
-      }
+        case 'content_fetched':
+          console.log('收到: content_fetched')
+          currentStep.value = 2
+          stepCompleted.value[2] = true
+          break
 
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
+        case 'category_analyzed':
+          console.log('收到: category_analyzed')
+          currentStep.value = 3
+          stepCompleted.value[3] = true
+          tempData.category = data.data.category
+          tempData.tags = data.data.tags
+          break
 
-      console.log(`处理 ${lines.length} 行数据`)
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          try {
-            const jsonStr = line.slice(6)
-            console.log('解析SSE数据:', jsonStr)
-            const data = JSON.parse(jsonStr)
-            console.log('解析结果:', data)
-
-            switch (data.type) {
-              case 'collection_created':
-                console.log('收到: collection_created')
-                currentStep.value = 1
-                stepCompleted.value[1] = true
-                tempData.collectionId = data.data.id
-                break
-
-              case 'content_fetched':
-                console.log('收到: content_fetched')
-                currentStep.value = 2
-                stepCompleted.value[2] = true
-                break
-
-              case 'category_analyzed':
-                console.log('收到: category_analyzed')
-                currentStep.value = 3
-                stepCompleted.value[3] = true
-                tempData.category = data.data.category
-                tempData.tags = data.data.tags
-                break
-
-              case 'summary_chunk':
-                console.log('收到: summary_chunk')
-                if (currentStep.value < 4) {
-                  currentStep.value = 4
-                }
-                tempData.summary += data.data.summary
-                break
-
-              case 'index_completed':
-                console.log('收到: index_completed')
-                currentStep.value = 5
-                stepCompleted.value[4] = true
-                stepCompleted.value[5] = true
-
-                // 清理摘要数据
-                let cleanSummary = tempData.summary
-                try {
-                  // 尝试解析JSON格式的摘要
-                  const jsonMatch = cleanSummary.match(/\{[^}]*"summary":\s*"([^"]*)"[^}]*\}/)
-                  if (jsonMatch && jsonMatch[1]) {
-                    cleanSummary = jsonMatch[1]
-                  } else {
-                    // 移除JSON标记符号
-                    cleanSummary = cleanSummary.replace(/```json\n?/g, '').replace(/```\n?/g, '').replace(/^\{?\s*"?\s*/, '').replace(/\s*"?\s*\}?$/g, '')
-                  }
-                } catch (e) {
-                  console.error('清理摘要时出错:', e)
-                }
-
-                processedData.value = {
-                  collectionId: tempData.collectionId,
-                  category: tempData.category,
-                  tags: tempData.tags,
-                  summary: cleanSummary
-                }
-
-                console.log('处理完成，最终数据:', processedData.value)
-
-                isProcessing.value = false
-                showCompletionMessage.value = true
-
-                setTimeout(() => {
-                  showCompletionMessage.value = false
-                }, 2000)
-                break
-
-              default:
-                console.log('未知事件类型:', data.type)
-            }
-          } catch (error) {
-            console.error('解析SSE数据时出错:', error, '原始数据:', line)
+        case 'summary_chunk':
+          console.log('收到: summary_chunk')
+          if (currentStep.value < 4) {
+            currentStep.value = 4
           }
-        }
+          tempData.summary += data.data.summary
+          break
+
+        case 'index_completed':
+          console.log('收到: index_completed')
+          currentStep.value = 5
+          stepCompleted.value[4] = true
+          stepCompleted.value[5] = true
+
+          // 清理摘要数据
+          let cleanSummary = tempData.summary
+          try {
+            const jsonMatch = cleanSummary.match(/\{[^}]*"summary":\s*"([^"]*)"[^}]*\}/)
+            if (jsonMatch && jsonMatch[1]) {
+              cleanSummary = jsonMatch[1]
+            } else {
+              cleanSummary = cleanSummary.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').replace(/^\{?\\s*"?\\s*/, '').replace(/\\s*"?\\s*\}?$/g, '')
+            }
+          } catch (e) {
+            console.error('清理摘要时出错:', e)
+          }
+
+          processedData.value = {
+            collectionId: tempData.collectionId,
+            category: tempData.category,
+            tags: tempData.tags,
+            summary: cleanSummary
+          }
+
+          console.log('处理完成，最终数据:', processedData.value)
+
+          isProcessing.value = false
+          showCompletionMessage.value = true
+
+          setTimeout(() => {
+            showCompletionMessage.value = false
+          }, 2000)
+          break
+
+        default:
+          console.log('未知事件类型:', data.type)
       }
-    }
+    })
 
     console.log('=== URL处理完成 ===')
 
@@ -659,18 +586,17 @@ const processUrlWithAPI = async (url) => {
     currentStep.value = 0
 
     let errorMessage = '解析失败'
+    const errorMsg = error.message || ''
 
     // 检查认证相关错误
-    if (error.message.includes('403') || error.message.includes('Not authenticated') || error.message.includes('未登录')) {
+    if (errorMsg.includes('401') || errorMsg.includes('403') || errorMsg.includes('Not authenticated') || errorMsg.includes('未登录')) {
       errorMessage = '认证失败，请先登录'
-    } else if (error.name === 'AbortError') {
+    } else if (error.name === 'AbortError' || errorMsg.includes('timeout')) {
       errorMessage = '请求超时，请检查网络连接'
-    } else if (error.message.includes('fetch')) {
+    } else if (errorMsg.includes('Network Error')) {
       errorMessage = '网络连接失败，请确认后端服务是否启动'
-    } else if (error.message.includes('CORS')) {
-      errorMessage = '跨域请求被阻止'
     } else {
-      errorMessage = `解析失败: ${error.message}`
+      errorMessage = `解析失败: ${errorMsg}`
     }
 
     statusMessage.value = {
@@ -944,88 +870,6 @@ const startNewCollection = () => {
     confirmAllChanges()
   } else {
     resetQuickWindowState()
-  }
-}
-
-// 新增：测试后端连接
-const testConnection = async () => {
-  try {
-    isTesting.value = true
-    console.log('=== 手动测试后端连接 ===')
-
-    // 检查用户认证状态
-    if (!isAuthenticated()) {
-      statusMessage.value = {
-        type: 'error',
-        text: '请先登录后再测试连接'
-      }
-      setTimeout(() => {
-        statusMessage.value = null
-      }, 5000)
-      return
-    }
-
-    // 测试基本连接
-    const isReachable = await testBackendConnection()
-    if (!isReachable) {
-      statusMessage.value = {
-        type: 'error',
-        text: '无法连接到后端服务器 (localhost:8000)'
-      }
-      setTimeout(() => {
-        statusMessage.value = null
-      }, 5000)
-      return
-    }
-
-    // 测试API端点
-    console.log('测试API端点...')
-    const token = localStorage.getItem('access_token')
-    const testResponse = await fetch('http://localhost:8000/api/v1/collection/url', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'text/event-stream',
-        'Authorization': token ? `Bearer ${token}` : ''
-      },
-      body: JSON.stringify({ url: 'https://example.com' })
-    })
-
-    console.log('API测试响应:', {
-      status: testResponse.status,
-      statusText: testResponse.statusText,
-      headers: Object.fromEntries(testResponse.headers.entries())
-    })
-
-    if (testResponse.ok) {
-      statusMessage.value = {
-        type: 'success',
-        text: '后端连接测试成功！'
-      }
-    } else {
-      const errorText = await testResponse.text()
-      console.error('API测试失败:', errorText)
-      statusMessage.value = {
-        type: 'error',
-        text: `API测试失败: ${testResponse.status} ${testResponse.statusText}`
-      }
-    }
-
-    setTimeout(() => {
-      statusMessage.value = null
-    }, 3000)
-
-  } catch (error) {
-    console.error('连接测试失败:', error)
-    statusMessage.value = {
-      type: 'error',
-      text: `连接测试失败: ${error.message}`
-    }
-    setTimeout(() => {
-      statusMessage.value = null
-    }, 5000)
-  } finally {
-    isTesting.value = false
   }
 }
 

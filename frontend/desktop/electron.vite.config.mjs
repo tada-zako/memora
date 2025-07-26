@@ -24,7 +24,7 @@ export default defineConfig({
           secure: false
         },
         '/uploads': {
-          target: 'http://localhost:8000',
+          target: 'http://memora.soulter.top',
           changeOrigin: true,
           secure: false
         }

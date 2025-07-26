@@ -62,7 +62,7 @@ export const createPictureCollection = async (collectionData) => {
   }
 }
 
-// 更新收藏详情
+// 更新集合的某个详情，如URL或摘要
 export const updateCollectionDetail = async (collectionId, key, value) => {
   try {
     const response = await api.put(`/api/v1/collection/${collectionId}/details/${key}`, {
@@ -71,6 +71,59 @@ export const updateCollectionDetail = async (collectionId, key, value) => {
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
+  }
+}
+
+export const processUrlWithStreaming = async (url, onProgress) => {
+  const token = localStorage.getItem('access_token')
+  const apiBaseUrl = 'https://memora.soulter.top'; // Keep the base URL as you requested
+
+  const response = await fetch(`${apiBaseUrl}/api/v1/collection/url`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ url })
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
+  }
+
+  if (!response.body) {
+    throw new Error('Response body is empty')
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) {
+      break
+    }
+
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() || ''
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        try {
+          const jsonStr = line.slice(6)
+          if (jsonStr) {
+            const data = JSON.parse(jsonStr)
+            onProgress(data)
+          }
+        } catch (error) {
+          console.error('Error parsing SSE event:', error, 'raw line:', line)
+        }
+      }
+    }
   }
 }
 

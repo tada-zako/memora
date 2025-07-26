@@ -14,3 +14,4 @@ backend/memora.db
 .env.dev
 .env.prod
 backend/chroma_db
+backend/memora.db-journal
