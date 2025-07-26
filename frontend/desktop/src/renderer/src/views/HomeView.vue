@@ -319,9 +319,35 @@ const fetchCollections = async () => {
   }
 }
 
-// 查看收藏详情 - 这里使用路由导航
-const viewCollection = (collection) => {
-  router.push({ name: 'CollectionList', params: { category_id: collection.id } })
+// 查看收藏详情 - 根据是否有attachment决定跳转页面
+const viewCollection = async (collection) => {
+  try {
+    // 先获取该分类下的collections来检查是否有attachment
+    const response = await fetch(`${API_BASE_URL}/collection/by_category/${collection.id}`)
+    const result = await response.json()
+    
+    if (result.status === 'success' && result.data && result.data.collections) {
+      const collections = result.data.collections
+      
+      // 检查是否有任何collection包含attachment
+      const hasAttachment = collections.some(item => item.details && item.details.attachment)
+      
+      if (hasAttachment) {
+        // 如果有attachment，跳转到CollectionAttachmentListView
+        router.push({ name: 'CollectionAttachmentList', params: { category_id: collection.id } })
+      } else {
+        // 如果没有attachment，跳转到CollectionListView
+        router.push({ name: 'CollectionList', params: { category_id: collection.id } })
+      }
+    } else {
+      // 如果无法获取数据，默认跳转到CollectionListView
+      router.push({ name: 'CollectionList', params: { category_id: collection.id } })
+    }
+  } catch (error) {
+    console.error('检查收藏类型失败:', error)
+    // 出错时默认跳转到CollectionListView
+    router.push({ name: 'CollectionList', params: { category_id: collection.id } })
+  }
 }
 
 // 侧边栏交互处理
