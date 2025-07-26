@@ -1,16 +1,24 @@
 <template>
   <div class="min-h-screen bg-white">
     <!-- Header -->
-    <header class="border-b border-gray-200">
-      <div class="max-w-4xl mx-auto px-6 py-8">
-        <button @click="$router.back()" class="mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-          返回
-        </button>
-        <div class="flex items-center gap-3 mb-2">
-          <BookmarkIcon class="w-6 h-6 text-black" />
-          <h1 class="text-2xl font-bold text-black">推文收藏详情</h1>
+    <header class="border-b border-gray-200 flex-shrink-0 sticky top-0 bg-white z-10">
+      <div class="max-w-6xl mx-auto px-6 py-5">
+        <div class="flex justify-between items-start mb-2">
+          <button @click="$router.back()"
+            class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
+            style="font-size: 12px;">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M15 19l-7-7 7-7" />
+            </svg>
+            返回
+          </button>
+          
         </div>
+          <div class="flex items-center gap-3 mb-2">
+            <BookmarkIcon class="w-6 h-6 text-black" />
+            <h1 class="text-2xl font-bold text-black">推文收藏详情</h1>
+          </div>
+
         <p class="text-gray-600">查看推文分享的收藏内容</p>
       </div>
     </header>
@@ -45,10 +53,15 @@
         <div class="p-6 pb-6">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
-              <h2 class="text-2xl font-bold text-black mb-3 leading-tight">{{ collection.details.title || '无标题' }}</h2>
-              <p class="text-base text-gray-600 leading-relaxed">{{ collection.details.summary || '无摘要' }}</p>
+              <!-- 移除标题展示 -->
+              <!-- <h2 class="text-2xl font-bold text-black mb-3 leading-tight">{{ collection.details.title || '无标题' }}</h2> -->
+              <!-- summary部分处理为json解析 -->
+              <p class="text-base text-gray-600 leading-relaxed">
+                {{ parsedSummary }}
+              </p>
             </div>
-            <div class="flex gap-2">
+            <!-- 删除访问原文按钮 -->
+            <!-- <div class="flex gap-2">
               <button
                 @click="openOriginalLink"
                 class="shrink-0 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 bg-transparent transition-colors flex items-center gap-2 text-sm"
@@ -56,7 +69,7 @@
                 <ExternalLinkIcon class="w-4 h-4" />
                 访问原文
               </button>
-            </div>
+            </div> -->
           </div>
 
           <div class="border-t border-gray-200 my-6"></div>
@@ -122,11 +135,16 @@
           <div v-if="collection.details.content">
             <h3 class="text-lg font-semibold text-black mb-4">内容预览</h3>
             <div class="prose prose-gray max-w-none">
+              <!-- 新增：md渲染 -->
+              <div v-html="contentMarkdown"></div>
+              <!-- 保留原有纯文本分段渲染（如不需要可删除） -->
+              <!--
               <div class="text-gray-700 leading-relaxed space-y-4">
                 <p v-for="(paragraph, index) in contentParagraphs" :key="index" class="text-sm">
                   {{ paragraph }}
                 </p>
               </div>
+              -->
             </div>
           </div>
 
@@ -157,6 +175,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getPostCollectionDetails } from '../services/community'
 import { getPublicCollectionDetails } from '../services/collection'
+import { marked } from 'marked'
 
 // Icons
 const BookmarkIcon = {
@@ -249,6 +268,13 @@ const contentParagraphs = computed(() => {
   return collection.value.details.content.split('\n\n').filter(p => p.trim())
 })
 
+// 新增：正文 markdown 渲染
+const contentMarkdown = computed(() => {
+  const content = collection.value?.details?.content
+  if (!content) return ''
+  return marked.parse(content)
+})
+
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleString('zh-CN', {
@@ -260,11 +286,39 @@ const formatDate = (dateString) => {
   })
 }
 
-const openOriginalLink = () => {
-  if (collection.value?.details?.url) {
-    window.open(collection.value.details.url, '_blank', 'noopener,noreferrer')
+// summary json解析
+const parsedSummary = computed(() => {
+  const summary = collection.value?.details?.summary
+  if (!summary) return '无摘要'
+  // 去除前后多余的反引号和空白
+  let cleanSummary = summary
+  if (typeof cleanSummary === 'string') {
+    cleanSummary = cleanSummary.trim()
+    // 去除前后的三个反引号
+    if (cleanSummary.startsWith('```') && cleanSummary.endsWith('```')) {
+      cleanSummary = cleanSummary.slice(3, -3).trim()
+    }
+    // 解析json
+    try {
+      if (cleanSummary.startsWith('{')) {
+        const obj = JSON.parse(cleanSummary)
+        if (obj && typeof obj === 'object' && obj.summary) return obj.summary
+      }
+      // 解析失败时尝试用正则提取 summary 字段
+      const match = cleanSummary.match(/"summary"\s*:\s*"([^"]+)"/)
+      if (match && match[1]) return match[1]
+      return cleanSummary
+    } catch {
+      // 解析失败时尝试用正则提取 summary 字段
+      const match = cleanSummary.match(/"summary"\s*:\s*"([^"]+)"/)
+      if (match && match[1]) return match[1]
+      return cleanSummary
+    }
   }
-}
+  // 如果是对象且有 summary 字段
+  if (typeof cleanSummary === 'object' && cleanSummary.summary) return cleanSummary.summary
+  return String(cleanSummary)
+})
 </script>
 
 <style scoped>
@@ -276,4 +330,4 @@ const openOriginalLink = () => {
   margin: 0;
   line-height: 1.6;
 }
-</style> 
+</style>
