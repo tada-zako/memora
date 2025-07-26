@@ -1,13 +1,14 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel
 from loguru import logger
 from entity.response import Response
 
-from model import Category
+from model import Category, User
 from db import get_db
+from routers.auth import get_current_user
 
 
 # Create router instance
@@ -39,11 +40,15 @@ class CategoryResponse(BaseModel):
 
 
 @router.post("/", response_model=Response, status_code=status.HTTP_201_CREATED)
-async def create_category(category: CategoryCreate, db: AsyncSession = Depends(get_db)):
+async def create_category(
+    category: CategoryCreate, 
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     """
     Create a new category
     """
-    user_id = 1  # TODO(Soulter): This should be replaced with actual user_id from request context or authentication
+    user_id = current_user.id
 
     # Check if category name already exists for this user
     stmt = select(Category).where(
@@ -78,11 +83,14 @@ async def create_category(category: CategoryCreate, db: AsyncSession = Depends(g
 
 
 @router.get("/", response_model=Response)
-async def get_categories(db: AsyncSession = Depends(get_db)):
+async def get_categories(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     """
     Get all categories for the current user
     """
-    user_id = 1  # TODO(Soulter): This should be replaced with actual user_id from request context or authentication
+    user_id = current_user.id
 
     stmt = select(Category).where(Category.user_id == user_id).order_by(Category.name)
     result = await db.execute(stmt)
@@ -109,12 +117,13 @@ async def get_categories(db: AsyncSession = Depends(get_db)):
 async def update_category(
     category_id: int,
     category_update: CategoryUpdate,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Update a specific category
     """
-    user_id = 1  # TODO(Soulter): This should be replaced with actual user_id from request context or authentication
+    user_id = current_user.id
 
     # Get the existing category
     stmt = select(Category).where(
@@ -172,11 +181,15 @@ async def update_category(
 
 
 @router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_category(category_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_category(
+    category_id: int, 
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     """
     Delete a specific category
     """
-    user_id = 1  # TODO(Soulter): This should be replaced with actual user_id from request context or authentication
+    user_id = current_user.id
 
     # Get the existing category
     stmt = select(Category).where(

@@ -19,12 +19,19 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(255), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    avatar_attachment_id = Column(String(36), ForeignKey('attachments.attachment_id'), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), 
+                       onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relationship to collections
     collections = relationship("Collection", back_populates="user", cascade="all, delete-orphan")
+    avatar = relationship("Attachment", foreign_keys=[avatar_attachment_id])
 
     def __repr__(self):
-        return f"<User(id={self.id}, username='{self.username}')>"
+        return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"
 
 class Category(Base):
     __tablename__ = 'categories'

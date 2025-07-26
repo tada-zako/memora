@@ -3,9 +3,10 @@ from db import create_tables
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers.collection import router as collection_router, user_events_router
+from routers.collection import router as collection_router, collections_router
 from routers.attachment import router as attachment_router
 from routers.category import router as category_router
+from routers.auth import router as auth_router
 from routers.static import mount_static_files
 
 
@@ -32,8 +33,9 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth_router, prefix="/api/v1")
 app.include_router(collection_router, prefix="/api/v1")
-app.include_router(user_events_router, prefix="/api/v1")
+app.include_router(collections_router, prefix="/api/v1")
 app.include_router(attachment_router, prefix="/api/v1")
 app.include_router(category_router, prefix="/api/v1")
 
