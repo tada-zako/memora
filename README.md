@@ -1,3 +1,5 @@
+<img width="1640" height="664" alt="Memora" src="https://github.com/user-attachments/assets/0514e5fd-968c-4b0c-af60-538e9dfc965b" />
+
 ## Memora · Redefine your Collection
 
 我们每天都在浏览、发现、收集信息。但浏览器的书签功能早已无法满足现代人的收藏需求——没有分类、缺乏标签、毫无上下文可言。而社交平台上的“收藏”功能又各自为政，散落在不同 App 中，难以统一管理，最终被遗忘在角落。此外，很多内容只是被一时保存，却再也没有打开过。收藏变成了遗忘的开始，而不是知识的积累。
