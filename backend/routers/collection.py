@@ -625,6 +625,60 @@ async def get_collection_tags(
         data={"tags": tags}
     )
 
+
+@router.get("/public/{collection_id}/details", response_model=Response)
+async def get_public_collection_details(
+    collection_id: int, 
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    获取收藏详情（公共接口，无需登录）
+    用于推文中的收藏详情展示
+    """
+    # 检查收藏是否存在
+    collection_query = select(Collection).where(Collection.id == collection_id)
+    collection_result = await db.execute(collection_query)
+    collection = collection_result.scalar_one_or_none()
+    
+    if not collection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found"
+        )
+    
+    # 获取收藏详情
+    details_query = select(CollectionDetail).where(
+        CollectionDetail.collection_id == collection_id
+    )
+    details_result = await db.execute(details_query)
+    details = details_result.scalars().all()
+    
+    # 获取分类信息
+    category_name = None
+    if collection.category_id:
+        category_query = select(Category).where(Category.id == collection.category_id)
+        category_result = await db.execute(category_query)
+        category = category_result.scalar_one_or_none()
+        if category:
+            category_name = category.name
+    
+    return Response(
+        status="success",
+        message="Collection details fetched successfully",
+        data={
+            "collection": {
+                "id": collection.id,
+                "category_id": collection.category_id,
+                "category_name": category_name,
+                "tags": collection.tags,
+                "details": {detail.key: detail.value for detail in details},
+                "created_at": collection.created_at.isoformat(),
+                "updated_at": collection.updated_at.isoformat(),
+            }
+        }
+    )
+
+
 @router.put("/{collection_id}/tags", response_model=Response)
 async def update_collection_tags(
     collection_id: int, 

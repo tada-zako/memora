@@ -20,6 +20,16 @@ export const getCollectionDetails = async (collectionId) => {
   }
 }
 
+// 获取公共收藏详情（无需登录）
+export const getPublicCollectionDetails = async (collectionId) => {
+  try {
+    const response = await api.get(`/api/v1/collection/public/${collectionId}/details`)
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error.message
+  }
+}
+
 // 获取收藏标签
 export const getCollectionTags = async (collectionId) => {
   try {

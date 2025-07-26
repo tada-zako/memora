@@ -89,7 +89,7 @@
             <div class="p-4">
               <div 
                 class="bg-gray-50 rounded-lg p-4 cursor-pointer hover:bg-gray-100 transition-colors"
-                @click="viewCollectionDetail(post.refer_collection_id)"
+                @click="viewCollectionDetail(post.refer_collection_id, post.post_id)"
               >
                 <div class="flex items-center justify-between mb-2">
                   <div class="flex items-center gap-2 flex-wrap">
@@ -578,11 +578,20 @@ const isMyComment = (comment) => {
 }
 
 // 跳转到收藏详情页
-const viewCollectionDetail = (collectionId) => {
-  router.push({
-    name: 'CollectionDetail',
-    params: { collection_id: collectionId }
-  })
+const viewCollectionDetail = (collectionId, postId) => {
+  // 如果有postId，说明是从推文点击的，使用新的路由
+  if (postId) {
+    router.push({
+      name: 'PostCollectionDetail',
+      params: { post_id: postId }
+    })
+  } else {
+    // 原有的逻辑，直接跳转到公共收藏详情
+    router.push({
+      name: 'PublicCollectionDetail',
+      params: { collection_id: collectionId }
+    })
+  }
 }
 
 // 跳转到收藏页面

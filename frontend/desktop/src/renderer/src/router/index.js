@@ -5,6 +5,7 @@ import CollectionDetailView from '../views/CollectionDetailView.vue'
 import CollectionAttachmentListView from '../views/CollectionAttachmentListView.vue'
 import CollectionAttachmentDetailView from '../views/CollectionAttachmentDetailView.vue'
 import CommunityView from '../views/CommunityView.vue'
+import PostCollectionDetailView from '../views/PostCollectionDetailView.vue'
 import LoginView from '../views/LoginView.vue'
 import ProfileView from '../views/ProfileView.vue'
 
@@ -47,6 +48,18 @@ const routes = [
     path: '/attachment/detail/:collection_id',
     name: 'CollectionAttachmentDetail',
     component: CollectionAttachmentDetailView,
+    props: true
+  },
+  {
+    path: '/post/:post_id/collection',
+    name: 'PostCollectionDetail',
+    component: PostCollectionDetailView,
+    props: true
+  },
+  {
+    path: '/collection/public/:collection_id',
+    name: 'PublicCollectionDetail',
+    component: PostCollectionDetailView,
     props: true
   },
   {

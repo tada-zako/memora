@@ -539,4 +539,67 @@ async def delete_comment(
         status="success",
         message="评论删除成功",
         data={"comment_id": comment_id}
+    )
+
+
+@router.get("/posts/{post_id}/collection", response_model=Response)
+async def get_post_collection_details(
+    post_id: str,  # 使用UUID字符串
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    获取推文关联的收藏详情（公共接口，无需登录）
+    """
+    # 检查推文是否存在
+    post_query = select(Post).where(Post.post_id == post_id)
+    post_result = await db.execute(post_query)
+    post = post_result.scalar_one_or_none()
+    
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="推文不存在"
+        )
+    
+    # 获取收藏信息
+    collection_query = select(Collection).where(Collection.id == post.refer_collection_id)
+    collection_result = await db.execute(collection_query)
+    collection = collection_result.scalar_one_or_none()
+    
+    if not collection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="收藏不存在"
+        )
+    
+    # 获取收藏详情
+    details_query = select(CollectionDetail).where(
+        CollectionDetail.collection_id == collection.id
+    )
+    details_result = await db.execute(details_query)
+    details = details_result.scalars().all()
+    
+    # 获取分类信息
+    category_name = None
+    if collection.category_id:
+        category_query = select(Category).where(Category.id == collection.category_id)
+        category_result = await db.execute(category_query)
+        category = category_result.scalar_one_or_none()
+        if category:
+            category_name = category.name
+    
+    return Response(
+        status="success",
+        message="收藏详情获取成功",
+        data={
+            "collection": {
+                "id": collection.id,
+                "category_id": collection.category_id,
+                "category_name": category_name,
+                "tags": collection.tags,
+                "details": {detail.key: detail.value for detail in details},
+                "created_at": collection.created_at.replace(tzinfo=timezone.utc).isoformat(),
+                "updated_at": collection.updated_at.replace(tzinfo=timezone.utc).isoformat(),
+            }
+        }
     ) 

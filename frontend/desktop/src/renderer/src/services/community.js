@@ -103,4 +103,15 @@ export const deleteComment = async (comment_id) => {
     console.error('删除评论失败:', error)
     throw error.response?.data || error
   }
+}
+
+// 获取推文关联的收藏详情（公共接口，无需登录）
+export const getPostCollectionDetails = async (post_id) => {
+  try {
+    const response = await api.get(`/api/v1/community/posts/${post_id}/collection`)
+    return response.data
+  } catch (error) {
+    console.error('获取推文收藏详情失败:', error)
+    throw error.response?.data || error
+  }
 } 
