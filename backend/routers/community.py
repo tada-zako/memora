@@ -1,11 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, select, and_, func
-from sqlalchemy.orm import selectinload
 from entity.response import Response
 from pydantic import BaseModel
-from loguru import logger
-from typing import Optional, List
+from typing import Optional
 
 from model import (
     User,

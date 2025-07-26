@@ -13,3 +13,4 @@ backend/uploads/
 backend/memora.db
 .env.dev
 .env.prod
+backend/chroma_db

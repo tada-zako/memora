@@ -42,6 +42,14 @@ Your output should be a JSON object with the following structure:
 ```
 """
 
+KNOWLEDGE_BASE_QUERY_PROMPT = """
+You will be givel several documents that related to the user's query.
+Your task is to analyze the documents and generate a concise answer to the user's query.
+
+Documents:
+{documents}
+"""
+
 PICTURE_PROMPT = """
 Anaylize the image and generate a JSON object like:
 

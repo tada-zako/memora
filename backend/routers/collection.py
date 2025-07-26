@@ -398,6 +398,43 @@ async def get_collections_by_category(
         },
     )
 
+# 全文搜索，找到匹配的 collection
+@router.get("/search", response_model=Response)
+async def search_collections(
+    query: str, db: AsyncSession = Depends(get_db)
+):
+    """
+    全文搜索，找到匹配的 collection
+    """
+    # 搜索 Collection 的 details 中的内容
+    collections_query = (
+        select(Collection)
+        .join(Collection.details)
+        .where(CollectionDetail.value.ilike(f"%{query}%"))
+        .options(selectinload(Collection.details))
+        .order_by(desc(Collection.created_at))
+    )
+    collections_result = await db.execute(collections_query)
+    collections = collections_result.scalars().unique().all()
+    return Response(
+        status="success",
+        message="Collections searched successfully",
+        data={
+            "collections": [
+                {
+                    "id": collection.id,
+                    "category_id": collection.category_id,
+                    "tags": collection.tags,
+                    "details": {
+                        detail.key: detail.value for detail in collection.details
+                    },
+                    "created_at": collection.created_at.isoformat(),
+                    "updated_at": collection.updated_at.isoformat(),
+                }
+                for collection in collections
+            ]
+        },
+    )
 
 # 详情相关路由
 @router.get("/{collection_id}/details", response_model=Response)
