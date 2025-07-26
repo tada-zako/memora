@@ -633,3 +633,33 @@ async def update_collection_tags(
         message="Collection tags updated successfully",
         data={"tags": update.tags}
     )
+
+@router.delete("/{collection_id}", response_model=Response)
+async def delete_collection(
+    collection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    通过ID删除一个收藏
+    """
+    collection_query = select(Collection).where(
+        Collection.id == collection_id, 
+        Collection.user_id == current_user.id
+    )
+    collection_result = await db.execute(collection_query)
+    collection = collection_result.scalar_one_or_none()
+    if not collection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found or access denied"
+        )
+    
+    await db.delete(collection)
+    await db.commit()
+
+    return Response(
+        status="success",
+        message="Collection deleted successfully",
+        data={"collection_id": collection_id}
+    )
