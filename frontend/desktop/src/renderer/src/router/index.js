@@ -4,12 +4,18 @@ import CollectionListView from '../views/CollectionListView.vue'
 import CollectionDetailView from '../views/CollectionDetailView.vue'
 import CollectionAttachmentListView from '../views/CollectionAttachmentListView.vue'
 import CollectionAttachmentDetailView from '../views/CollectionAttachmentDetailView.vue'
+import CommunityView from '../views/CommunityView.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: HomeView
+  },
+  {
+    path: '/community',
+    name: 'Community',
+    component: CommunityView
   },
   {
     path: '/collection',

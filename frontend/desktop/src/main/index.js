@@ -39,6 +39,7 @@ function createWindow() {
     maximizable: true,
     fullscreenable: false,
     title: 'Memora',
+    windowTitle: 'Memora',
     titleBarStyle: process.platform === 'darwin' ? 'default' : 'default',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {

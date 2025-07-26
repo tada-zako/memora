@@ -5,15 +5,15 @@
       <!-- 收藏管理页面 -->
       <div v-if="currentPage === 'collections'" class="h-full">
         <!-- 主要内容区域 -->
-        <div class="bg-white/90 glass-effect border border-gray-100 h-full min-h-0" style="padding: 28px;">
+        <div class="bg-white/90 glass-effect border border-gray-100 h-full min-h-0" style="padding: 16px;">
           <!-- 标题区域 -->
           <div class="flex items-center justify-between mb-8">
             <div class="flex items-center">
               <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
-                <span class="text-white text-4xl">✨</span>
+                <span class="text-white text-2xl">✨</span>
               </div>
               <div>
-                <h1 class="text-4xl font-bold text-gray-900">Your Collections</h1>
+                <h1 class="text-2xl font-bold text-gray-900">收藏夹</h1>
               </div>
             </div>
             <!-- 刷新按钮 -->
@@ -322,18 +322,6 @@ const fetchCollections = async () => {
 // 查看收藏详情 - 这里使用路由导航
 const viewCollection = (collection) => {
   router.push({ name: 'CollectionList', params: { category_id: collection.id } })
-}
-
-// 侧边栏交互处理
-const handleSidebarEnter = () => {
-  if (!sidebarExpanded.value) {
-    sidebarToggleCount.value++
-  }
-  sidebarExpanded.value = true
-}
-
-const handleSidebarLeave = () => {
-  sidebarExpanded.value = false
 }
 
 // 刷新收藏
