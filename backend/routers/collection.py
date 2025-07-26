@@ -18,6 +18,7 @@ from routers.auth import get_current_user
 from ai.PROMPTS import (
     PROMPT_PARSE_CATEGORY_AND_TAGS,
     PROMPT_SUMMARIZE_CONTENT,
+    ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE,
     parse_json,
 )
 from ai.openai_provider import provider_openai
@@ -114,6 +115,8 @@ async def streaming_create_collection_url(
     )
     cate_sys_prompt = PROMPT_PARSE_CATEGORY_AND_TAGS.format(categories=categories_str)
 
+    cate_sys_prompt += f"\n\n{ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE}"
+
     # step 3: llm analyze the category and tags
     cate_llm_resp = await provider_openai.text_chat(
         prompt=content,
@@ -158,6 +161,7 @@ async def streaming_create_collection_url(
 
     # step 3: llm summarize the content, using streaming
     summary_sys_prompt = PROMPT_SUMMARIZE_CONTENT
+    summary_sys_prompt += f"\n\n{ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE}"
     summary_llm_resp = provider_openai.text_chat_stream(
         prompt=content,
         system_prompt=summary_sys_prompt,
