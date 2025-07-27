@@ -31,7 +31,7 @@ Memora，为此而生。
 ### 前端
 
 ```bash
-cd frontend && npm install
+cd frontend/desktop && npm install
 npm run dev
 ```
 
