@@ -166,7 +166,7 @@
                   <!-- Ask AI Panel -->
                   <div v-else-if="showAskAIPanel" key="askAI" class="flex flex-col" style="height: 100%;">
                     <div v-if="aiResponse" class="flex-1 p-4 m-4 rounded-lg overflow-y-auto">
-                      <p class="text-gray-700 whitespace-pre-wrap">{{ aiResponse }}</p>
+                      <div class="text-gray-700 prose" v-html="renderedAiResponse"></div>
                     </div>
                     <div v-else class="flex-1 p-4 flex items-center justify-center text-gray-500">
                       Ask me anything about this category's knowledge base!
@@ -230,7 +230,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getCollectionsByCategory } from '../services/collection'
 import { createKnowledgeBase as apiCreateKnowledgeBase, queryKnowledgeBase } from '../services/category'
@@ -240,6 +240,7 @@ import { Sparkle } from 'lucide-vue-next'
 import { Sparkles } from 'lucide-vue-next'
 import { ArrowUp } from 'lucide-vue-next'
 import { MessageSquareShare } from 'lucide-vue-next'
+import { marked } from 'marked'
 
 // Icons
 const BookmarkIcon = {
@@ -473,6 +474,11 @@ const clearSearch = () => {
   searchQuery.value = ''
   filteredCollections.value = collections.value
 }
+
+// 计算属性：渲染AI响应的Markdown
+const renderedAiResponse = computed(() => {
+  return aiResponse.value ? marked(aiResponse.value) : ''
+})
 </script>
 
 <style scoped>
