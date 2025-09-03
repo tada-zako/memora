@@ -86,7 +86,7 @@ export const updateCollectionDetail = async (collectionId, key, value) => {
 
 export const processUrlWithStreaming = async (url, onProgress) => {
   const token = localStorage.getItem('access_token')
-  const apiBaseUrl = 'https://memora.soulter.top'; // Keep the base URL as you requested
+  const apiBaseUrl = 'http://localhost:8000'; // Keep the base URL as you requested
 
   const response = await fetch(`${apiBaseUrl}/api/v1/collection/url`, {
     method: 'POST',

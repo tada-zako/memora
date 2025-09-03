@@ -1,5 +1,6 @@
 import uuid
-from fastapi import APIRouter, HTTPException, Depends, status
+import asyncio
+from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import Optional
@@ -8,7 +9,7 @@ from loguru import logger
 from entity.response import Response
 
 from model import Category, User, CollectionDetail, Collection
-from db import get_db
+from db import get_db, AsyncSessionLocal
 from routers.auth import get_current_user
 from knowledge_base.chromadb_mgr import chroma_db_manager
 from ai.openai_provider import provider_openai
@@ -229,6 +230,7 @@ async def delete_category(
 # 创建知识库
 @router.post("/create_knowledge_base")
 async def create_knowledge_base(
+    background_tasks: BackgroundTasks,
     category_id: int,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -243,44 +245,79 @@ async def create_knowledge_base(
             detail=f"Category with id {category_id} not found"
         )
     
-    collection_name = f"kb_{uuid.uuid4()}"
-    _ = chroma_db_manager.create_collection(collection_name)
-
-    # TODO(Soulter): 优化 SQL
-    stmt = select(CollectionDetail).join(
-        Collection, CollectionDetail.collection_id == Collection.id
-    ).where(
-        Collection.category_id == category_id,
-        Collection.user_id == current_user.id,
-        CollectionDetail.key == "content"
-    )
-    result = await db.execute(stmt)
-    details = result.scalars().all()
-    content_list = [str(detail.value) for detail in details]
-
-    chunked_content_list = []
-    for content in content_list:
-        if isinstance(content, str) and content.strip():
-            chunked_content_list.extend(recursive_text_splitter.split_text(content))
-
-    logger.info(f"Creating knowledge base for category {category_id} with content: {chunked_content_list}")
-
-    # upsert documents into the knowledge base
-    chroma_db_manager.upsert(
-        collection_name=collection_name,
-        documents=chunked_content_list,
-        ids=[str(uuid.uuid4()) for _ in chunked_content_list]
-    )
-
-    # Update the category with the knowledge base ID
-    category.knowledge_base_id = collection_name # type: ignore
-    db.add(category)
-    await db.commit()
-    await db.refresh(category)
-
+    if category.knowledge_base_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Knowledge base already exists for category {category_id}"
+        )
+    
+    # 立即返回响应
+    background_tasks.add_task(create_knowledge_base_task, category_id, current_user.id)
+    
     return Response(
-        status="success", message="Knowledge base created successfully", data=None
+        status="success", message="Knowledge base creation started", data=None
     )
+
+async def create_knowledge_base_task(category_id: int, user_id: int):
+    """
+    Background task to create knowledge base
+    """
+    async with AsyncSessionLocal() as db:
+        try:
+            category = await db.get(Category, category_id)
+            if not category:
+                logger.error(f"Category {category_id} not found during background task")
+                return
+            
+            collection_name = f"kb_{uuid.uuid4()}"
+            
+            # 将 ChromaDB 创建集合操作放到线程池
+            await asyncio.to_thread(chroma_db_manager.create_collection, collection_name)
+
+            # TODO(Soulter): 优化 SQL
+            stmt = select(CollectionDetail).join(
+                Collection, CollectionDetail.collection_id == Collection.id
+            ).where(
+                Collection.category_id == category_id,
+                Collection.user_id == user_id,
+                CollectionDetail.key == "content"
+            )
+            result = await db.execute(stmt)
+            details = result.scalars().all()
+            content_list = [str(detail.value) for detail in details]
+
+            # 将文本分割操作放到线程池
+            def split_texts():
+                chunked_content_list = []
+                for content in content_list:
+                    if isinstance(content, str) and content.strip():
+                        chunked_content_list.extend(recursive_text_splitter.split_text(content))
+                return chunked_content_list
+            
+            chunked_content_list = await asyncio.to_thread(split_texts)
+
+            logger.info(f"Creating knowledge base for category {category_id} with {len(chunked_content_list)} chunks")
+
+            # 将 ChromaDB upsert 操作放到线程池
+            def upsert_documents():
+                chroma_db_manager.upsert(
+                    collection_name=collection_name,
+                    documents=chunked_content_list,
+                    ids=[str(uuid.uuid4()) for _ in chunked_content_list]
+                )
+            
+            await asyncio.to_thread(upsert_documents)
+
+            # Update the category with the knowledge base ID
+            category.knowledge_base_id = collection_name  # type: ignore
+            db.add(category)
+            await db.commit()
+            await db.refresh(category)
+
+            logger.info(f"Knowledge base created successfully for category {category_id}")
+        except Exception as e:
+            logger.error(f"Failed to create knowledge base for category {category_id}: {e}")
+            # TODO: 可以添加错误状态到数据库或通知机制
 
 # query knowledge base
 @router.get("/knowledge_base/{category_id}")
@@ -293,44 +330,98 @@ async def query_knowledge_base(
     """
     Query the knowledge base for a specific category
     """
-    # Get the category to find its knowledge base ID
-    category = await db.get(Category, category_id)
-    if not category or not category.knowledge_base_id: # type: ignore
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Knowledge base for category {category_id} not found"
+    try:
+        # Get the category to find its knowledge base ID
+        category = await db.get(Category, category_id)
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Category {category_id} not found"
+            )
+        
+        if not category.knowledge_base_id:  # type: ignore
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Knowledge base for category {category_id} not found. Please create knowledge base first."
+            )
+
+        collection_name = category.knowledge_base_id
+
+        # Query the knowledge base (放到线程池中执行)
+        results = await asyncio.to_thread(
+            chroma_db_manager.query,
+            collection_name=collection_name, 
+            query=query, 
+            n_results=5
         )
 
-    collection_name = category.knowledge_base_id
+        logger.info(f"Querying knowledge base '{collection_name}' with query: {query}, found {len(results.get('documents', [[]])[0])} documents")
 
-    # Query the knowledge base
-    results = chroma_db_manager.query(
-        collection_name=collection_name, query=query, n_results=5 # type: ignore
-    )
+        documents = results["documents"][0] if results.get("documents") and len(results["documents"]) > 0 else []
 
-    logger.info(f"Querying knowledge base '{collection_name}' with query: {query}: {results}")
+        if not documents:
+            logger.warning(f"No documents found for query: {query} in collection: {collection_name}")
+            return Response(
+                status="success",
+                message="No relevant documents found",
+                data={
+                    "response": "抱歉，在知识库中没有找到相关信息。请尝试使用不同的关键词或创建更多内容。",
+                    "documents": [],
+                },
+            )
 
-    documents = results["documents"][0]
+        documents_str = ""
+        for doc in documents:
+            if doc and doc.strip():
+                documents_str += f"{doc}\n\n"
 
-    documents_str = ""
-    for doc in documents:
-        documents_str += f"{doc}\n\n"
+        if not documents_str.strip():
+            logger.warning(f"All documents are empty for query: {query}")
+            return Response(
+                status="success",
+                message="Documents found but all are empty",
+                data={
+                    "response": "找到了一些内容，但内容为空。请检查知识库中的文档。",
+                    "documents": documents,
+                },
+            )
 
-    system_prompt = KNOWLEDGE_BASE_QUERY_PROMPT.format(
-        documents=documents_str
-    )
+        system_prompt = KNOWLEDGE_BASE_QUERY_PROMPT.format(
+            documents=documents_str
+        )
 
-    # Ask AI
-    ai_response = await provider_openai.text_chat(
-        prompt=query,
-        system_prompt=system_prompt,
-    )
+        # Ask AI
+        ai_response = await provider_openai.text_chat(
+            prompt=query,
+            system_prompt=system_prompt,
+        )
 
-    return Response(
-        status="success",
-        message="Knowledge base queried successfully",
-        data={
-            "response": ai_response.completion_text.strip(),
-            "documents": documents,
-        },
-    )
+        if not ai_response or not ai_response.completion_text:
+            logger.error(f"AI response is empty for query: {query}")
+            return Response(
+                status="error",
+                message="AI response is empty",
+                data={
+                    "response": "AI暂时无法生成回答，请稍后重试。",
+                    "documents": documents,
+                },
+            )
+
+        return Response(
+            status="success",
+            message="Knowledge base queried successfully",
+            data={
+                "response": ai_response.completion_text.strip(),
+                "documents": documents,
+            },
+        )
+    
+    except HTTPException:
+        # 重新抛出 HTTP 异常
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in query_knowledge_base: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
+        )

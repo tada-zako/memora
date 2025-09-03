@@ -5,7 +5,24 @@
       <div class="max-w-6xl mx-auto px-6 py-5">
         <div class="flex justify-between items-start mb-2">
           <button @click="$router.back()"
-            class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
+            class="px-2 py-1 bgconst createKnowledgeBase = async () => {
+  if (!categoryId || creatingKnowledgeBase.value) return
+
+  try {
+    creatingKnowledgeBase.value = true
+    const result = await apiCreateKnowledgeBase(categoryId)
+    if (result.status === 'success') {
+      // 知识库创建已启动，后台处理
+      alert('知识库创建已启动，请稍后刷新页面查看状态。')
+      // 由于是后台任务，不立即重新获取数据
+    }
+  } catch (error) {
+    console.error('创建知识库失败:', error)
+    alert('创建知识库失败: ' + (error.detail || error.message || '未知错误'))
+  } finally {
+    creatingKnowledgeBase.value = false
+  }
+}-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
             style="font-size: 12px;">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path d="M15 19l-7-7 7-7" />
@@ -22,12 +39,16 @@
           <div class="flex items-center gap-3">
             <!-- Knowledge Base Button -->
             <button v-if="!category?.knowledge_base_id" @click="createKnowledgeBase"
-              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path
-                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+              :disabled="creatingKnowledgeBase"
+              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-300 rounded text-gray-700 font-medium flex items-center gap-2">
+              <svg v-if="creatingKnowledgeBase" class="animate-spin w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
+                <path fill="currentColor" class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              创建知识库
+              <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+              </svg>
+              {{ creatingKnowledgeBase ? '创建中...' : '创建知识库' }}
             </button>
             <!-- Ask AI Button -->
             <button v-else @click="showAskAIPanel = true"
@@ -92,7 +113,7 @@
                   <h3
                     class="text-lg font-semibold text-black mb-2 line-clamp-2 group-hover:text-gray-700 transition-colors">
                     <!-- Collection #{{ item.id }} -->
-                     {{ item.details.title }}
+                     {{ decodeHtmlEntities(item.details.title) }}
                   </h3>
                   <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                     <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium"
@@ -139,13 +160,13 @@
                 <!-- Collection AI Overview -->
                 <transition name="fade-content" mode="out-in">
                   <div v-if="selectedCollection && !showAskAIPanel" key="overview" class="p-4 flex-1 overflow-y-auto">
-                    <p>{{ selectedCollection?.details?.summary }}</p>
+                    <p>{{ decodeHtmlEntities(selectedCollection?.details?.summary) }}</p>
                   </div>
 
                   <!-- Ask AI Panel -->
                   <div v-else-if="showAskAIPanel" key="askAI" class="flex flex-col" style="height: 100%;">
                     <div v-if="aiResponse" class="flex-1 p-4 m-4 rounded-lg overflow-y-auto">
-                      <p class="text-gray-700 whitespace-pre-wrap">{{ aiResponse }}</p>
+                      <div class="text-gray-700 prose" v-html="renderedAiResponse"></div>
                     </div>
                     <div v-else class="flex-1 p-4 flex items-center justify-center text-gray-500">
                       Ask me anything about this category's knowledge base!
@@ -209,7 +230,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getCollectionsByCategory } from '../services/collection'
 import { createKnowledgeBase as apiCreateKnowledgeBase, queryKnowledgeBase } from '../services/category'
@@ -219,16 +240,23 @@ import { Sparkle } from 'lucide-vue-next'
 import { Sparkles } from 'lucide-vue-next'
 import { ArrowUp } from 'lucide-vue-next'
 import { MessageSquareShare } from 'lucide-vue-next'
+import { marked } from 'marked'
 
 // Icons
 const BookmarkIcon = {
   template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`
 }
 
-
-
 const SearchIcon = {
   template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`
+}
+
+// 解码HTML实体
+const decodeHtmlEntities = (text) => {
+  if (!text) return '';
+  const parser = new DOMParser();
+  const decodedString = parser.parseFromString(`<!doctype html><body>${text}</body>`, 'text/html').body.textContent;
+  return decodedString;
 }
 
 // 路由参数
@@ -249,6 +277,7 @@ const aiLoading = ref(false)
 const selectedCollection = ref(null)
 const searchQuery = ref('')
 const filteredCollections = ref([])
+const creatingKnowledgeBase = ref(false)
 
 const fetchCollectionsByCategory = async () => {
   // 检查用户是否已登录
@@ -315,21 +344,21 @@ const handlePublishSuccess = (result) => {
 }
 
 const createKnowledgeBase = async () => {
-  if (!categoryId) return
+  if (!categoryId || creatingKnowledgeBase.value) return
 
   try {
-    loading.value = true
+    creatingKnowledgeBase.value = true
     const result = await apiCreateKnowledgeBase(categoryId)
     if (result.status === 'success') {
-      alert('知识库创建成功！')
-      // 重新获取分类信息以更新知识库状态
-      await fetchCollectionsByCategory()
+      // 知识库创建已启动，后台处理
+      alert('知识库创建已启动，请稍后刷新页面查看状态。请不要重复点击')
+      // 可以添加一个定时器来检查状态，但暂时使用alert
     }
   } catch (error) {
     console.error('创建知识库失败:', error)
     alert('创建知识库失败: ' + (error.detail || error.message || '未知错误'))
   } finally {
-    loading.value = false
+    creatingKnowledgeBase.value = false
   }
 }
 
@@ -347,12 +376,63 @@ const askAI = async () => {
     aiResponse.value = ''
 
     const result = await queryKnowledgeBase(categoryId, aiQuery.value)
-    if (result.status === 'success' && result.data) {
-      aiResponse.value = result.data.response || '抱歉，没有找到相关信息。'
+    
+    // 更详细的响应检查
+    console.log('AI查询结果:', result)
+    
+    if (result && result.status === 'success') {
+      if (result.data && result.data.response) {
+        aiResponse.value = result.data.response
+      } else if (result.data && result.data.length > 0) {
+        // 如果返回的是数组，尝试提取第一个元素
+        aiResponse.value = result.data[0] || '抱歉，没有找到相关信息。'
+      } else {
+        aiResponse.value = 'AI返回了空响应，请重试。'
+      }
+    } else {
+      console.warn('AI查询返回非成功状态:', result)
+      aiResponse.value = 'AI查询失败: ' + (result?.message || '返回状态异常')
     }
   } catch (error) {
     console.error('AI查询失败:', error)
-    aiResponse.value = 'AI查询失败: ' + (error.detail || error.message || '未知错误')
+    
+    // 更详细的错误处理
+    let errorMessage = '未知错误'
+    
+    if (error.response) {
+      // 服务器返回了错误状态码
+      const status = error.response.status
+      const data = error.response.data
+      
+      if (status === 404) {
+        errorMessage = '知识库不存在，请先创建知识库'
+      } else if (status === 500) {
+        errorMessage = '服务器内部错误，请稍后重试'
+      } else if (status === 401 || status === 403) {
+        errorMessage = '认证失败，请重新登录'
+      } else if (data && data.detail) {
+        errorMessage = data.detail
+      } else if (data && data.message) {
+        errorMessage = data.message
+      } else {
+        errorMessage = `HTTP ${status} 错误`
+      }
+    } else if (error.request) {
+      // 网络请求失败
+      if (error.customMessage) {
+        errorMessage = error.customMessage
+      } else {
+        errorMessage = '网络连接失败，请检查网络连接'
+      }
+    } else if (error.message) {
+      if (error.message.includes('timeout') || error.code === 'ECONNABORTED') {
+        errorMessage = '请求超时，请稍后重试'
+      } else {
+        errorMessage = error.message
+      }
+    }
+    
+    aiResponse.value = 'AI查询失败: ' + errorMessage
   } finally {
     aiLoading.value = false
   }
@@ -394,6 +474,11 @@ const clearSearch = () => {
   searchQuery.value = ''
   filteredCollections.value = collections.value
 }
+
+// 计算属性：渲染AI响应的Markdown
+const renderedAiResponse = computed(() => {
+  return aiResponse.value ? marked(aiResponse.value) : ''
+})
 </script>
 
 <style scoped>

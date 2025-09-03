@@ -1,8 +1,8 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://memora.soulter.top',
-  timeout: 10000,
+  baseURL: 'http://localhost:8000',
+  timeout: 30000, // 增加超时时间到30秒，因为AI查询可能需要更长时间
   headers: {
     'Content-Type': 'application/json'
   }
@@ -34,7 +34,9 @@ api.interceptors.response.use(
       status: error.response?.status,
       statusText: error.response?.statusText,
       url: error.config?.url,
-      data: error.response?.data
+      method: error.config?.method,
+      data: error.response?.data,
+      timeout: error.code === 'ECONNABORTED'
     })
     
     if (error.response?.status === 401 || error.response?.status === 403) {
@@ -42,6 +44,12 @@ api.interceptors.response.use(
       localStorage.removeItem('access_token')
       localStorage.removeItem('user_info')
     }
+    
+    // 为超时错误提供更友好的消息
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      error.customMessage = '请求超时，请检查网络连接或稍后重试'
+    }
+    
     return Promise.reject(error)
   }
 )

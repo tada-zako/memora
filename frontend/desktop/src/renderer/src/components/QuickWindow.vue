@@ -984,14 +984,38 @@ onMounted(() => {
       if (result && result.success) {
         detectedBrowser.value = result.browser
         hasBrowser.value = result.hasBrowser
+        console.log('Browser detected successfully:', detectedBrowser.value, 'Has browser:', hasBrowser.value)
       } else {
         detectedBrowser.value = 'NONE'
         hasBrowser.value = false
+        console.log('Browser detection failed or no browser found')
       }
     })
   }
 
-  // 监听F11事件，实现彩蛋
+  // Trigger browser detection as fallback after a delay
+  setTimeout(() => {
+    if (!hasBrowser.value && window.electronAPI && window.electronAPI.invoke) {
+      console.log('Triggering browser detection fallback from renderer')
+      isDetectingBrowser.value = true
+      window.electronAPI.invoke('detect-active-browser').then((result) => {
+        console.log('Browser detection result from renderer fallback:', result)
+        isDetectingBrowser.value = false
+        if (result && result.success) {
+          detectedBrowser.value = result.browser
+          hasBrowser.value = result.hasBrowser
+        } else {
+          detectedBrowser.value = 'NONE'
+          hasBrowser.value = false
+        }
+      }).catch((error) => {
+        console.error('Browser detection fallback from renderer failed:', error)
+        isDetectingBrowser.value = false
+        detectedBrowser.value = 'NONE'
+        hasBrowser.value = false
+      })
+    }
+  }, 2000) // Wait 2 seconds for main process detection
   if (window.electronAPI && window.electronAPI.on) {
     window.electronAPI.on('f11-pressed', () => {
       console.log('F11 pressed! Count:', f11PressCount.value + 1) // 调试日志

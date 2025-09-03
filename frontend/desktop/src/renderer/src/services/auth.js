@@ -92,21 +92,30 @@ export const getUserAvatarUrl = async (userInfo) => {
   }
   
   try {
-    const { getAttachment } = await import('./attachment')
-    const attachment = await getAttachment(userInfo.avatar_attachment_id)
-    return `/${attachment.url}`
+    const response = await api.get(`/api/v1/attachments/${userInfo.avatar_attachment_id}`)
+    const attachment = response.data
+    // Concatenate base URL with the relative path from attachment.url for absolute URL
+    return `${api.defaults.baseURL}/${attachment.url.replace(/\\/g, '/')}`
   } catch (error) {
     console.error('获取头像URL失败:', error)
     return null
   }
 }
 
-// 直接构造头像URL（避免额外的API调用）
-export const buildAvatarUrl = (avatarAttachmentId) => {
+// 直接构造头像URL（现在改为异步获取以使用新接口）
+export const buildAvatarUrl = async (avatarAttachmentId) => {
   if (!avatarAttachmentId) {
     return null
   }
-  return `/api/v1/attachments/file/${avatarAttachmentId}`
+  try {
+    const response = await api.get(`/api/v1/attachments/${avatarAttachmentId}`)
+    const attachment = response.data
+    // Concatenate base URL with the relative path from attachment.url for absolute URL
+    return `${api.defaults.baseURL}/${attachment.url.replace(/\\/g, '/')}`
+  } catch (error) {
+    console.error('构建头像URL失败:', error)
+    return null
+  }
 }
 
 // 登出

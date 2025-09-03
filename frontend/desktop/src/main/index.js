@@ -196,27 +196,54 @@ async function toggleQuickWindow() {
     quickWindow.focus()
 
     // 3. Asynchronously detect browser and send result
-    // Notify renderer that detection is starting
-    quickWindow.webContents.send('browser-detection-start')
+    // Wait a bit for the Vue component to mount
+    setTimeout(() => {
+      // Notify renderer that detection is starting
+      if (quickWindow && !quickWindow.isDestroyed()) {
+        quickWindow.webContents.send('browser-detection-start')
+      }
 
-    detectActiveBrowser()
-      .then((browserInfo) => {
-        console.log('Asynchronously detected browser:', browserInfo)
-        if (quickWindow && !quickWindow.isDestroyed()) {
-          quickWindow.webContents.send('browser-detected', browserInfo)
-        }
-      })
-      .catch((error) => {
-        console.error('Async browser detection failed:', error)
+      // Set a fallback timeout to ensure detection doesn't hang indefinitely
+      const detectionTimeout = setTimeout(() => {
+        console.log('Browser detection timeout, sending fallback result')
         if (quickWindow && !quickWindow.isDestroyed()) {
           quickWindow.webContents.send('browser-detected', {
             success: false,
             browser: 'NONE',
             hasBrowser: false,
-            error: error.message
+            windowTitle: '',
+            error: 'Detection timeout'
           })
         }
-      })
+      }, 5000) // Increased timeout to 5 seconds
+
+      detectActiveBrowser()
+        .then((browserInfo) => {
+          clearTimeout(detectionTimeout) // Clear the timeout if detection succeeds
+          console.log('Asynchronously detected browser:', browserInfo)
+          if (quickWindow && !quickWindow.isDestroyed()) {
+            console.log('Sending browser-detected event to quick window')
+            quickWindow.webContents.send('browser-detected', browserInfo)
+          } else {
+            console.log('Quick window is destroyed or null, cannot send event')
+          }
+        })
+        .catch((error) => {
+          clearTimeout(detectionTimeout) // Clear the timeout if detection fails
+          console.error('Async browser detection failed:', error)
+          if (quickWindow && !quickWindow.isDestroyed()) {
+            console.log('Sending error browser-detected event to quick window')
+            quickWindow.webContents.send('browser-detected', {
+              success: false,
+              browser: 'NONE',
+              hasBrowser: false,
+              error: error.message
+            })
+          } else {
+            console.log('Quick window is destroyed or null, cannot send error event')
+          }
+        })
+    }, 500) // Wait 500ms for Vue component to mount
   } catch (error) {
     console.error('Error in toggleQuickWindow:', error)
   }
@@ -226,10 +253,14 @@ async function toggleQuickWindow() {
 async function detectActiveBrowser() {
   try {
     console.log('Detecting active browser...')
-    
-    const scriptPath = join(__dirname, '../detect_browser.ps1')
-    
-    const psScript = `
+
+    // Try PowerShell method first
+    try {
+      // Use app's userData directory for temporary scripts (writable in production)
+      const userDataDir = app.getPath('userData')
+      const scriptPath = join(userDataDir, 'detect_browser.ps1')
+
+      const psScript = `
 # Enhanced Browser Detection Script
 Add-Type -TypeDefinition @'
 using System;
@@ -239,19 +270,19 @@ using System.Text;
 public class BrowserDetector {
     [DllImport("user32.dll")]
     public static extern IntPtr GetForegroundWindow();
-    
+
     [DllImport("user32.dll")]
     public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-    
+
     [DllImport("user32.dll")]
     public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
-    
+
     [DllImport("user32.dll")]
     public static extern int GetWindowTextLength(IntPtr hWnd);
-    
+
     [DllImport("user32.dll")]
     public static extern bool IsWindowVisible(IntPtr hWnd);
-    
+
     [DllImport("user32.dll")]
     public static extern int GetClassName(IntPtr hWnd, StringBuilder className, int maxCount);
 }
@@ -264,24 +295,24 @@ try {
         Write-Output "NONE|No foreground window"
         exit
     }
-    
+
     # Check if window is visible
     if (-not [BrowserDetector]::IsWindowVisible($hwnd)) {
         Write-Output "NONE|Foreground window not visible"
         exit
     }
-    
+
     # Get process ID
     $processId = 0
     [BrowserDetector]::GetWindowThreadProcessId($hwnd, [ref]$processId)
-    
+
     # Get process info
     $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
     if (-not $process) {
         Write-Output "NONE|Process not found for PID: $processId"
         exit
     }
-    
+
     # Get window title
     $titleLength = [BrowserDetector]::GetWindowTextLength($hwnd)
     $windowTitle = ""
@@ -290,19 +321,19 @@ try {
         [BrowserDetector]::GetWindowText($hwnd, $title, $title.Capacity)
         $windowTitle = $title.ToString()
     }
-    
+
     # Get window class name
     $className = New-Object System.Text.StringBuilder(256)
     [BrowserDetector]::GetClassName($hwnd, $className, $className.Capacity)
     $windowClass = $className.ToString()
-    
+
     $processName = $process.ProcessName.ToLower()
-    
+
     Write-Host "Debug: Process=$processName, Title=$windowTitle, Class=$windowClass" -ForegroundColor Yellow
-    
+
     # Enhanced browser detection
     switch ($processName) {
-        "msedge" { 
+        "msedge" {
             # Additional verification for Edge
             if ($windowTitle -and ($windowTitle.Contains("Microsoft Edge") -or $windowClass.Contains("Chrome") -or $windowTitle.Length -gt 5)) {
                 Write-Output "EDGE|$windowTitle"
@@ -310,93 +341,118 @@ try {
                 Write-Output "EDGE|Edge Browser"
             }
         }
-        "chrome" { 
+        "chrome" {
             Write-Output "CHROME|$windowTitle"
         }
-        "firefox" { 
+        "firefox" {
             Write-Output "FIREFOX|$windowTitle"
         }
-        "iexplore" { 
+        "iexplore" {
             Write-Output "IE|$windowTitle"
         }
-        "opera" { 
+        "opera" {
             Write-Output "OPERA|$windowTitle"
         }
-        "brave" { 
+        "brave" {
             Write-Output "BRAVE|$windowTitle"
         }
-        "vivaldi" { 
+        "vivaldi" {
             Write-Output "VIVALDI|$windowTitle"
         }
-        default { 
+        default {
             # Check if it might be a browser based on window title or class
-            if ($windowTitle -match "(http|https|www\.)" -or 
-                $windowClass -match "(Chrome|Mozilla|Browser)" -or
-                $windowTitle -match "(Google|Mozilla|Safari|Edge)") {
+            if (($windowTitle -match "(http|https|www\.)") -or
+                ($windowClass -match "(Chrome|Mozilla|Browser)") -or
+                ($windowTitle -match "(Google|Mozilla|Safari|Edge)")) {
                 Write-Output "UNKNOWN_BROWSER|$processName - $windowTitle"
             } else {
                 Write-Output "NONE|$processName - $windowTitle"
             }
         }
     }
-    
+
 } catch {
     Write-Output "NONE|Error: $($_.Exception.Message)"
 }
 `
-    
-    fs.writeFileSync(scriptPath, psScript, 'utf8')
-    
-    const { stdout, stderr } = await execAsync(`powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`, {
-      encoding: 'utf8',
-      timeout: 5000,
-      windowsHide: true
-    })
-    
-    // 清理临时文件
-    try {
-      fs.unlinkSync(scriptPath)
-    } catch (e) {
-      console.log('Failed to delete detect script:', e.message)
-    }
-    
-    console.log('Browser detection raw output:', JSON.stringify(stdout))
-    if (stderr) {
-      console.log('Browser detection stderr:', JSON.stringify(stderr))
-    }
-    
-    const lines = stdout.split('\n').map(line => line.trim()).filter(line => line.length > 0)
-    console.log('Browser detection lines:', lines)
-    
-    // 查找结果行
-    let browserResult = 'NONE'
-    let windowTitle = ''
-    
-    for (const line of lines) {
-      if (line.includes('|')) {
-        const [browser, title] = line.split('|', 2)
-        browserResult = browser
-        windowTitle = title || ''
-        break
-      } else if (line.match(/^(EDGE|CHROME|FIREFOX|IE|OPERA|BRAVE|VIVALDI|UNKNOWN_BROWSER)$/)) {
-        browserResult = line
-        break
+
+      fs.writeFileSync(scriptPath, psScript, 'utf8')
+
+      const { stdout, stderr } = await execAsync(`powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`, {
+        encoding: 'utf8',
+        timeout: 5000,
+        windowsHide: true
+      })
+
+      // 清理临时文件
+      try {
+        fs.unlinkSync(scriptPath)
+      } catch (e) {
+        console.log('Failed to delete detect script:', e.message)
       }
+
+      console.log('Browser detection raw output:', JSON.stringify(stdout))
+      if (stderr) {
+        console.log('Browser detection stderr:', JSON.stringify(stderr))
+      }
+
+      const lines = stdout.split('\n').map(line => line.trim()).filter(line => line.length > 0)
+      console.log('Browser detection lines:', lines)
+
+      // 查找结果行
+      let browserResult = 'NONE'
+      let windowTitle = ''
+
+      for (const line of lines) {
+        if (line.includes('|')) {
+          const [browser, title] = line.split('|', 2)
+          browserResult = browser
+          windowTitle = title || ''
+          break
+        } else if (line.match(/^(EDGE|CHROME|FIREFOX|IE|OPERA|BRAVE|VIVALDI|UNKNOWN_BROWSER)$/)) {
+          browserResult = line
+          break
+        }
+      }
+
+      console.log('Final browser detection result:', browserResult, 'Title:', windowTitle)
+
+      return {
+        success: true,
+        browser: browserResult,
+        hasBrowser: browserResult !== 'NONE',
+        windowTitle: windowTitle
+      }
+
+    } catch (psError) {
+      console.warn('PowerShell browser detection failed, trying fallback method:', psError.message)
+
+      // Fallback: Try to detect browsers using Node.js process enumeration
+      try {
+        const { execSync } = require('child_process')
+        const output = execSync('tasklist /FI "IMAGENAME eq msedge.exe" /FI "IMAGENAME eq chrome.exe" /FI "IMAGENAME eq firefox.exe"', { encoding: 'utf8' })
+
+        if (output.includes('msedge.exe') || output.includes('chrome.exe') || output.includes('firefox.exe')) {
+          console.log('Fallback detection found browser processes')
+          return {
+            success: true,
+            browser: 'UNKNOWN_BROWSER',
+            hasBrowser: true,
+            windowTitle: 'Browser detected via fallback'
+          }
+        }
+      } catch (fallbackError) {
+        console.warn('Fallback browser detection also failed:', fallbackError.message)
+      }
+
+      // If all detection methods fail, assume no browser is running
+      throw new Error(`Browser detection failed: ${psError.message}`)
     }
-    
-    console.log('Final browser detection result:', browserResult, 'Title:', windowTitle)
-    
-    return { 
-      success: true, 
-      browser: browserResult,
-      hasBrowser: browserResult !== 'NONE',
-      windowTitle: windowTitle
-    }
-    
+
   } catch (error) {
     console.error('Error detecting browser:', error)
-    return { 
-      success: false, 
+    return {
+      success: false,
       browser: 'NONE',
       hasBrowser: false,
       windowTitle: '',
@@ -412,7 +468,9 @@ async function captureBrowserUrl() {
 
     // This script now finds the foreground browser on its own,
     // so no need to call detectActiveBrowser() here first.
-    const scriptPath = join(__dirname, '../capture_url.ps1')
+    // Use app's userData directory for temporary scripts (writable in production)
+    const userDataDir = app.getPath('userData')
+    const scriptPath = join(userDataDir, 'capture_url.ps1')
     
     // 通用浏览器URL抓取脚本
     const psScript = `

@@ -70,6 +70,26 @@ export const queryKnowledgeBase = async (categoryId, query) => {
     })
     return response.data
   } catch (error) {
-    throw error.response?.data || error.message
+    console.error('查询知识库API错误:', {
+      categoryId,
+      query,
+      error: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    })
+    
+    // 重新抛出更详细的错误信息
+    if (error.response?.data) {
+      throw error.response.data
+    } else if (error.response) {
+      throw {
+        detail: `HTTP ${error.response.status} 错误`,
+        status: error.response.status
+      }
+    } else {
+      throw {
+        detail: error.message || '网络请求失败'
+      }
+    }
   }
 }
