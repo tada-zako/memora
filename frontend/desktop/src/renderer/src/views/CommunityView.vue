@@ -73,7 +73,7 @@
                       : 'line-clamp-3'
                   ]"
                 >
-                  {{ post.description }}
+                  {{ decodeHtmlEntities(post.description) }}
                 </div>
                 <button
                   v-if="post.description.length > 150"
@@ -112,7 +112,7 @@
                 <!-- 收藏详情 -->
                 <div v-if="post.collection_details" class="mt-2">
                   <h4 v-if="post.collection_details.title" class="font-medium text-gray-900 mb-1 hover:text-blue-700 transition-colors">
-                    {{ post.collection_details.title }}
+                    {{ decodeHtmlEntities(post.collection_details.title) }}
                   </h4>
                   <p v-if="post.collection_details.summary" class="text-sm text-gray-600 line-clamp-2">
                     {{ parseSummary(post.collection_details.summary) }}
@@ -205,7 +205,7 @@
                           </button>
                         </div>
                       </div>
-                      <p class="text-sm text-gray-700">{{ comment.content }}</p>
+                      <p class="text-sm text-gray-700">{{ decodeHtmlEntities(comment.content) }}</p>
                     </div>
                     
                     <!-- 评论点赞 -->
@@ -333,11 +333,22 @@ const parseSummary = (summary) => {
     if (parsed && typeof parsed.summary === 'string') {
       return parseSummary(parsed.summary)
     }
-    return currentSummary
+    return decodeHtmlEntities(currentSummary)
   } catch (e) {
     // 如果不是一个JSON字符串，则按原样返回
-    return currentSummary
+    return decodeHtmlEntities(currentSummary)
   }
+}
+
+// 解码HTML实体
+const decodeHtmlEntities = (text) => {
+  if (typeof text !== 'string') {
+    return text
+  }
+  
+  const textarea = document.createElement('textarea')
+  textarea.innerHTML = text
+  return textarea.value
 }
 
 // 初始化
