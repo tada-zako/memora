@@ -92,7 +92,7 @@
                   <h3
                     class="text-lg font-semibold text-black mb-2 line-clamp-2 group-hover:text-gray-700 transition-colors">
                     <!-- Collection #{{ item.id }} -->
-                     {{ item.details.title }}
+                     {{ decodeHtmlEntities(item.details.title) }}
                   </h3>
                   <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                     <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium"
@@ -139,7 +139,7 @@
                 <!-- Collection AI Overview -->
                 <transition name="fade-content" mode="out-in">
                   <div v-if="selectedCollection && !showAskAIPanel" key="overview" class="p-4 flex-1 overflow-y-auto">
-                    <p>{{ selectedCollection?.details?.summary }}</p>
+                    <p>{{ decodeHtmlEntities(selectedCollection?.details?.summary) }}</p>
                   </div>
 
                   <!-- Ask AI Panel -->
@@ -225,10 +225,16 @@ const BookmarkIcon = {
   template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`
 }
 
-
-
 const SearchIcon = {
   template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`
+}
+
+// 解码HTML实体
+const decodeHtmlEntities = (text) => {
+  if (!text) return '';
+  const parser = new DOMParser();
+  const decodedString = parser.parseFromString(`<!doctype html><body>${text}</body>`, 'text/html').body.textContent;
+  return decodedString;
 }
 
 // 路由参数
