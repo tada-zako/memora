@@ -19,12 +19,12 @@ export default defineConfig({
     server: {
       proxy: {
         '/api': {
-          target: 'https://memora.soulter.top',
+          target: 'http://localhost:8000',
           changeOrigin: true,
           secure: false
         },
         '/uploads': {
-          target: 'https://memora.soulter.top',
+          target: 'http://localhost:8000',
           changeOrigin: true,
           secure: false
         }

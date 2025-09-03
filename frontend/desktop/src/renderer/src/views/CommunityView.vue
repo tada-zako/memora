@@ -352,6 +352,8 @@ onMounted(async () => {
   const userInfo = localStorage.getItem('user_info')
   if (userInfo) {
     currentUser.value = JSON.parse(userInfo)
+    // 异步加载当前用户头像
+    currentUser.value.avatar_url = await buildAvatarUrl(currentUser.value.avatar_attachment_id)
   }
 
   await loadPosts()
@@ -369,7 +371,7 @@ const loadPosts = async (page = 1) => {
     const result = await getPosts(page, 10)
     
     if (result.status === 'success' && result.data && result.data.posts) {
-      const newPosts = result.data.posts.map((post) => {
+      const newPosts = await Promise.all(result.data.posts.map(async (post) => {
         return {
           ...post,
           showComments: false,
@@ -380,9 +382,9 @@ const loadPosts = async (page = 1) => {
           hasMoreComments: post.comments_count > 0,
           commentsPage: 1,
           showFullDescription: false,
-          avatar_url: buildAvatarUrl(post.user?.avatar_attachment_id)
+          avatar_url: await buildAvatarUrl(post.user?.avatar_attachment_id)
         }
-      })
+      }))
 
       if (page === 1) {
         posts.value = newPosts
@@ -454,12 +456,12 @@ const loadComments = async (post, page = 1) => {
     const result = await getPostComments(post.post_id, page, 5)
     
     if (result.status === 'success' && result.data && result.data.comments) {
-      const newComments = result.data.comments.map((comment) => {
+      const newComments = await Promise.all(result.data.comments.map(async (comment) => {
         return { 
           ...comment, 
-          avatar_url: buildAvatarUrl(comment.user?.avatar_attachment_id)
+          avatar_url: await buildAvatarUrl(comment.user?.avatar_attachment_id)
         }
-      })
+      }))
 
       if (page === 1) {
         post.comments = newComments

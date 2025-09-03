@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://memora.soulter.top',
+  baseURL: 'http://localhost:8000',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
