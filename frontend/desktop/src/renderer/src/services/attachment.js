@@ -42,7 +42,6 @@ export const getAttachmentFile = async (attachmentId) => {
   }
 }
 
-
 // 删除附件
 export const deleteAttachment = async (attachmentId) => {
   try {

@@ -1,17 +1,28 @@
 <template>
   <!-- 快速窗口模式 -->
-  <div class="quick-window" :class="{ 'mac-style': platform === 'darwin', 'win-style': platform === 'win32' }">
+  <div
+    class="quick-window"
+    :class="{ 'mac-style': platform === 'darwin', 'win-style': platform === 'win32' }"
+  >
     <!-- 退出按钮 -->
     <button @click="closeQuickWindow" class="exit-button" title="退出">
       <svg class="exit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        />
       </svg>
     </button>
 
     <!-- 主要内容区域 -->
     <div class="main-content" :class="mainContentClass">
       <!-- 问候语，居于最上方 -->
-      <div v-if="!capturedUrl && !statusMessage && !isProcessing && !showCaptureAnimation" class="greeting-section">
+      <div
+        v-if="!capturedUrl && !statusMessage && !isProcessing && !showCaptureAnimation"
+        class="greeting-section"
+      >
         <div class="greeting-content">
           <span class="greeting-emoji">👋</span>
           <div class="greeting-texts">
@@ -30,15 +41,29 @@
             <div class="main-animation">
               <div class="capture-loading-icon">
                 <svg class="loading-animation" viewBox="0 0 100 100">
-                  <circle class="loading-circle" cx="50" cy="50" r="45" fill="none" stroke="#3b82f6" stroke-width="4" stroke-linecap="round"/>
+                  <circle
+                    class="loading-circle"
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke="#3b82f6"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
                 </svg>
               </div>
-              
+
               <!-- 浮动粒子效果 -->
               <div class="particles">
-                <div v-for="i in 12" :key="i" class="particle" :style="{ '--delay': `${i * 0.1}s`, '--angle': `${i * 30}deg` }"></div>
+                <div
+                  v-for="i in 12"
+                  :key="i"
+                  class="particle"
+                  :style="{ '--delay': `${i * 0.1}s`, '--angle': `${i * 30}deg` }"
+                ></div>
               </div>
-              
+
               <!-- 脉冲波纹 -->
               <div class="pulse-waves">
                 <div class="pulse-wave"></div>
@@ -46,22 +71,34 @@
                 <div class="pulse-wave"></div>
               </div>
             </div>
-            
+
             <!-- 文字动画 -->
             <div class="capture-text">
               <div class="text-line">
-                <span class="text-char" v-for="(char, index) in '正在抓取'" :key="index" :style="{ '--delay': `${0.3 + index * 0.1}s` }">{{ char }}</span>
+                <span
+                  class="text-char"
+                  v-for="(char, index) in '正在抓取'"
+                  :key="index"
+                  :style="{ '--delay': `${0.3 + index * 0.1}s` }"
+                  >{{ char }}</span
+                >
               </div>
               <div class="text-line">
-                <span class="text-char" v-for="(char, index) in '请稍候'" :key="index" :style="{ '--delay': `${0.7 + index * 0.1}s` }">{{ char }}</span>
+                <span
+                  class="text-char"
+                  v-for="(char, index) in '请稍候'"
+                  :key="index"
+                  :style="{ '--delay': `${0.7 + index * 0.1}s` }"
+                  >{{ char }}</span
+                >
               </div>
             </div>
-            
+
             <!-- 进度指示器 -->
             <div class="progress-dots">
-              <div class="dot" :class="{ 'active': true }" style="--delay: 1.0s"></div>
-              <div class="dot" :class="{ 'active': true }" style="--delay: 1.1s"></div>
-              <div class="dot" :class="{ 'active': true }" style="--delay: 1.2s"></div>
+              <div class="dot" :class="{ active: true }" style="--delay: 1s"></div>
+              <div class="dot" :class="{ active: true }" style="--delay: 1.1s"></div>
+              <div class="dot" :class="{ active: true }" style="--delay: 1.2s"></div>
             </div>
           </div>
         </div>
@@ -83,16 +120,23 @@
             <!-- 优化的进度步骤显示 -->
             <div class="progress-container">
               <div class="progress-steps">
-                <div v-for="step in 5" :key="step" class="step-item" :class="{
-                  'active': currentStep === step,
-                  'completed': stepCompleted[step],
-                  'pending': currentStep < step
-                }">
+                <div
+                  v-for="step in 5"
+                  :key="step"
+                  class="step-item"
+                  :class="{
+                    active: currentStep === step,
+                    completed: stepCompleted[step],
+                    pending: currentStep < step
+                  }"
+                >
                   <div class="step-indicator">
                     <div v-if="currentStep === step && !stepCompleted[step]" class="spinner"></div>
                     <svg v-else-if="stepCompleted[step]" class="check-icon" viewBox="0 0 20 20">
-                      <path fill="currentColor"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+                      <path
+                        fill="currentColor"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      />
                     </svg>
                     <span v-else class="step-number">{{ step }}</span>
                   </div>
@@ -102,63 +146,89 @@
 
               <!-- 进度条 -->
               <div class="progress-bar">
-                <div class="progress-fill"
-                  :style="{ width: `${(Object.values(stepCompleted).filter(Boolean).length / 5) * 100}%` }"></div>
+                <div
+                  class="progress-fill"
+                  :style="{
+                    width: `${(Object.values(stepCompleted).filter(Boolean).length / 5) * 100}%`
+                  }"
+                ></div>
               </div>
             </div>
           </div>
 
           <!-- 处理完成结果 -->
           <div v-if="processedData && !isProcessing" class="processed-result">
-                      <div class="result-header">
-            <div class="url-section">
-              <!-- URL显示/编辑区域 -->
-              <div v-if="!isEditingUrl" class="url-display-container">
-                <div class="url-display">
-                  {{ capturedUrl }}
-                </div>
-                <button @click="startEditingUrl" class="edit-btn" title="编辑URL">
-                  <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-              </div>
-              <!-- URL编辑状态 -->
-              <div v-else class="url-edit-container">
-                <input 
-                  v-model="editingUrl" 
-                  type="url" 
-                  class="url-edit-input"
-                  placeholder="输入URL..."
-                  @keydown.enter="confirmAllChanges"
-                  @keydown.esc="cancelEditing"
-                />
-                <div class="edit-actions">
-                  <button @click="cancelEditing" class="cancel-btn" title="取消">
-                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <div class="result-header">
+              <div class="url-section">
+                <!-- URL显示/编辑区域 -->
+                <div v-if="!isEditingUrl" class="url-display-container">
+                  <div class="url-display">
+                    {{ capturedUrl }}
+                  </div>
+                  <button @click="startEditingUrl" class="edit-btn" title="编辑URL">
+                    <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
                     </svg>
                   </button>
                 </div>
+                <!-- URL编辑状态 -->
+                <div v-else class="url-edit-container">
+                  <input
+                    v-model="editingUrl"
+                    type="url"
+                    class="url-edit-input"
+                    placeholder="输入URL..."
+                    @keydown.enter="confirmAllChanges"
+                    @keydown.esc="cancelEditing"
+                  />
+                  <div class="edit-actions">
+                    <button @click="cancelEditing" class="cancel-btn" title="取消">
+                      <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
             <div class="result-content">
               <div v-if="processedData.category" class="info-card category-card">
                 <div class="card-header">
                   <div class="card-title-group">
                     <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                      />
                     </svg>
                     <span class="card-title">分类</span>
                   </div>
-                  <button v-if="!isEditingTags" @click="startEditingTags" class="edit-btn small" title="编辑标签">
+                  <button
+                    v-if="!isEditingTags"
+                    @click="startEditingTags"
+                    class="edit-btn small"
+                    title="编辑标签"
+                  >
                     <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -166,27 +236,43 @@
                   <span class="category-tag">{{ processedData.category }}</span>
                   <!-- 标签显示/编辑区域 -->
                   <div v-if="!isEditingTags" class="tags-container">
-                    <span v-if="processedData.tags && processedData.tags.length === 0" class="no-tags-hint">暂无标签</span>
-                    <span v-else-if="processedData.tags && processedData.tags.length" v-for="tag in processedData.tags" :key="tag" class="tag">{{ tag }}</span>
+                    <span
+                      v-if="processedData.tags && processedData.tags.length === 0"
+                      class="no-tags-hint"
+                      >暂无标签</span
+                    >
+                    <span
+                      v-else-if="processedData.tags && processedData.tags.length"
+                      v-for="tag in processedData.tags"
+                      :key="tag"
+                      class="tag"
+                      >{{ tag }}</span
+                    >
                   </div>
                   <div v-else-if="isEditingTags" class="tags-edit-container">
                     <div class="tags-edit-area">
                       <div class="editing-tags">
-                        <span 
-                          v-for="(tag, index) in editingTags" 
-                          :key="index" 
-                          class="editing-tag"
-                        >
+                        <span v-for="(tag, index) in editingTags" :key="index" class="editing-tag">
                           {{ tag }}
                           <button @click="removeTag(index)" class="remove-tag-btn" title="删除标签">
-                            <svg class="remove-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <svg
+                              class="remove-icon"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
                             </svg>
                           </button>
                         </span>
-                        <input 
+                        <input
                           ref="tagInput"
-                          type="text" 
+                          type="text"
                           class="tag-input"
                           placeholder="输入标签并按回车..."
                           @keydown="handleTagKeydown($event)"
@@ -197,7 +283,12 @@
                     <div class="edit-actions">
                       <button @click="cancelEditing" class="cancel-btn" title="取消">
                         <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -209,23 +300,38 @@
                 <div class="card-header">
                   <div class="card-title-group">
                     <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
                     </svg>
                     <span class="card-title">摘要</span>
                   </div>
-                  <button v-if="!isEditingSummary" @click="startEditingSummary" class="edit-btn small" title="编辑摘要">
+                  <button
+                    v-if="!isEditingSummary"
+                    @click="startEditingSummary"
+                    class="edit-btn small"
+                    title="编辑摘要"
+                  >
                     <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
                     </svg>
                   </button>
                 </div>
                 <!-- 摘要显示/编辑区域 -->
-                <div v-if="!isEditingSummary" class="summary-content">{{ processedData.summary }}</div>
+                <div v-if="!isEditingSummary" class="summary-content">
+                  {{ processedData.summary }}
+                </div>
                 <div v-else class="summary-edit-container">
-                  <textarea 
-                    v-model="editingSummary" 
+                  <textarea
+                    v-model="editingSummary"
                     class="summary-edit-textarea"
                     placeholder="输入摘要..."
                     @keydown.esc="cancelEditing"
@@ -234,7 +340,12 @@
                   <div class="edit-actions">
                     <button @click="cancelEditing" class="cancel-btn" title="取消">
                       <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -247,26 +358,64 @@
                 <div class="status-indicator completed"></div>
                 <span class="completion-text">解析完成</span>
               </div>
-              <button v-else @click="startNewCollection" class="action-btn primary-btn" :disabled="isUpdating">
-                <svg v-if="!isUpdating" class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M5 13l4 4L19 7" />
+              <button
+                v-else
+                @click="startNewCollection"
+                class="action-btn primary-btn"
+                :disabled="isUpdating"
+              >
+                <svg
+                  v-if="!isUpdating"
+                  class="btn-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
                 <div v-else class="spinner btn-spinner"></div>
-                {{ isEditingUrl || isEditingSummary || isEditingTags ? (isUpdating ? '保存中...' : '确认修改') : '完成添加' }}
+                {{
+                  isEditingUrl || isEditingSummary || isEditingTags
+                    ? isUpdating
+                      ? '保存中...'
+                      : '确认修改'
+                    : '完成添加'
+                }}
               </button>
             </div>
           </div>
         </div>
 
         <!-- 手动输入区域 -->
-        <div v-if="!capturedUrl && !statusMessage && !isProcessing && !processedData && !showCaptureAnimation" class="input-section">
-          <input v-model="manualUrl" type="url" class="url-input" placeholder="输入或粘贴网页链接..."
-            @keydown.enter="useManualUrl" />
+        <div
+          v-if="
+            !capturedUrl &&
+            !statusMessage &&
+            !isProcessing &&
+            !processedData &&
+            !showCaptureAnimation
+          "
+          class="input-section"
+        >
+          <input
+            v-model="manualUrl"
+            type="url"
+            class="url-input"
+            placeholder="输入或粘贴网页链接..."
+            @keydown.enter="useManualUrl"
+          />
         </div>
 
         <!-- 捕获按钮区域 -->
-        <div v-if="!isProcessing && !processedData && !showCaptureAnimation" class="capture-section">
+        <div
+          v-if="!isProcessing && !processedData && !showCaptureAnimation"
+          class="capture-section"
+        >
           <!-- Detecting State -->
           <div v-if="isDetectingBrowser" class="detecting-state">
             <div class="spinner"></div>
@@ -275,7 +424,12 @@
 
           <!-- Has Browser State -->
           <div v-else-if="hasBrowser" class="button-group">
-            <button @click="captureEdgeUrl" :disabled="isCapturing" class="capture-btn" :class="{ 'disabled': isCapturing }">
+            <button
+              @click="captureEdgeUrl"
+              :disabled="isCapturing"
+              class="capture-btn"
+              :class="{ disabled: isCapturing }"
+            >
               <Zap class="capture-icon" />
               <span>抓取浏览器网址</span>
             </button>
@@ -293,7 +447,6 @@
             </svg>
           </button>
         </div> -->
-
       </div>
 
       <!-- 状态信息 -->
@@ -302,9 +455,7 @@
       </div>
 
       <!-- 彩蛋消息 -->
-      <div v-if="showEasterEgg" class="easter-egg-message">
-        rnm，老子都把F11禁用了你还按
-      </div>
+      <div v-if="showEasterEgg" class="easter-egg-message">rnm，老子都把F11禁用了你还按</div>
     </div>
   </div>
 </template>
@@ -312,7 +463,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { Zap } from 'lucide-vue-next'
-import { updateCollectionTags as updateTagsAPI, updateCollectionDetail as updateDetailAPI, healthCheck, getCollectionTags, processUrlWithStreaming } from '../services/collection'
+import {
+  updateCollectionTags as updateTagsAPI,
+  updateCollectionDetail as updateDetailAPI,
+  healthCheck,
+  getCollectionTags,
+  processUrlWithStreaming
+} from '../services/collection'
 import { isAuthenticated } from '../services/auth'
 
 // 快速窗口相关状态
@@ -339,7 +496,7 @@ const stepCompleted = ref({
   2: false, // 获取内容
   3: false, // 分析分类
   4: false, // 生成摘要
-  5: false  // 完成索引
+  5: false // 完成索引
 })
 
 // 解析完成提示状态
@@ -375,7 +532,12 @@ const stepTextMap = {
 
 // 只有初始状态（问候语/输入）时padding-top为50px，其余为0
 const centerContainerClass = computed(() => {
-  const isInitial = !capturedUrl.value && !statusMessage.value && !isProcessing.value && !processedData.value && !showCaptureAnimation.value
+  const isInitial =
+    !capturedUrl.value &&
+    !statusMessage.value &&
+    !isProcessing.value &&
+    !processedData.value &&
+    !showCaptureAnimation.value
   return {
     'center-vertically': isInitial,
     'no-padding-top': !isInitial
@@ -385,10 +547,10 @@ const centerContainerClass = computed(() => {
 // main-content动态padding
 const mainContentClass = computed(() => {
   if (isProcessing.value || processedData.value) {
-    return 'compact-padding';
+    return 'compact-padding'
   }
-  return '';
-});
+  return ''
+})
 
 const resetQuickWindowState = () => {
   capturedUrl.value = ''
@@ -434,7 +596,7 @@ const testBackendConnection = async () => {
     return true
   } catch (error) {
     console.error('后端连接测试失败:', error)
-    
+
     // 如果是认证错误，显示登录提示
     if (error.response?.status === 401 || error.response?.status === 403) {
       statusMessage.value = {
@@ -449,11 +611,11 @@ const testBackendConnection = async () => {
         type: 'error',
         text: '后端连接失败，请检查服务是否运行'
       }
-       setTimeout(() => {
+      setTimeout(() => {
         statusMessage.value = null
       }, 5000)
     }
-    
+
     return false
   }
 }
@@ -488,7 +650,7 @@ const processUrlWithAPI = async (url) => {
     currentStep.value = 0
 
     // 重置步骤状态
-    Object.keys(stepCompleted.value).forEach(key => {
+    Object.keys(stepCompleted.value).forEach((key) => {
       stepCompleted.value[key] = false
     })
 
@@ -546,7 +708,11 @@ const processUrlWithAPI = async (url) => {
             if (jsonMatch && jsonMatch[1]) {
               cleanSummary = jsonMatch[1]
             } else {
-              cleanSummary = cleanSummary.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').replace(/^\{?\\s*"?\\s*/, '').replace(/\\s*"?\\s*\}?$/g, '')
+              cleanSummary = cleanSummary
+                .replace(/```json\\n?/g, '')
+                .replace(/```\\n?/g, '')
+                .replace(/^\{?\\s*"?\\s*/, '')
+                .replace(/\\s*"?\\s*\}?$/g, '')
             }
           } catch (e) {
             console.error('清理摘要时出错:', e)
@@ -575,7 +741,6 @@ const processUrlWithAPI = async (url) => {
     })
 
     console.log('=== URL处理完成 ===')
-
   } catch (error) {
     console.error('=== 处理URL时出错 ===')
     console.error('错误类型:', error.name)
@@ -589,7 +754,12 @@ const processUrlWithAPI = async (url) => {
     const errorMsg = error.message || ''
 
     // 检查认证相关错误
-    if (errorMsg.includes('401') || errorMsg.includes('403') || errorMsg.includes('Not authenticated') || errorMsg.includes('未登录')) {
+    if (
+      errorMsg.includes('401') ||
+      errorMsg.includes('403') ||
+      errorMsg.includes('Not authenticated') ||
+      errorMsg.includes('未登录')
+    ) {
       errorMessage = '认证失败，请先登录'
     } else if (error.name === 'AbortError' || errorMsg.includes('timeout')) {
       errorMessage = '请求超时，请检查网络连接'
@@ -613,7 +783,7 @@ const processUrlWithAPI = async (url) => {
 // 修改：抓取URL后自动处理
 const captureEdgeUrl = async () => {
   if (isCapturing.value) return // 防止重复点击
-  
+
   if (window.electronAPI && window.electronAPI.send) {
     window.electronAPI.send('capture-url-start')
   }
@@ -638,7 +808,6 @@ const captureEdgeUrl = async () => {
           showCaptureAnimation.value = false
           processUrlWithAPI(result.url)
         }, 1500)
-
       } else {
         statusMessage.value = {
           type: 'error',
@@ -832,9 +1001,13 @@ const confirmAllChanges = async () => {
   // 更新标签（如果正在编辑且有变化）
   if (isEditingTags.value) {
     const currentTags = processedData.value.tags || []
-    const tagsChanged = JSON.stringify(editingTags.value.sort()) !== JSON.stringify(currentTags.sort())
+    const tagsChanged =
+      JSON.stringify(editingTags.value.sort()) !== JSON.stringify(currentTags.sort())
     if (tagsChanged) {
-      const updatedTags = await updateCollectionTags(processedData.value.collectionId, editingTags.value)
+      const updatedTags = await updateCollectionTags(
+        processedData.value.collectionId,
+        editingTags.value
+      )
       if (updatedTags !== null) {
         processedData.value.tags = updatedTags
       } else {
@@ -846,14 +1019,14 @@ const confirmAllChanges = async () => {
   if (allSuccess) {
     // 退出编辑模式
     cancelEditing()
-    
+
     // 显示完成消息并自动关闭窗口
     showCompletionMessage.value = true
     statusMessage.value = {
       type: 'success',
       text: '修改保存成功'
     }
-    
+
     setTimeout(() => {
       showCompletionMessage.value = false
       statusMessage.value = null
@@ -940,15 +1113,15 @@ const detectBrowser = async () => {
 
 const getBrowserDisplayName = (browser) => {
   const names = {
-    'EDGE': 'Edge',
-    'CHROME': 'Chrome',
-    'FIREFOX': 'Firefox',
-    'IE': 'IE',
-    'OPERA': 'Opera',
-    'BRAVE': 'Brave',
-    'VIVALDI': 'Vivaldi',
-    'UNKNOWN_BROWSER': '未知浏览器',
-    'NONE': '无浏览器'
+    EDGE: 'Edge',
+    CHROME: 'Chrome',
+    FIREFOX: 'Firefox',
+    IE: 'IE',
+    OPERA: 'Opera',
+    BRAVE: 'Brave',
+    VIVALDI: 'Vivaldi',
+    UNKNOWN_BROWSER: '未知浏览器',
+    NONE: '无浏览器'
   }
   return names[browser] || browser
 }
@@ -984,7 +1157,12 @@ onMounted(() => {
       if (result && result.success) {
         detectedBrowser.value = result.browser
         hasBrowser.value = result.hasBrowser
-        console.log('Browser detected successfully:', detectedBrowser.value, 'Has browser:', hasBrowser.value)
+        console.log(
+          'Browser detected successfully:',
+          detectedBrowser.value,
+          'Has browser:',
+          hasBrowser.value
+        )
       } else {
         detectedBrowser.value = 'NONE'
         hasBrowser.value = false
@@ -998,22 +1176,25 @@ onMounted(() => {
     if (!hasBrowser.value && window.electronAPI && window.electronAPI.invoke) {
       console.log('Triggering browser detection fallback from renderer')
       isDetectingBrowser.value = true
-      window.electronAPI.invoke('detect-active-browser').then((result) => {
-        console.log('Browser detection result from renderer fallback:', result)
-        isDetectingBrowser.value = false
-        if (result && result.success) {
-          detectedBrowser.value = result.browser
-          hasBrowser.value = result.hasBrowser
-        } else {
+      window.electronAPI
+        .invoke('detect-active-browser')
+        .then((result) => {
+          console.log('Browser detection result from renderer fallback:', result)
+          isDetectingBrowser.value = false
+          if (result && result.success) {
+            detectedBrowser.value = result.browser
+            hasBrowser.value = result.hasBrowser
+          } else {
+            detectedBrowser.value = 'NONE'
+            hasBrowser.value = false
+          }
+        })
+        .catch((error) => {
+          console.error('Browser detection fallback from renderer failed:', error)
+          isDetectingBrowser.value = false
           detectedBrowser.value = 'NONE'
           hasBrowser.value = false
-        }
-      }).catch((error) => {
-        console.error('Browser detection fallback from renderer failed:', error)
-        isDetectingBrowser.value = false
-        detectedBrowser.value = 'NONE'
-        hasBrowser.value = false
-      })
+        })
     }
   }, 2000) // Wait 2 seconds for main process detection
   if (window.electronAPI && window.electronAPI.on) {
@@ -1037,1056 +1218,1125 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-  .quick-window {
-    position: relative;
-    height: 100vh;
-    width: 100vw;
-    background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
-    overflow: hidden;
-    isolation: isolate;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+.quick-window {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+  overflow: hidden;
+  isolation: isolate;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  display: flex;
+  flex-direction: column;
+
+  // Windows样式 - 无圆角
+  &.win-style {
+    border-radius: 0;
+    clip-path: inset(0);
+  }
+
+  // macOS样式 - 有圆角
+  &.mac-style {
+    border-radius: 0 0 20px 20px;
+    clip-path: inset(0 round 0 0 20px 20px);
+  }
+
+  // 退出按钮样式
+  .exit-button {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    z-index: 1000;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.95);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+
+    .exit-icon {
+      width: 16px;
+      height: 16px;
+      color: #6b7280;
+      transition: color 0.2s ease;
+    }
+
+    &:hover .exit-icon {
+      color: #374151;
+    }
+  }
+
+  // 主要内容区域
+  .main-content {
     display: flex;
     flex-direction: column;
-  
-    // Windows样式 - 无圆角
-    &.win-style {
-      border-radius: 0;
-      clip-path: inset(0);
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+    padding: 48px 24px 24px 24px;
+    min-height: calc(100vh - 48px);
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    &.compact-padding {
+      padding: 0 !important;
     }
-  
-    // macOS样式 - 有圆角
-    &.mac-style {
-      border-radius: 0 0 20px 20px;
-      clip-path: inset(0 round 0 0 20px 20px);
+
+    // 自定义滚动条样式
+    &::-webkit-scrollbar {
+      width: 6px;
     }
-  
-    // 退出按钮样式
-    .exit-button {
-      position: absolute;
-      top: 0px;
-      right: 0px;
-      z-index: 1000;
-      width: 32px;
-      height: 32px;
+
+    &::-webkit-scrollbar-track {
+      background: rgba(229, 231, 235, 0.3);
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.5);
+      border-radius: 3px;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: rgba(156, 163, 175, 0.7);
+      }
+    }
+
+    .greeting-section {
+      width: 100%;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.95);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      backdrop-filter: blur(8px);
-  
-      .exit-icon {
-        width: 16px;
-        height: 16px;
-        color: #6b7280;
-        transition: color 0.2s ease;
-      }
-  
-      &:hover .exit-icon {
-        color: #374151;
-      }
+      justify-content: flex-start;
+      margin: 0;
+      padding: 0 40px 0 0;
+      margin-bottom: 20px;
     }
-  
-    // 主要内容区域
-    .main-content {
+
+    .greeting-content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .greeting-emoji {
+      font-size: 36px;
+      margin-right: 0;
+    }
+
+    .greeting-texts {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .greeting-text {
+      font-size: 18px;
+      color: #111827;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .greeting-question {
+      font-size: 18px;
+      color: #111827;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .center-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
+      width: 100%;
       flex: 1;
-      padding: 48px 24px 24px 24px;
-      min-height: calc(100vh - 48px);
-      overflow-y: auto;
-      overflow-x: hidden;
-  
-      &.compact-padding {
-        padding: 0 !important;
+      margin: 0;
+      padding-top: 50px;
+      gap: 4px;
+      position: relative;
+
+      &.center-vertically {
+        min-height: calc(100vh - 150px);
       }
-  
-      // 自定义滚动条样式
-      &::-webkit-scrollbar {
-        width: 6px;
+
+      &.no-padding-top {
+        padding-top: 0 !important;
       }
-  
-      &::-webkit-scrollbar-track {
-        background: rgba(229, 231, 235, 0.3);
-        border-radius: 3px;
-      }
-  
-      &::-webkit-scrollbar-thumb {
-        background: rgba(156, 163, 175, 0.5);
-        border-radius: 3px;
-        transition: background 0.2s ease;
-  
-        &:hover {
-          background: rgba(156, 163, 175, 0.7);
-        }
-      }
-  
-      .greeting-section {
+
+      // 抓取动画区域
+      .capture-animation-section {
         width: 100%;
+        height: 100%;
         display: flex;
-        justify-content: flex-start;
-        margin: 0;
-        padding: 0 40px 0 0;
-        margin-bottom: 20px;
-      }
-  
-      .greeting-content {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 16px;
-      }
-  
-      .greeting-emoji {
-        font-size: 36px;
-        margin-right: 0;
-      }
-  
-      .greeting-texts {
-        display: flex;
-        flex-direction: column;
         justify-content: center;
-      }
-  
-      .greeting-text {
-        font-size: 18px;
-        color: #111827;
-        font-weight: 700;
-        line-height: 1.2;
-      }
-  
-      .greeting-question {
-        font-size: 18px;
-        color: #111827;
-        font-weight: 700;
-        line-height: 1.5;
-      }
-  
-            .center-container {
+        align-items: center;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+        animation: fadeInAnimation 0.3s ease-out;
+
+        .animation-container {
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: flex-start;
-          width: 100%;
-          flex: 1;
-          margin: 0;
-          padding-top: 50px;
-          gap: 4px;
-          position: relative;
-  
-          &.center-vertically {
-            min-height: calc(100vh - 150px);
-          }
-  
-          &.no-padding-top {
-            padding-top: 0 !important;
-          }
-  
-        // 抓取动画区域
-        .capture-animation-section {
-          width: 100%;
-          height: 100%;
-          display: flex;
           justify-content: center;
-          align-items: center;
-          position: absolute;
-          top: 0;
-          left: 0;
-          background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
-          animation: fadeInAnimation 0.3s ease-out;
-  
-          .animation-container {
+          gap: 24px;
+
+          .main-animation {
+            position: relative;
+            width: 120px;
+            height: 120px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 24px;
-  
-            .main-animation {
+
+            .capture-loading-icon {
               position: relative;
-              width: 120px;
-              height: 120px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-  
-              .capture-loading-icon {
-                position: relative;
-                z-index: 3;
-                animation: iconPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.1s both;
-  
-                .loading-animation {
-                  width: 80px;
-                  height: 80px;
-  
-                  .loading-circle {
-                    stroke-dasharray: 200;
-                    stroke-dashoffset: 200;
-                    animation: loadingRotate 1.5s linear infinite;
-                    transform-origin: center;
-                  }
-                }
-              }
-  
-              .particles {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-  
-                .particle {
-                  position: absolute;
-                  width: 6px;
-                  height: 6px;
-                  background: linear-gradient(45deg, #3b82f6, #10b981);
-                  border-radius: 50%;
-                  opacity: 0;
-                  animation: particleFloat 1.5s ease-out var(--delay) both;
-                  transform-origin: 60px 60px;
-                  transform: rotate(var(--angle)) translateX(60px);
-                }
-              }
-  
-              .pulse-waves {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-  
-                .pulse-wave {
-                  position: absolute;
-                  width: 120px;
-                  height: 120px;
-                  border: 2px solid #3b82f6;
-                  border-radius: 50%;
-                  opacity: 0;
-                  transform: scale(0);
-  
-                  &:nth-child(1) {
-                    animation: pulseWave 2s ease-out 0.5s infinite;
-                  }
-  
-                  &:nth-child(2) {
-                    animation: pulseWave 2s ease-out 0.8s infinite;
-                  }
-  
-                  &:nth-child(3) {
-                    animation: pulseWave 2s ease-out 1.1s infinite;
-                  }
+              z-index: 3;
+              animation: iconPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.1s both;
+
+              .loading-animation {
+                width: 80px;
+                height: 80px;
+
+                .loading-circle {
+                  stroke-dasharray: 200;
+                  stroke-dashoffset: 200;
+                  animation: loadingRotate 1.5s linear infinite;
+                  transform-origin: center;
                 }
               }
             }
-  
-            .capture-text {
-              text-align: center;
-  
-              .text-line {
-                margin-bottom: 8px;
-  
-                .text-char {
-                  display: inline-block;
-                  font-size: 18px;
-                  font-weight: 600;
-                  color: #1e293b;
-                  opacity: 0;
-                  transform: translateY(20px);
-                  animation: textAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) var(--delay) both;
-                }
+
+            .particles {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+
+              .particle {
+                position: absolute;
+                width: 6px;
+                height: 6px;
+                background: linear-gradient(45deg, #3b82f6, #10b981);
+                border-radius: 50%;
+                opacity: 0;
+                animation: particleFloat 1.5s ease-out var(--delay) both;
+                transform-origin: 60px 60px;
+                transform: rotate(var(--angle)) translateX(60px);
               }
             }
-  
-            .progress-dots {
-              display: flex;
-              gap: 8px;
-  
-              .dot {
-                width: 8px;
-                height: 8px;
-                background: #cbd5e1;
+
+            .pulse-waves {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+
+              .pulse-wave {
+                position: absolute;
+                width: 120px;
+                height: 120px;
+                border: 2px solid #3b82f6;
                 border-radius: 50%;
                 opacity: 0;
                 transform: scale(0);
-                animation: dotPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) var(--delay) both;
-  
-                &.active {
-                  background: #3b82f6;
+
+                &:nth-child(1) {
+                  animation: pulseWave 2s ease-out 0.5s infinite;
                 }
+
+                &:nth-child(2) {
+                  animation: pulseWave 2s ease-out 0.8s infinite;
+                }
+
+                &:nth-child(3) {
+                  animation: pulseWave 2s ease-out 1.1s infinite;
+                }
+              }
+            }
+          }
+
+          .capture-text {
+            text-align: center;
+
+            .text-line {
+              margin-bottom: 8px;
+
+              .text-char {
+                display: inline-block;
+                font-size: 18px;
+                font-weight: 600;
+                color: #1e293b;
+                opacity: 0;
+                transform: translateY(20px);
+                animation: textAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) var(--delay) both;
+              }
+            }
+          }
+
+          .progress-dots {
+            display: flex;
+            gap: 8px;
+
+            .dot {
+              width: 8px;
+              height: 8px;
+              background: #cbd5e1;
+              border-radius: 50%;
+              opacity: 0;
+              transform: scale(0);
+              animation: dotPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) var(--delay) both;
+
+              &.active {
+                background: #3b82f6;
               }
             }
           }
         }
-  
-        // 解析处理区域
-        .processing-section {
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          padding: 20px;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  
-          .processing-state {
-            .url-info {
-              display: flex;
-              flex-direction: column;
-              gap: 16px;
-              margin-bottom: 24px;
-  
-              .url-header {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-  
-                .status-indicator {
-                  width: 10px;
-                  height: 10px;
-                  border-radius: 50%;
-  
-                  &.processing {
-                    background: #f59e0b;
-                    animation: pulse 2s infinite;
-                  }
-  
-                  &.completed {
-                    background: #10b981;
-                  }
-                }
-  
-                .status-text {
-                  font-size: 15px;
-                  font-weight: 600;
-                  color: #374151;
-                }
-              }
-  
-              .url-display {
-                font-size: 13px;
-                color: #1f2937;
-                background: #f9fafb;
-                border-radius: 8px;
-                padding: 12px 16px;
-                border: 1px solid #e5e7eb;
-                word-break: break-all;
-                font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
-              }
-            }
-  
-            // 优化的进度容器
-            .progress-container {
-              display: flex;
-              flex-direction: column;
-              gap: 16px;
-  
-              .progress-steps {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-  
-                .step-item {
-                  display: flex;
-                  align-items: center;
-                  gap: 12px;
-                  padding: 8px 0;
-                  transition: all 0.3s ease;
-  
-                  &.pending {
-                    opacity: 0.4;
-                  }
-  
-                  &.active {
-                    opacity: 1;
-  
-                    .step-indicator {
-                      background: #f3f4f6;
-                      border: 2px solid #6b7280;
-                      color: #374151;
-                    }
-                  }
-  
-                  &.completed {
-                    opacity: 1;
-  
-                    .step-indicator {
-                      background: #111827;
-                      border: 2px solid #111827;
-                      color: white;
-                    }
-                  }
-  
-                  .step-indicator {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                    background: #f3f4f6;
-                    border: 2px solid #e5e7eb;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: #9ca3af;
-                    transition: all 0.3s ease;
-                    flex-shrink: 0;
-  
-                    .spinner {
-                      width: 16px;
-                      height: 16px;
-                      border: 2px solid #e5e7eb;
-                      border-top-color: #6b7280;
-                      border-radius: 50%;
-                      animation: spin 1s linear infinite;
-                    }
-  
-                    .check-icon {
-                      width: 16px;
-                      height: 16px;
-                      color: white;
-                    }
-                  }
-  
-                  .step-text {
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: #374151;
-                  }
-                }
-              }
-  
-              // 进度条
-              .progress-bar {
-                width: 100%;
-                height: 4px;
-                background: #f3f4f6;
-                border-radius: 2px;
-                overflow: hidden;
-  
-                .progress-fill {
-                  height: 100%;
-                  background: linear-gradient(90deg, #6b7280, #111827);
-                  border-radius: 2px;
-                  transition: width 0.5s ease;
-                }
-              }
-            }
-          }
-  
-          .processed-result {
-            .result-header {
-              display: flex;
-              flex-direction: column;
-              gap: 6px;
-              margin-bottom: 10px;
-  
-              .completion-status {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-  
-                .status-indicator.completed {
-                  width: 10px;
-                  height: 10px;
-                  background: #10b981;
-                  border-radius: 50%;
-                }
-  
-                .status-text {
-                  font-size: 15px;
-                  font-weight: 600;
-                  color: #374151;
-                }
-              }
-  
-              .url-display {
-                font-size: 13px;
-                color: #1f2937;
-                background: #f9fafb;
-                border-radius: 8px;
-                padding: 12px 16px;
-                border: 1px solid #e5e7eb;
-                word-break: break-all;
-                font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
-              }
-            }
-  
-            .result-content {
-              display: flex;
-              flex-direction: column;
-              gap: 10px;
-              margin-bottom: 2px;
-  
-              .info-card {
-                background: #ffffff;
-                border: 1px solid #e5e7eb;
-                border-radius: 12px;
-                padding: 5px 16px;
-                transition: all 0.2s ease;
-  
-                &:hover {
-                  border-color: #d1d5db;
-                  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
-                }
-  
-                .card-header {
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-                  margin-bottom: 2px;
-  
-                  .card-icon {
-                    width: 16px;
-                    height: 16px;
-                    color: #6b7280;
-                  }
-  
-                  .card-title {
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: #374151;
-                  }
-                }
-  
-                &.category-card {
-                  .category-content {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 6px;
-  
-                    .category-tag {
-                      display: inline-block;
-                      background: #f3f4f6;
-                      color: #374151;
-                      padding: 6px 8px;
-                      border-radius: 6px;
-                      font-size: 13px;
-                      font-weight: 500;
-                      width: fit-content;
-                      border: 1px solid #e5e7eb;
-                    }
-  
-                    .tags-container {
-                      display: flex;
-                      flex-wrap: wrap;
-                      gap: 4px;
-                      min-height: 20px;
-                      align-items: center;
-  
-                      .tag {
-                        background: #f9fafb;
-                        color: #6b7280;
-                        padding: 4px 8px;
-                        border-radius: 4px;
-                        font-size: 12px;
-                        font-weight: 500;
-                        border: 1px solid #f3f4f6;
-                      }
-                      
-                      .no-tags-hint {
-                        color: #9ca3af;
-                        font-size: 12px;
-                        font-style: italic;
-                      }
-                    }
-                  }
-                }
-  
-                &.summary-card {
-                  .summary-content {
-                    font-size: 14px;
-                    line-height: 1.6;
-                    color: #374151;
-                    max-height: 130px;
-                    overflow-y: auto;
-  
-                    &::-webkit-scrollbar {
-                      width: 4px;
-                    }
-  
-                    &::-webkit-scrollbar-thumb {
-                      background: #d1d5db;
-                      border-radius: 2px;
-                    }
-                  }
-                }
-              }
-            }
-  
-            .result-actions {
+      }
+
+      // 解析处理区域
+      .processing-section {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        padding: 20px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+
+        .processing-state {
+          .url-info {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+
+            .url-header {
               display: flex;
               align-items: center;
-              margin-top: 11px;
-  
-              .completion-message {
-                width: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                font-size: 14px;
-                font-weight: 500;
-                padding: 12px 16px;
-                background: #f0fdf4;
-                color: #166534;
-                border: 1px solid #bbf7d0;
-                border-radius: 8px;
-  
-                .status-indicator.completed {
-                  width: 10px;
-                  height: 10px;
-                  background: #10b981;
-                  border-radius: 50%;
+              gap: 12px;
+
+              .status-indicator {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+
+                &.processing {
+                  background: #f59e0b;
+                  animation: pulse 2s infinite;
                 }
-  
-                .completion-text {
-                  color: #166534;
+
+                &.completed {
+                  background: #10b981;
                 }
               }
-  
-              .action-btn {
-                width: 100%;
+
+              .status-text {
+                font-size: 15px;
+                font-weight: 600;
+                color: #374151;
+              }
+            }
+
+            .url-display {
+              font-size: 13px;
+              color: #1f2937;
+              background: #f9fafb;
+              border-radius: 8px;
+              padding: 12px 16px;
+              border: 1px solid #e5e7eb;
+              word-break: break-all;
+              font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            }
+          }
+
+          // 优化的进度容器
+          .progress-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+
+            .progress-steps {
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+
+              .step-item {
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                gap: 12px;
+                padding: 8px 0;
+                transition: all 0.3s ease;
+
+                &.pending {
+                  opacity: 0.4;
+                }
+
+                &.active {
+                  opacity: 1;
+
+                  .step-indicator {
+                    background: #f3f4f6;
+                    border: 2px solid #6b7280;
+                    color: #374151;
+                  }
+                }
+
+                &.completed {
+                  opacity: 1;
+
+                  .step-indicator {
+                    background: #111827;
+                    border: 2px solid #111827;
+                    color: white;
+                  }
+                }
+
+                .step-indicator {
+                  width: 32px;
+                  height: 32px;
+                  border-radius: 50%;
+                  background: #f3f4f6;
+                  border: 2px solid #e5e7eb;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #9ca3af;
+                  transition: all 0.3s ease;
+                  flex-shrink: 0;
+
+                  .spinner {
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid #e5e7eb;
+                    border-top-color: #6b7280;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                  }
+
+                  .check-icon {
+                    width: 16px;
+                    height: 16px;
+                    color: white;
+                  }
+                }
+
+                .step-text {
+                  font-size: 14px;
+                  font-weight: 500;
+                  color: #374151;
+                }
+              }
+            }
+
+            // 进度条
+            .progress-bar {
+              width: 100%;
+              height: 4px;
+              background: #f3f4f6;
+              border-radius: 2px;
+              overflow: hidden;
+
+              .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #6b7280, #111827);
+                border-radius: 2px;
+                transition: width 0.5s ease;
+              }
+            }
+          }
+        }
+
+        .processed-result {
+          .result-header {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 10px;
+
+            .completion-status {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+
+              .status-indicator.completed {
+                width: 10px;
+                height: 10px;
+                background: #10b981;
+                border-radius: 50%;
+              }
+
+              .status-text {
+                font-size: 15px;
+                font-weight: 600;
+                color: #374151;
+              }
+            }
+
+            .url-display {
+              font-size: 13px;
+              color: #1f2937;
+              background: #f9fafb;
+              border-radius: 8px;
+              padding: 12px 16px;
+              border: 1px solid #e5e7eb;
+              word-break: break-all;
+              font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            }
+          }
+
+          .result-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 2px;
+
+            .info-card {
+              background: #ffffff;
+              border: 1px solid #e5e7eb;
+              border-radius: 12px;
+              padding: 5px 16px;
+              transition: all 0.2s ease;
+
+              &:hover {
+                border-color: #d1d5db;
+                box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+              }
+
+              .card-header {
+                display: flex;
+                align-items: center;
                 gap: 8px;
-                font-size: 14px;
-                font-weight: 500;
-                padding: 12px 16px;
-                border-radius: 8px;
-                border: none;
-                cursor: pointer;
-                transition: all 0.2s ease;
-  
-                .btn-icon {
+                margin-bottom: 2px;
+
+                .card-icon {
                   width: 16px;
                   height: 16px;
+                  color: #6b7280;
                 }
-  
-                &.primary-btn {
-                  background: #111827;
-                  color: white;
-  
-                  &:hover {
-                    background: #1f2937;
+
+                .card-title {
+                  font-size: 14px;
+                  font-weight: 600;
+                  color: #374151;
+                }
+              }
+
+              &.category-card {
+                .category-content {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 6px;
+
+                  .category-tag {
+                    display: inline-block;
+                    background: #f3f4f6;
+                    color: #374151;
+                    padding: 6px 8px;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    font-weight: 500;
+                    width: fit-content;
+                    border: 1px solid #e5e7eb;
+                  }
+
+                  .tags-container {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 4px;
+                    min-height: 20px;
+                    align-items: center;
+
+                    .tag {
+                      background: #f9fafb;
+                      color: #6b7280;
+                      padding: 4px 8px;
+                      border-radius: 4px;
+                      font-size: 12px;
+                      font-weight: 500;
+                      border: 1px solid #f3f4f6;
+                    }
+
+                    .no-tags-hint {
+                      color: #9ca3af;
+                      font-size: 12px;
+                      font-style: italic;
+                    }
+                  }
+                }
+              }
+
+              &.summary-card {
+                .summary-content {
+                  font-size: 14px;
+                  line-height: 1.6;
+                  color: #374151;
+                  max-height: 130px;
+                  overflow-y: auto;
+
+                  &::-webkit-scrollbar {
+                    width: 4px;
+                  }
+
+                  &::-webkit-scrollbar-thumb {
+                    background: #d1d5db;
+                    border-radius: 2px;
                   }
                 }
               }
             }
           }
-        }
-  
-        // 输入区域
-        .input-section {
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-  
-          .url-input {
-            width: 100%;
-            height: 90px;
-            border: 1px solid #d1d5db;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 16px;
-            background: white;
-            transition: all 0.2s ease;
-            color: #111827;
-  
-            &:focus {
-              outline: none;
-              border-color: #6b7280;
-              box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
+
+          .result-actions {
+            display: flex;
+            align-items: center;
+            margin-top: 11px;
+
+            .completion-message {
+              width: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+              font-size: 14px;
+              font-weight: 500;
+              padding: 12px 16px;
+              background: #f0fdf4;
+              color: #166534;
+              border: 1px solid #bbf7d0;
+              border-radius: 8px;
+
+              .status-indicator.completed {
+                width: 10px;
+                height: 10px;
+                background: #10b981;
+                border-radius: 50%;
+              }
+
+              .completion-text {
+                color: #166534;
+              }
             }
-  
-            &::placeholder {
-              color: #9ca3af;
+
+            .action-btn {
+              width: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+              font-size: 14px;
+              font-weight: 500;
+              padding: 12px 16px;
+              border-radius: 8px;
+              border: none;
+              cursor: pointer;
+              transition: all 0.2s ease;
+
+              .btn-icon {
+                width: 16px;
+                height: 16px;
+              }
+
+              &.primary-btn {
+                background: #111827;
+                color: white;
+
+                &:hover {
+                  background: #1f2937;
+                }
+              }
             }
           }
         }
-  
-        // 捕获按钮区域
-        .capture-section {
+      }
+
+      // 输入区域
+      .input-section {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .url-input {
           width: 100%;
+          height: 90px;
+          border: 1px solid #d1d5db;
+          border-radius: 12px;
+          padding: 16px;
+          font-size: 16px;
+          background: white;
+          transition: all 0.2s ease;
+          color: #111827;
+
+          &:focus {
+            outline: none;
+            border-color: #6b7280;
+            box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
+          }
+
+          &::placeholder {
+            color: #9ca3af;
+          }
+        }
+      }
+
+      // 捕获按钮区域
+      .capture-section {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 8px;
+
+        .detecting-state {
           display: flex;
-          justify-content: flex-start;
-          margin-top: 8px;
-  
-          .detecting-state {
+          align-items: center;
+          gap: 8px;
+          font-size: 12px;
+          color: #6b7280;
+          background: #f9fafb;
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: 1px solid #f3f4f6;
+
+          .spinner {
+            width: 12px;
+            height: 12px;
+            border: 1px solid #d1d5db;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+        }
+
+        .button-group {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          .capture-btn {
             display: flex;
             align-items: center;
             gap: 8px;
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+            &:hover:not(:disabled) {
+              background: #f9fafb;
+              border-color: #9ca3af;
+            }
+
+            &:disabled,
+            &.disabled {
+              background: #f9fafb;
+              color: #9ca3af;
+              border-color: #f3f4f6;
+              cursor: not-allowed;
+              box-shadow: none;
+            }
+
+            .capture-icon {
+              width: 16px;
+              height: 16px;
+            }
+          }
+        }
+
+        .no-browser-state {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .no-browser-text {
             font-size: 12px;
-            color: #6b7280;
+            color: #9ca3af;
             background: #f9fafb;
             padding: 8px 12px;
             border-radius: 8px;
             border: 1px solid #f3f4f6;
-  
-            .spinner {
-              width: 12px;
-              height: 12px;
-              border: 1px solid #d1d5db;
-              border-top-color: transparent;
-              border-radius: 50%;
-              animation: spin 1s linear infinite;
-            }
           }
-  
-          .button-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-  
-            .capture-btn {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              background: white;
-              color: #374151;
-              border: 1px solid #d1d5db;
-              padding: 10px 16px;
-              border-radius: 8px;
-              font-size: 14px;
-              font-weight: 500;
-              cursor: pointer;
-              transition: all 0.2s ease;
-              box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  
-              &:hover:not(:disabled) {
-                background: #f9fafb;
-                border-color: #9ca3af;
-              }
-  
-              &:disabled,
-              &.disabled {
-                background: #f9fafb;
-                color: #9ca3af;
-                border-color: #f3f4f6;
-                cursor: not-allowed;
-                box-shadow: none;
-              }
-  
-  
-  
-              .capture-icon {
-                width: 16px;
-                height: 16px;
-              }
-            }
-  
-          }
-  
-          .no-browser-state {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-  
-            .no-browser-text {
-              font-size: 12px;
-              color: #9ca3af;
-              background: #f9fafb;
-              padding: 8px 12px;
-              border-radius: 8px;
-              border: 1px solid #f3f4f6;
-            }
-  
-            .refresh-btn {
-              font-size: 12px;
-              color: #374151;
-              background: #ffffff;
-              border: 1px solid #d1d5db;
-              padding: 6px 12px;
-              border-radius: 8px;
-              cursor: pointer;
-              transition: all 0.2s ease;
-  
-              &:hover {
-                color: #111827;
-                background: #f9fafb;
-                border-color: #9ca3af;
-              }
-            }
-          }
-        }
-  
-        .screenshot-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 42px;
-          height: 42px;
-          background: white;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-  
-          &:hover {
-            background: #f9fafb;
-            border-color: #9ca3af;
-          }
-  
-          .screenshot-icon {
-            width: 18px;
-            height: 18px;
-            color: #6b7280;
-            transition: color 0.2s ease;
-          }
-  
-          &:hover .screenshot-icon {
+
+          .refresh-btn {
+            font-size: 12px;
             color: #374151;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &:hover {
+              color: #111827;
+              background: #f9fafb;
+              border-color: #9ca3af;
+            }
           }
         }
       }
-  
-      // 状态信息
-      .status-message {
-        font-size: 14px;
-        text-align: center;
-        padding: 12px 16px;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        margin-top: 16px;
-  
-        &.success {
-          background: #f0fdf4;
-          color: #166534;
-          border: 1px solid #bbf7d0;
-        }
-  
-        &.error {
-          background: #fef2f2;
-          color: #dc2626;
-          border: 1px solid #fecaca;
-        }
-  
-        &.info {
-          background: #f8fafc;
-          color: #475569;
-          border: 1px solid #e2e8f0;
-        }
-      }
-  
-      // 彩蛋消息样式
-      .easter-egg-message {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        color: white;
-        padding: 16px 24px;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
-        box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
-        z-index: 10000;
-        animation: easterEggPop 0.3s ease-out;
-        border: 2px solid #b91c1c;
-        pointer-events: none;
-      }
-    }
-  }
-  
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-  
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  
-  @keyframes pulse {
-    0% {
-      opacity: 1;
-    }
-  
-    50% {
-      opacity: 0.5;
-    }
-  
-    100% {
-      opacity: 1;
-    }
-  }
-  
-  @keyframes easterEggPop {
-    0% {
-      transform: translate(-50%, -50%) scale(0.8);
-      opacity: 0;
-    }
-  
-    50% {
-      transform: translate(-50%, -50%) scale(1.1);
-    }
-  
-    100% {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-    }
-  }
-  
-  // 抓取动画关键帧
-  @keyframes iconPop {
-    0% {
-      transform: scale(0) rotate(-45deg);
-      opacity: 0;
-    }
-    
-    50% {
-      transform: scale(1.2) rotate(-45deg);
-    }
-    
-    100% {
-      transform: scale(1) rotate(0deg);
-      opacity: 1;
-    }
-  }
-  
-  @keyframes loadingRotate {
-    0% {
-      transform: rotate(0deg);
-      stroke-dasharray: 1, 200;
-      stroke-dashoffset: 0;
-    }
-    
-    50% {
-      stroke-dasharray: 100, 200;
-      stroke-dashoffset: -15;
-    }
-    
-    100% {
-      transform: rotate(360deg);
-      stroke-dasharray: 100, 200;
-      stroke-dashoffset: -125;
-    }
-  }
-  
-  @keyframes particleFloat {
-    0% {
-      opacity: 0;
-      transform: rotate(var(--angle)) translateX(0) scale(0);
-    }
-    
-    20% {
-      opacity: 1;
-      transform: rotate(var(--angle)) translateX(20px) scale(1);
-    }
-    
-    80% {
-      opacity: 1;
-      transform: rotate(var(--angle)) translateX(40px) scale(1);
-    }
-    
-    100% {
-      opacity: 0;
-      transform: rotate(var(--angle)) translateX(60px) scale(0);
-    }
-  }
-  
-  @keyframes pulseWave {
-    0% {
-      transform: scale(0);
-      opacity: 1;
-    }
-    
-    50% {
-      opacity: 0.6;
-    }
-    
-    100% {
-      transform: scale(2);
-      opacity: 0;
-    }
-  }
-  
-  @keyframes textAppear {
-    0% {
-      opacity: 0;
-      transform: translateY(20px) scale(0.8);
-    }
-    
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-  
-  @keyframes dotPop {
-    0% {
-      opacity: 0;
-      transform: scale(0);
-    }
-    
-    50% {
-      transform: scale(1.3);
-    }
-    
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  
-  @keyframes fadeInAnimation {
-    0% {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  
-  // 编辑功能相关样式
-  .url-section {
-    width: 100%;
-    
-    .url-display-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      
-      .url-display {
-        flex: 1;
-      }
-    }
-    
-    .url-edit-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      
-      .url-edit-input {
-        flex: 1;
-        font-size: 13px;
-        color: #1f2937;
-        background: #ffffff;
+
+      .screenshot-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        background: white;
         border: 1px solid #d1d5db;
-        border-radius: 6px;
-        padding: 8px 12px;
-        font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+        border-radius: 8px;
+        cursor: pointer;
         transition: all 0.2s ease;
-        
-        &:focus {
-          outline: none;
-          border-color: #6b7280;
-          box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.1);
+
+        &:hover {
+          background: #f9fafb;
+          border-color: #9ca3af;
+        }
+
+        .screenshot-icon {
+          width: 18px;
+          height: 18px;
+          color: #6b7280;
+          transition: color 0.2s ease;
+        }
+
+        &:hover .screenshot-icon {
+          color: #374151;
         }
       }
     }
+
+    // 状态信息
+    .status-message {
+      font-size: 14px;
+      text-align: center;
+      padding: 12px 16px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      margin-top: 16px;
+
+      &.success {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+      }
+
+      &.error {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+      }
+
+      &.info {
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+      }
+    }
+
+    // 彩蛋消息样式
+    .easter-egg-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
+      z-index: 10000;
+      animation: easterEggPop 0.3s ease-out;
+      border: 2px solid #b91c1c;
+      pointer-events: none;
+    }
   }
-  
-  .edit-btn {
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes easterEggPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+// 抓取动画关键帧
+@keyframes iconPop {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.2) rotate(-45deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes loadingRotate {
+  0% {
+    transform: rotate(0deg);
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -15;
+  }
+
+  100% {
+    transform: rotate(360deg);
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -125;
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(0) scale(0);
+  }
+
+  20% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateX(20px) scale(1);
+  }
+
+  80% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateX(40px) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(60px) scale(0);
+  }
+}
+
+@keyframes pulseWave {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes textAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dotPop {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInAnimation {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// 编辑功能相关样式
+.url-section {
+  width: 100%;
+
+  .url-display-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .url-display {
+      flex: 1;
+    }
+  }
+
+  .url-edit-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .url-edit-input {
+      flex: 1;
+      font-size: 13px;
+      color: #1f2937;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+      transition: all 0.2s ease;
+
+      &:focus {
+        outline: none;
+        border-color: #6b7280;
+        box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.1);
+      }
+    }
+  }
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+
+  &.small {
+    width: 24px;
+    height: 24px;
+    margin-left: auto;
+  }
+
+  .edit-icon {
+    width: 14px;
+    height: 14px;
+    color: #6b7280;
+    transition: color 0.2s ease;
+  }
+
+  &:hover .edit-icon {
+    color: #374151;
+  }
+}
+
+.summary-edit-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+
+  .summary-edit-textarea {
+    width: 100%;
+    min-height: 80px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 8px 12px;
+    resize: vertical;
+    transition: all 0.2s ease;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: #6b7280;
+      box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.1);
+    }
+
+    &::placeholder {
+      color: #9ca3af;
+    }
+  }
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+
+  .cancel-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2097,220 +2347,148 @@ onMounted(() => {
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
-    
+
     &:hover {
-      background: #f9fafb;
-      border-color: #d1d5db;
+      background: #fef2f2;
+      border-color: #fecaca;
     }
-    
-    &.small {
-      width: 24px;
-      height: 24px;
-      margin-left: auto;
-    }
-    
-    .edit-icon {
+
+    .btn-icon {
       width: 14px;
       height: 14px;
       color: #6b7280;
       transition: color 0.2s ease;
     }
-    
-    &:hover .edit-icon {
-      color: #374151;
+
+    &:hover .btn-icon {
+      color: #dc2626;
     }
   }
-  
-  .summary-edit-container {
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+// 更新按钮禁用状态
+.action-btn:disabled {
+  background: #f3f4f6 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+
+  &:hover {
+    background: #f3f4f6 !important;
+  }
+}
+
+// 让卡片标题行可以容纳编辑按钮
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  .card-title-group {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 8px;
-    margin-top: 8px;
-    
-    .summary-edit-textarea {
-      width: 100%;
-      min-height: 80px;
-      font-size: 14px;
-      line-height: 1.6;
-      color: #374151;
+  }
+}
+
+// 标签编辑相关样式
+.tags-edit-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+
+  .tags-edit-area {
+    width: 100%;
+
+    .editing-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      padding: 8px;
       background: #ffffff;
       border: 1px solid #d1d5db;
       border-radius: 6px;
-      padding: 8px 12px;
-      resize: vertical;
       transition: all 0.2s ease;
-      font-family: inherit;
-      
-      &:focus {
-        outline: none;
+
+      &:focus-within {
         border-color: #6b7280;
         box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.1);
       }
-      
-      &::placeholder {
-        color: #9ca3af;
-      }
-    }
-  }
-  
-  .edit-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    
-    .cancel-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      background: transparent;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        background: #fef2f2;
-        border-color: #fecaca;
-      }
-      
-      .btn-icon {
-        width: 14px;
-        height: 14px;
-        color: #6b7280;
-        transition: color 0.2s ease;
-      }
-      
-      &:hover .btn-icon {
-        color: #dc2626;
-      }
-    }
-  }
-  
-  .btn-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid #e5e7eb;
-    border-top-color: #ffffff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-  
-  // 更新按钮禁用状态
-  .action-btn:disabled {
-    background: #f3f4f6 !important;
-    color: #9ca3af !important;
-    cursor: not-allowed !important;
-    
-    &:hover {
-      background: #f3f4f6 !important;
-    }
-  }
-  
-  // 让卡片标题行可以容纳编辑按钮
-  .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    
-    .card-title-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-  }
-  
-  // 标签编辑相关样式
-  .tags-edit-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 8px;
-    
-    .tags-edit-area {
-      width: 100%;
-      
-      .editing-tags {
+
+      .editing-tag {
         display: flex;
-        flex-wrap: wrap;
         align-items: center;
-        gap: 6px;
-        min-height: 32px;
-        padding: 8px;
-        background: #ffffff;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
+        gap: 4px;
+        background: #f3f4f6;
+        color: #374151;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        border: 1px solid #e5e7eb;
         transition: all 0.2s ease;
-        
-        &:focus-within {
-          border-color: #6b7280;
-          box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.1);
+
+        &:hover {
+          background: #f9fafb;
+          border-color: #d1d5db;
         }
-        
-        .editing-tag {
+
+        .remove-tag-btn {
           display: flex;
           align-items: center;
-          gap: 4px;
-          background: #f3f4f6;
-          color: #374151;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 500;
-          border: 1px solid #e5e7eb;
-          transition: all 0.2s ease;
-          
-          &:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
-          }
-          
-          .remove-tag-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            background: transparent;
-            border: none;
-            border-radius: 2px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            
-            &:hover {
-              background: #fee2e2;
-            }
-            
-            .remove-icon {
-              width: 10px;
-              height: 10px;
-              color: #9ca3af;
-              transition: color 0.2s ease;
-            }
-            
-            &:hover .remove-icon {
-              color: #dc2626;
-            }
-          }
-        }
-        
-        .tag-input {
-          flex: 1;
-          min-width: 120px;
+          justify-content: center;
+          width: 16px;
+          height: 16px;
           background: transparent;
           border: none;
-          outline: none;
-          font-size: 12px;
-          color: #374151;
-          padding: 4px 0;
-          
-          &::placeholder {
-            color: #9ca3af;
+          border-radius: 2px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: #fee2e2;
           }
+
+          .remove-icon {
+            width: 10px;
+            height: 10px;
+            color: #9ca3af;
+            transition: color 0.2s ease;
+          }
+
+          &:hover .remove-icon {
+            color: #dc2626;
+          }
+        }
+      }
+
+      .tag-input {
+        flex: 1;
+        min-width: 120px;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 12px;
+        color: #374151;
+        padding: 4px 0;
+
+        &::placeholder {
+          color: #9ca3af;
         }
       }
     }
   }
+}
 </style>

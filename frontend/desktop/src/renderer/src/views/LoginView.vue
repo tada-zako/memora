@@ -3,21 +3,18 @@
     <div class="max-w-md w-full space-y-8">
       <div>
         <div class="mx-auto h-12 w-12 flex items-center justify-center">
-          <img src="../assets/icon.png" alt="Memora Logo" class="h-12 w-12">
+          <img src="../assets/icon.png" alt="Memora Logo" class="h-12 w-12" />
         </div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
           {{ isLogin ? '登录到你的账户' : '创建新账户' }}
         </h2>
         <p class="mt-2 text-center text-sm text-gray-600">
-          <button 
-            @click="toggleMode"
-            class="font-medium text-black hover:text-indigo-500"
-          >
+          <button @click="toggleMode" class="font-medium text-black hover:text-indigo-500">
             {{ isLogin ? '还没有账户？立即注册' : '已有账户？立即登录' }}
           </button>
         </p>
       </div>
-      
+
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="rounded-md shadow-sm -space-y-px">
           <!-- 注册时显示邮箱字段 -->
@@ -34,7 +31,7 @@
               placeholder="邮箱地址"
             />
           </div>
-          
+
           <div>
             <label for="username" class="sr-only">用户名</label>
             <input
@@ -51,7 +48,7 @@
               placeholder="用户名"
             />
           </div>
-          
+
           <div>
             <label for="password" class="sr-only">密码</label>
             <input
@@ -131,7 +128,7 @@ const handleSubmit = async () => {
         username: form.username,
         password: form.password
       })
-      
+
       if (response.status === 'success') {
         successMessage.value = '登录成功！'
         setTimeout(() => {
@@ -145,7 +142,7 @@ const handleSubmit = async () => {
         email: form.email,
         password: form.password
       })
-      
+
       if (response.status === 'success') {
         successMessage.value = '注册成功！请登录'
         setTimeout(() => {

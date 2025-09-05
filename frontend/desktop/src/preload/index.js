@@ -5,19 +5,19 @@ import { electronAPI } from '@electron-toolkit/preload'
 const api = {
   // 主窗口控制
   showMainWindow: () => ipcRenderer.invoke('show-main-window'),
-  
+
   // 快速窗口控制
   hideQuickWindow: () => ipcRenderer.invoke('hide-quick-window'),
-  
+
   // 获取 Edge 浏览器链接
   captureEdgeUrl: () => ipcRenderer.invoke('capture-edge-url'),
-  
+
   // 检测活跃浏览器
   detectActiveBrowser: () => ipcRenderer.invoke('detect-active-browser'),
-  
+
   // 获取操作系统信息
   getPlatform: () => process.platform,
-  
+
   // 其他实用功能
   ping: () => ipcRenderer.send('ping')
 }

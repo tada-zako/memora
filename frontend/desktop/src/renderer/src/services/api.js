@@ -38,18 +38,18 @@ api.interceptors.response.use(
       data: error.response?.data,
       timeout: error.code === 'ECONNABORTED'
     })
-    
+
     if (error.response?.status === 401 || error.response?.status === 403) {
       console.log('认证失败，清除本地存储')
       localStorage.removeItem('access_token')
       localStorage.removeItem('user_info')
     }
-    
+
     // 为超时错误提供更友好的消息
     if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
       error.customMessage = '请求超时，请检查网络连接或稍后重试'
     }
-    
+
     return Promise.reject(error)
   }
 )

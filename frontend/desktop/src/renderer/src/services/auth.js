@@ -59,7 +59,14 @@ export const updateUserProfile = async (userData) => {
 export const uploadUserAvatar = async (file) => {
   try {
     // 验证文件类型
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp']
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/bmp'
+    ]
     if (!allowedTypes.includes(file.type)) {
       throw new Error('不支持的文件类型，请上传 JPG、PNG、GIF、WebP 或 BMP 格式的图片')
     }
@@ -72,12 +79,12 @@ export const uploadUserAvatar = async (file) => {
 
     // 上传头像
     const attachment = await uploadAvatar(file)
-    
+
     // 更新用户头像信息
     const updateData = {
       avatar_attachment_id: attachment.attachment_id
     }
-    
+
     const response = await updateUserProfile(updateData)
     return response
   } catch (error) {
@@ -90,7 +97,7 @@ export const getUserAvatarUrl = async (userInfo) => {
   if (!userInfo || !userInfo.avatar_attachment_id) {
     return null
   }
-  
+
   try {
     const response = await api.get(`/api/v1/attachments/${userInfo.avatar_attachment_id}`)
     const attachment = response.data

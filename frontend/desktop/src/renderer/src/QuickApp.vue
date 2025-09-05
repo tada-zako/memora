@@ -8,4 +8,4 @@ import QuickWindow from './components/QuickWindow.vue'
 
 <style>
 /* 全局样式，如果需要的话 */
-</style> 
+</style>

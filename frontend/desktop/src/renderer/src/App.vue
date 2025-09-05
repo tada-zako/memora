@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full bg-gray-50/80 overflow-hidden">
     <!-- 侧边栏 -->
-    <div 
+    <div
       @mouseenter="handleSidebarEnter"
       @mouseleave="handleSidebarLeave"
       :class="[
@@ -10,14 +10,21 @@
       ]"
     >
       <!-- Logo区域 -->
-      <div style="margin-left: 8px;"  :class="['transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-6' : 'p-4']">
-        <div :class="['flex items-center']" style="gap: 8px;">
-          <img src="./assets/icon.png" alt="Memora Logo" :class="[
-            'transition-all duration-300 ease-in-out',
-            sidebarExpanded ? 'w-8 h-8' : 'w-12 h-12'
-          ]">
+      <div
+        style="margin-left: 8px"
+        :class="['transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-6' : 'p-4']"
+      >
+        <div :class="['flex items-center']" style="gap: 8px">
+          <img
+            src="./assets/icon.png"
+            alt="Memora Logo"
+            :class="[
+              'transition-all duration-300 ease-in-out',
+              sidebarExpanded ? 'w-8 h-8' : 'w-12 h-12'
+            ]"
+          />
 
-          <div 
+          <div
             :class="[
               'transition-all duration-300 ease-in-out overflow-hidden',
               sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
@@ -28,28 +35,35 @@
         </div>
       </div>
       <!-- 导航菜单 -->
-      <nav :class="['flex-1 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-4']">
+      <nav
+        :class="['flex-1 transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-4' : 'p-4']"
+      >
         <ul>
-          <li style="margin-bottom: 12px;"  v-for="item in menuItems" :key="item.id" :class="[!sidebarExpanded ? 'flex justify-center' : '']">
+          <li
+            style="margin-bottom: 12px"
+            v-for="item in menuItems"
+            :key="item.id"
+            :class="[!sidebarExpanded ? 'flex justify-center' : '']"
+          >
             <button
               @click="goMenu(item)"
               :class="[
                 'flex items-center rounded-lg text-left transition-all duration-0 ease-in-out btn-hover',
                 sidebarExpanded ? 'w-full space-x-3 px-3 py-2.5' : 'w-12 h-12 justify-center',
-                isActiveMenu(item) 
-                  ? 'sidebar-acive-btn' 
+                isActiveMenu(item)
+                  ? 'sidebar-acive-btn'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               ]"
               :title="!sidebarExpanded ? item.name : ''"
             >
-              <component 
-                :is="item.icon" 
+              <component
+                :is="item.icon"
                 :class="[
                   'flex-shrink-0 transition-all duration-300 ease-in-out',
-                  sidebarExpanded ? 'w-4 h-4' : 'w-6 h-6',
+                  sidebarExpanded ? 'w-4 h-4' : 'w-6 h-6'
                 ]"
               />
-              <span 
+              <span
                 :class="[
                   'font-medium text-sm transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap',
                   sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
@@ -64,7 +78,7 @@
     </div>
     <!-- 主内容区 -->
     <div class="flex-1 flex flex-col min-w-0">
-      <router-view style="overflow-y: scroll;"/>
+      <router-view style="overflow-y: scroll" />
     </div>
   </div>
 </template>
@@ -83,7 +97,7 @@ const sidebarToggleCount = ref(0)
 const menuItems = [
   { id: 'collections', name: '收藏', icon: Star, route: { name: 'Home' } },
   { id: 'community', name: '社区', icon: Earth, route: { name: 'Community' } },
-  { id: 'profile', name: '我', icon: User, route: { name: 'Profile' } },
+  { id: 'profile', name: '我', icon: User, route: { name: 'Profile' } }
 ]
 
 const handleSidebarEnter = () => {
@@ -104,11 +118,13 @@ const isActiveMenu = (item) => {
   if (item.route && item.route.name) {
     // 对于收藏菜单，检查是否在首页或收藏相关页面
     if (item.id === 'collections') {
-      return route.name === 'Home' || 
-             route.name === 'CollectionList' || 
-             route.name === 'CollectionDetail' ||
-             route.name === 'CollectionAttachmentList' ||
-             route.name === 'CollectionAttachmentDetail'
+      return (
+        route.name === 'Home' ||
+        route.name === 'CollectionList' ||
+        route.name === 'CollectionDetail' ||
+        route.name === 'CollectionAttachmentList' ||
+        route.name === 'CollectionAttachmentDetail'
+      )
     }
     // 对于社区菜单
     if (item.id === 'community') {

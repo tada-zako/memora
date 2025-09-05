@@ -86,14 +86,14 @@ export const updateCollectionDetail = async (collectionId, key, value) => {
 
 export const processUrlWithStreaming = async (url, onProgress) => {
   const token = localStorage.getItem('access_token')
-  const apiBaseUrl = 'http://localhost:8000'; // Keep the base URL as you requested
+  const apiBaseUrl = 'http://localhost:8000' // Keep the base URL as you requested
 
   const response = await fetch(`${apiBaseUrl}/api/v1/collection/url`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Accept': 'text/event-stream',
-      'Authorization': `Bearer ${token}`
+      Accept: 'text/event-stream',
+      Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({ url })
   })
@@ -155,4 +155,4 @@ export const healthCheck = async () => {
   } catch (error) {
     throw error.response?.data || error.message
   }
-} 
+}

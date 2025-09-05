@@ -77,7 +77,7 @@ export const queryKnowledgeBase = async (categoryId, query) => {
       response: error.response?.data,
       status: error.response?.status
     })
-    
+
     // 重新抛出更详细的错误信息
     if (error.response?.data) {
       throw error.response.data

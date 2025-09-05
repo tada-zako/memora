@@ -3,8 +3,19 @@
     <!-- Header -->
     <header class="border-b border-gray-200">
       <div class="max-w-4xl mx-auto px-6 py-8">
-        <button @click="$router.back()" class="mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        <button
+          @click="$router.back()"
+          class="mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M15 19l-7-7 7-7" />
+          </svg>
           返回
         </button>
         <div class="flex items-center gap-3 mb-2">
@@ -72,7 +83,9 @@
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-black">分类:</span>
-                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">{{ details.category }}</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">{{
+                  details.category
+                }}</span>
               </div>
             </div>
           </div>
@@ -82,7 +95,9 @@
             <span class="text-sm font-medium text-black">标签:</span>
             <div class="flex flex-wrap gap-2">
               <span
-                v-for="(tag, index) in details.value && details.value.tags ? details.value.tags : []"
+                v-for="(tag, index) in details.value && details.value.tags
+                  ? details.value.tags
+                  : []"
                 :key="index"
                 class="px-2 py-1 border border-gray-300 text-gray-700 rounded text-xs hover:bg-gray-50"
               >
@@ -125,19 +140,25 @@
 
       <!-- Collection Stats -->
       <div class="mt-12 text-center">
-        <div class="inline-flex items-center gap-6 px-6 py-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div
+          class="inline-flex items-center gap-6 px-6 py-4 bg-gray-50 rounded-lg border border-gray-200"
+        >
           <div class="text-center">
             <div class="text-2xl font-bold text-black">1</div>
             <div class="text-sm text-gray-600">收藏文章</div>
           </div>
           <div class="w-px h-8 bg-gray-300"></div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-black">{{ details.value && details.value.category ? details.value.category : '' }}</div>
+            <div class="text-2xl font-bold text-black">
+              {{ details.value && details.value.category ? details.value.category : '' }}
+            </div>
             <div class="text-sm text-gray-600">主要分类</div>
           </div>
           <div class="w-px h-8 bg-gray-300"></div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-black">{{ details.value && details.value.tags ? details.value.tags.length : 0 }}</div>
+            <div class="text-2xl font-bold text-black">
+              {{ details.value && details.value.tags ? details.value.tags.length : 0 }}
+            </div>
             <div class="text-sm text-gray-600">相关标签</div>
           </div>
         </div>
@@ -241,7 +262,7 @@ onMounted(() => {
 
 const contentParagraphs = computed(() => {
   if (!details.value.content) return []
-  return details.value.content.split('\n\n').filter(p => p.trim())
+  return details.value.content.split('\n\n').filter((p) => p.trim())
 })
 
 const openOriginalLink = () => {
