@@ -164,8 +164,10 @@
                   </h3>
                   <div style="display: flex; flex-wrap: wrap; gap: 4px">
                     <span
+                      v-for="(tag, index) in item.tags"
+                      :key="tag.id"
+                      :index="index"
                       class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium"
-                      v-for="tag in item.tags"
                     >
                       {{ tag }}
                     </span>
@@ -210,11 +212,8 @@
 
                   <!-- 关闭 -->
                   <button
-                    @click="
-                      selectedCollection = null
-                      showAskAIPanel = false
-                    "
                     class="text-gray-500 hover:text-gray-700 focus:outline-none"
+                    @click="((selectedCollection = null), (showAskAIPanel = false))"
                   >
                     <svg
                       class="w-6 h-6"
@@ -493,7 +492,7 @@ const askAI = async () => {
 
     if (error.response) {
       // 服务器返回了错误状态码
-      const status = error.response.status
+      const status = error.response.code
       const data = error.response.data
 
       if (status === 404) {

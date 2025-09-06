@@ -83,8 +83,8 @@ export const queryKnowledgeBase = async (categoryId, query) => {
       throw error.response.data
     } else if (error.response) {
       throw {
-        detail: `HTTP ${error.response.status} 错误`,
-        status: error.response.status
+        detail: `HTTP ${error.response.code} 错误`,
+        status: error.response.code
       }
     } else {
       throw {

@@ -100,7 +100,7 @@ export const processUrlWithStreaming = async (url, onProgress) => {
 
   if (!response.ok) {
     const errorText = await response.text()
-    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
+    throw new Error(`HTTP error! status: ${response.code}, message: ${errorText}`)
   }
 
   if (!response.body) {

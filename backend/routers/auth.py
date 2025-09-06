@@ -77,7 +77,7 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
     await db.refresh(new_user)
     
     user_profile = UserProfile.model_validate(new_user)
-    return Response(status="success", message="注册成功", data=user_profile.model_dump())
+    return Response(code=200, message="注册成功", data=user_profile.model_dump())
 
 
 @router.post("/login")
@@ -101,14 +101,14 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
     )
     
     token = Token(access_token=access_token, token_type="bearer")
-    return Response(status="success", message="登录成功", data=token.model_dump())
+    return Response(code=200, message="登录成功", data=token.model_dump())
 
 
 @router.get("/profile")
 async def get_profile(current_user: User = Depends(get_current_user)):
     """获取用户个人信息"""
     user_profile = UserProfile.model_validate(current_user)
-    return Response(status="success", message="获取成功", data=user_profile.model_dump())
+    return Response(code=200, message="获取成功", data=user_profile.model_dump())
 
 
 @router.put("/profile")
@@ -137,4 +137,4 @@ async def update_profile(
     await db.refresh(current_user)
     
     user_profile = UserProfile.model_validate(current_user)
-    return Response(status="success", message="更新成功", data=user_profile.model_dump())
+    return Response(code=200, message="更新成功", data=user_profile.model_dump())

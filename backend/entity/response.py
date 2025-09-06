@@ -1,6 +1,9 @@
 from pydantic import BaseModel
+from typing import Generic, TypeVar
 
-class Response(BaseModel):
-    status: str
-    message: str
-    data: dict | None = None
+T = TypeVar("T")
+
+class Response(BaseModel, Generic[T]):
+    code: int = 200
+    message: str = "success"
+    data: T | None = None

@@ -2,12 +2,12 @@
   <div class="flex h-full bg-gray-50/80 overflow-hidden">
     <!-- 侧边栏 -->
     <div
-      @mouseenter="handleSidebarEnter"
-      @mouseleave="handleSidebarLeave"
       :class="[
         'bg-white/90 glass-effect border-r border-gray-100 flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out',
         sidebarExpanded ? 'w-56' : 'w-24'
       ]"
+      @mouseenter="handleSidebarEnter"
+      @mouseleave="handleSidebarLeave"
     >
       <!-- Logo区域 -->
       <div
@@ -40,13 +40,12 @@
       >
         <ul>
           <li
-            style="margin-bottom: 12px"
             v-for="item in menuItems"
             :key="item.id"
+            style="margin-bottom: 12px"
             :class="[!sidebarExpanded ? 'flex justify-center' : '']"
           >
             <button
-              @click="goMenu(item)"
               :class="[
                 'flex items-center rounded-lg text-left transition-all duration-0 ease-in-out btn-hover',
                 sidebarExpanded ? 'w-full space-x-3 px-3 py-2.5' : 'w-12 h-12 justify-center',
@@ -55,6 +54,7 @@
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               ]"
               :title="!sidebarExpanded ? item.name : ''"
+              @click="goMenu(item)"
             >
               <component
                 :is="item.icon"

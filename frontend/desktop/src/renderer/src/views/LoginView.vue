@@ -129,7 +129,7 @@ const handleSubmit = async () => {
         password: form.password
       })
 
-      if (response.status === 'success') {
+      if (response.code === 200) {
         successMessage.value = '登录成功！'
         setTimeout(() => {
           router.push({ name: 'Profile' })
@@ -143,7 +143,7 @@ const handleSubmit = async () => {
         password: form.password
       })
 
-      if (response.status === 'success') {
+      if (response.code === 200) {
         successMessage.value = '注册成功！请登录'
         setTimeout(() => {
           isLogin.value = true

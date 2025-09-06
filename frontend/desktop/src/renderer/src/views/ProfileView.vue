@@ -279,7 +279,7 @@ const refreshUserInfo = async () => {
   loading.value = true
   try {
     const response = await getUserProfile()
-    if (response.status === 'success') {
+    if (response.code === 200) {
       userInfo.value = response.data
       // 刷新头像
       await loadAvatar()
@@ -328,7 +328,7 @@ const updateProfile = async () => {
       email: editForm.email
     })
 
-    if (response.status === 'success') {
+    if (response.code === 200) {
       userInfo.value = response.data
       editSuccessMessage.value = '更新成功！'
       setTimeout(() => {
@@ -358,7 +358,7 @@ const handleAvatarUpload = async (event) => {
 
   try {
     const response = await uploadUserAvatar(file)
-    if (response.status === 'success') {
+    if (response.code === 200) {
       // 更新用户信息
       userInfo.value = response.data
       // 重新加载头像
@@ -391,7 +391,7 @@ const loadRecentPosts = async () => {
   recentPostsError.value = ''
   try {
     const res = await getUserPosts({ limit: 3 })
-    if (res.status === 'success' && res.data?.posts) {
+    if (res.code === 200 && res.data?.posts) {
       recentPosts.value = res.data.posts
     } else {
       recentPostsError.value = res.message || '推文获取失败'
