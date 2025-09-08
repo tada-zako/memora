@@ -107,7 +107,7 @@ const handlePublish = async () => {
 
     const result = await createPost(parseInt(props.collectionId), description.value.trim() || null)
 
-    if (result.status === 'success') {
+    if (result.code === 200) {
       emit('success', result)
       successMessage.value = '已成功发布到社区！'
       // 保持 loading 为 true，禁止再次点击

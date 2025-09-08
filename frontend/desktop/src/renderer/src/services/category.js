@@ -1,9 +1,22 @@
-import api from './api'
+import {
+  getCategoriesApi,
+  getCategoryApi,
+  createCategoryApi,
+  updateCategoryApi,
+  deleteCategoryApi,
+  createKnowledgeBaseApi,
+  queryKnowledgeBaseApi
+} from '@/api'
 
 // 获取所有分类
 export const getCategories = async () => {
   try {
-    const response = await api.get('/api/v1/category')
+    const response = await getCategoriesApi()
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取分类列表失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -13,7 +26,12 @@ export const getCategories = async () => {
 // 获取指定分类信息
 export const getCategory = async (categoryId) => {
   try {
-    const response = await api.get(`/api/v1/category/${categoryId}`)
+    const response = await getCategoryApi(categoryId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取分类信息失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -23,7 +41,12 @@ export const getCategory = async (categoryId) => {
 // 创建分类
 export const createCategory = async (categoryData) => {
   try {
-    const response = await api.post('/api/v1/category', categoryData)
+    const response = await createCategoryApi(categoryData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '创建分类失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -33,7 +56,12 @@ export const createCategory = async (categoryData) => {
 // 更新分类
 export const updateCategory = async (categoryId, categoryData) => {
   try {
-    const response = await api.put(`/api/v1/category/${categoryId}`, categoryData)
+    const response = await updateCategoryApi(categoryId, categoryData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '更新分类失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -43,7 +71,12 @@ export const updateCategory = async (categoryId, categoryData) => {
 // 删除分类
 export const deleteCategory = async (categoryId) => {
   try {
-    const response = await api.delete(`/api/v1/category/${categoryId}`)
+    const response = await deleteCategoryApi(categoryId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '删除分类失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -53,9 +86,12 @@ export const deleteCategory = async (categoryId) => {
 // 创建知识库
 export const createKnowledgeBase = async (categoryId) => {
   try {
-    const response = await api.post('/api/v1/category/create_knowledge_base', null, {
-      params: { category_id: categoryId }
-    })
+    const response = await createKnowledgeBaseApi(categoryId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '创建知识库失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -65,9 +101,12 @@ export const createKnowledgeBase = async (categoryId) => {
 // 查询知识库
 export const queryKnowledgeBase = async (categoryId, query) => {
   try {
-    const response = await api.get(`/api/v1/category/knowledge_base/${categoryId}`, {
-      params: { query }
-    })
+    const response = await queryKnowledgeBaseApi(categoryId, query)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '查询知识库失败')
+    }
+
     return response.data
   } catch (error) {
     console.error('查询知识库API错误:', {
@@ -83,8 +122,8 @@ export const queryKnowledgeBase = async (categoryId, query) => {
       throw error.response.data
     } else if (error.response) {
       throw {
-        detail: `HTTP ${error.response.code} 错误`,
-        status: error.response.code
+        detail: `HTTP ${error.response.status} 错误`,
+        status: error.response.status
       }
     } else {
       throw {

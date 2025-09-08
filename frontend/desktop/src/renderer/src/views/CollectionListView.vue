@@ -6,7 +6,7 @@
         <div class="flex justify-between items-start mb-2">
           <button
             @click="$router.back()"
-            class="px-2 py-1 bgconst createKnowledgeBase = async () => { if (!categoryId || creatingKnowledgeBase.value) return try { creatingKnowledgeBase.value = true const result = await apiCreateKnowledgeBase(categoryId) if (result.status === 'success') { // 知识库创建已启动，后台处理 alert('知识库创建已启动，请稍后刷新页面查看状态。') // 由于是后台任务，不立即重新获取数据 } } catch (error) { console.error('创建知识库失败:', error) alert('创建知识库失败: ' + (error.detail || error.message || '未知错误')) } finally { creatingKnowledgeBase.value = false } }-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
+            class="px-2 py-1 bgconst createKnowledgeBase = async () => { if (!categoryId || creatingKnowledgeBase.value) return try { creatingKnowledgeBase.value = true const result = await apiCreateKnowledgeBase(categoryId) if (result.code === ) { // 知识库创建已启动，后台处理 alert('知识库创建已启动，请稍后刷新页面查看状态。') // 由于是后台任务，不立即重新获取数据 } } catch (error) { console.error('创建知识库失败:', error) alert('创建知识库失败: ' + (error.detail || error.message || '未知错误')) } finally { creatingKnowledgeBase.value = false } }-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
             style="font-size: 12px"
           >
             <svg
@@ -381,7 +381,7 @@ const fetchCollectionsByCategory = async () => {
   loading.value = true
   try {
     const result = await getCollectionsByCategory(categoryId)
-    if (result.status === 'success' && result.data && result.data.collections) {
+    if (result.code === 200 && result.data && result.data.collections) {
       let collectionsData = result.data.collections || []
       // 将 tag 转成数组
       collectionsData = collectionsData.map((item) => ({
@@ -440,7 +440,7 @@ const createKnowledgeBase = async () => {
   try {
     creatingKnowledgeBase.value = true
     const result = await apiCreateKnowledgeBase(categoryId)
-    if (result.status === 'success') {
+    if (result.code === 200) {
       // 知识库创建已启动，后台处理
       alert('知识库创建已启动，请稍后刷新页面查看状态。请不要重复点击')
       // 可以添加一个定时器来检查状态，但暂时使用alert
@@ -471,7 +471,7 @@ const askAI = async () => {
     // 更详细的响应检查
     console.log('AI查询结果:', result)
 
-    if (result && result.status === 'success') {
+    if (result && result.code === 200) {
       if (result.data && result.data.response) {
         aiResponse.value = result.data.response
       } else if (result.data && result.data.length > 0) {
@@ -492,7 +492,7 @@ const askAI = async () => {
 
     if (error.response) {
       // 服务器返回了错误状态码
-      const status = error.response.code
+      const status = error.response.status
       const data = error.response.data
 
       if (status === 404) {

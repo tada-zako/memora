@@ -129,27 +129,27 @@ const handleSubmit = async () => {
         password: form.password
       })
 
-      if (response.code === 200) {
-        successMessage.value = '登录成功！'
-        setTimeout(() => {
-          router.push({ name: 'Profile' })
-        }, 1000)
-      }
+      // 本地存储 token
+      localStorage.setItem('access_token', response.access_token)
+      console.log('登录成功，token已保存:', response.access_token.substring(0, 20) + '...')
+
+      successMessage.value = '登录成功！'
+      setTimeout(() => {
+        router.push({ name: 'Profile' })
+      }, 1000)
     } else {
       // 注册
-      const response = await register({
+      await register({
         username: form.username,
         email: form.email,
         password: form.password
       })
 
-      if (response.code === 200) {
-        successMessage.value = '注册成功！请登录'
-        setTimeout(() => {
-          isLogin.value = true
-          form.password = ''
-        }, 1000)
-      }
+      successMessage.value = '注册成功！请登录'
+      setTimeout(() => {
+        isLogin.value = true
+        form.password = ''
+      }, 1000)
     }
   } catch (error) {
     errorMessage.value = error.detail || error.message || '操作失败，请重试'

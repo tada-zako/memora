@@ -63,6 +63,7 @@ async def streaming_create_collection_url(
     """
     Create a new collection which type is url reference
     """
+    # 不是哥们，这样手搓流式函数是吧...
     # step 1: created to collection table
     user_id = current_user.id
 
@@ -154,12 +155,14 @@ async def streaming_create_collection_url(
         },
     )
 
+    # 看笑了...
+
     # get category_id
     category_query = select(Category.id).where(Category.name == category, Category.user_id == user_id)
     category_result = await db.execute(category_query)
     category_id = category_result.scalar_one_or_none()
 
-    # step 2.5: update collection with category and tags
+    # step 3.5: update collection with category and tags
     if not category_id:
         category_id = -1
 
@@ -169,7 +172,7 @@ async def streaming_create_collection_url(
 
     await db.commit()
 
-    # step 3: llm summarize the content, using streaming
+    # step 4: llm summarize the content, using streaming
     summary_sys_prompt = PROMPT_SUMMARIZE_CONTENT
     summary_sys_prompt += f"\n\n{ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE}"
     summary_llm_resp = provider_openai.text_chat_stream(

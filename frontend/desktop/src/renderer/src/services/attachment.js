@@ -1,4 +1,10 @@
-import api from './api'
+import {
+  uploadAttachmentApi,
+  getAttachmentApi,
+  getAttachmentFileApi,
+  deleteAttachmentApi,
+  updateUserProfileApi
+} from '@/api'
 
 // 上传附件
 export const uploadAttachment = async (file, description = null) => {
@@ -9,11 +15,12 @@ export const uploadAttachment = async (file, description = null) => {
       formData.append('description', description)
     }
 
-    const response = await api.post('/api/v1/attachments/upload/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+    const response = await uploadAttachmentApi(formData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '上传附件失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -23,7 +30,12 @@ export const uploadAttachment = async (file, description = null) => {
 // 获取附件信息
 export const getAttachment = async (attachmentId) => {
   try {
-    const response = await api.get(`/api/v1/attachments/${attachmentId}`)
+    const response = await getAttachmentApi(attachmentId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取附件信息失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -33,9 +45,12 @@ export const getAttachment = async (attachmentId) => {
 // 获取附件文件 /api/v1/attachments/file/{attachment_id}
 export const getAttachmentFile = async (attachmentId) => {
   try {
-    const response = await api.get(`/api/v1/attachments/file/${attachmentId}`, {
-      responseType: 'blob' // 以二进制流的形式获取文件
-    })
+    const response = await getAttachmentFileApi(attachmentId)
+
+    if (response.status !== 200) {
+      throw new Error('获取附件文件失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -45,19 +60,57 @@ export const getAttachmentFile = async (attachmentId) => {
 // 删除附件
 export const deleteAttachment = async (attachmentId) => {
   try {
-    const response = await api.delete(`/api/v1/attachments/${attachmentId}`)
+    const response = await deleteAttachmentApi(attachmentId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '删除附件失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
   }
 }
 
-// 上传头像
+// 上传用户头像
 export const uploadAvatar = async (file) => {
   try {
-    const attachment = await uploadAttachment(file, 'avatar')
-    return attachment
+    // 验证上传文件类型
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/bmp'
+    ]
+
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('不支持的文件类型，请上传 JPG、PNG、GIF、WebP 或 BMP 格式的图片')
+    }
+
+    // 验证上传文件大小 (10MB)
+    const maxSize = 10 * 1024 * 1024
+    if (file.size > maxSize) {
+      throw new Error('文件大小不能超过 10MB')
+    }
+
+    // 上传头像
+    const attachment = await uploadAttachmentApi(file, 'avatar')
+
+    if (attachment.code !== 200) {
+      throw new Error(attachment.message || '上传头像失败')
+    }
+
+    // 更新用户头像信息
+    const attachmentData = attachment.data
+
+    const response = await updateUserProfileApi({
+      avatar_attachment_id: attachmentData.attachment_id
+    })
+
+    return response.data
   } catch (error) {
-    throw error
+    throw error.response?.data || error.message
   }
 }

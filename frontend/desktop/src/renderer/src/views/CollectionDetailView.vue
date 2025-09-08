@@ -239,7 +239,7 @@ const fetchDetails = async () => {
   loading.value = true
   try {
     const result = await getCollectionDetails(collectionId)
-    if (result.status === 'success' && result.data && result.data.details) {
+    if (result.code === 200 && result.data && result.data.details) {
       details.value = result.data.details
     } else {
       details.value = {}

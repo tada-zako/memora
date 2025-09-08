@@ -173,7 +173,7 @@ const fetchAttachmentCollectionsByCategory = async () => {
   loading.value = true
   try {
     const result = await getCollectionsByCategory(categoryId)
-    if (result.status === 'success' && result.data && result.data.collections) {
+    if (result.code === 200 && result.data && result.data.collections) {
       const filteredCollections = result.data.collections.filter(
         (item) => item.details && item.details.attachment
       )

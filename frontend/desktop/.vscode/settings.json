@@ -7,5 +7,13 @@
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "javascript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.suggest.autoImports": true,
+  "javascript.suggest.autoImports": true,
+  "path-intellisense.mappings": {
+    "@": "${workspaceRoot}/src/renderer/src",
+    "@renderer": "${workspaceRoot}/src/renderer/src"
   }
 }

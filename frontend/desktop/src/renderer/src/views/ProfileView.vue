@@ -279,11 +279,12 @@ const refreshUserInfo = async () => {
   loading.value = true
   try {
     const response = await getUserProfile()
-    if (response.code === 200) {
-      userInfo.value = response.data
-      // 刷新头像
-      await loadAvatar()
-    }
+    // 存储用户信息
+    localStorage.setItem('user_info', JSON.stringify(response))
+  
+    userInfo.value = response
+    // 刷新头像
+    await loadAvatar()
   } catch (error) {
     console.error('获取用户信息失败:', error)
   } finally {
@@ -328,13 +329,13 @@ const updateProfile = async () => {
       email: editForm.email
     })
 
-    if (response.code === 200) {
-      userInfo.value = response.data
-      editSuccessMessage.value = '更新成功！'
-      setTimeout(() => {
-        showEditModal.value = false
-      }, 1000)
-    }
+    // 更新本地存储的用户信息
+    localStorage.setItem('user_info', JSON.stringify(response))
+    userInfo.value = response
+    editSuccessMessage.value = '更新成功！'
+    setTimeout(() => {
+      showEditModal.value = false
+    }, 1000)
   } catch (error) {
     editErrorMessage.value = error.detail || error.message || '更新失败，请重试'
   } finally {

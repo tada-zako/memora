@@ -416,7 +416,7 @@ const loadPosts = async (page = 1) => {
 
     const result = await getPosts(page, 10)
 
-    if (result.status === 'success' && result.data && result.data.posts) {
+    if (result.code === 200 && result.data && result.data.posts) {
       const newPosts = await Promise.all(
         result.data.posts.map(async (post) => {
           return {
@@ -503,7 +503,7 @@ const loadComments = async (post, page = 1) => {
 
     const result = await getPostComments(post.post_id, page, 5)
 
-    if (result.status === 'success' && result.data && result.data.comments) {
+    if (result.code === 200 && result.data && result.data.comments) {
       const newComments = await Promise.all(
         result.data.comments.map(async (comment) => {
           return {
@@ -545,7 +545,7 @@ const submitComment = async (post) => {
 
     const result = await createComment(post.post_id, post.newComment.trim())
 
-    if (result.status === 'success' && result.data && result.data.comment) {
+    if (result.code === 200 && result.data && result.data.comment) {
       // 在评论列表顶部添加新评论
       post.comments.unshift(result.data.comment)
       post.comments_count += 1

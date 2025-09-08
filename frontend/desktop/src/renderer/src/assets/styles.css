@@ -49,6 +49,11 @@ body {
   background: rgba(156, 163, 175, 0.5);
 }
 
+/* 添加系统主题css变量 */
+@theme {
+  --color-primary: 
+}
+
 /* 心情滑块样式 */
 .mood-slider::-webkit-slider-thumb {
   appearance: none;

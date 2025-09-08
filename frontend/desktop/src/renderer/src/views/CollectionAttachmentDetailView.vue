@@ -258,7 +258,7 @@ const fetchCollectionAndAttachment = async () => {
     }
 
     const tags =
-      tagsResult.status === 'success' && tagsResult.data?.tags ? tagsResult.data.tags.join(',') : ''
+      tagsResult.code === 200 && tagsResult.data?.tags ? tagsResult.data.tags.join(',') : ''
 
     // 获取附件信息
     const attachmentId = collectionDetails.attachment

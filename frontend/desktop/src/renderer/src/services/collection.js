@@ -1,9 +1,26 @@
-import api from './api'
+import {
+  getCollectionsByCategoryApi,
+  getCollectionDetailsApi,
+  getPublicCollectionDetailsApi,
+  getCollectionTagsApi,
+  updateCollectionTagsApi,
+  createUrlCollectionApi,
+  createPictureCollectionApi,
+  updateCollectionDetailsApi,
+  processUrlWithProgressApi,
+  deleteCollectionApi,
+  healthCheckApi
+} from '@/api'
 
 // 根据分类ID获取收藏列表
 export const getCollectionsByCategory = async (categoryId) => {
   try {
-    const response = await api.get(`/api/v1/collection/by_category/${categoryId}`)
+    const response = await getCollectionsByCategoryApi(categoryId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取收藏列表失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -13,7 +30,12 @@ export const getCollectionsByCategory = async (categoryId) => {
 // 获取收藏详情
 export const getCollectionDetails = async (collectionId) => {
   try {
-    const response = await api.get(`/api/v1/collection/${collectionId}/details`)
+    const response = await getCollectionDetailsApi(collectionId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取收藏详情失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -23,7 +45,12 @@ export const getCollectionDetails = async (collectionId) => {
 // 获取公共收藏详情（无需登录）
 export const getPublicCollectionDetails = async (collectionId) => {
   try {
-    const response = await api.get(`/api/v1/collection/public/${collectionId}/details`)
+    const response = await getPublicCollectionDetailsApi(collectionId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取公共收藏详情失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -33,7 +60,12 @@ export const getPublicCollectionDetails = async (collectionId) => {
 // 获取收藏标签
 export const getCollectionTags = async (collectionId) => {
   try {
-    const response = await api.get(`/api/v1/collection/${collectionId}/tags`)
+    const response = await getCollectionTagsApi(collectionId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取收藏标签失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -43,9 +75,12 @@ export const getCollectionTags = async (collectionId) => {
 // 更新收藏标签
 export const updateCollectionTags = async (collectionId, tags) => {
   try {
-    const response = await api.put(`/api/v1/collection/${collectionId}/tags`, {
-      tags: tags
-    })
+    const response = await updateCollectionTagsApi(collectionId, tags)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '更新收藏标签失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -55,7 +90,12 @@ export const updateCollectionTags = async (collectionId, tags) => {
 // 创建URL收藏
 export const createUrlCollection = async (collectionData) => {
   try {
-    const response = await api.post('/api/v1/collection/url', collectionData)
+    const response = await createUrlCollectionApi(collectionData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '创建URL收藏失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -65,7 +105,12 @@ export const createUrlCollection = async (collectionData) => {
 // 创建图片收藏
 export const createPictureCollection = async (collectionData) => {
   try {
-    const response = await api.post('/api/v1/collection/picture', collectionData)
+    const response = await createPictureCollectionApi(collectionData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '创建图片收藏失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -75,72 +120,64 @@ export const createPictureCollection = async (collectionData) => {
 // 更新集合的某个详情，如URL或摘要
 export const updateCollectionDetail = async (collectionId, key, value) => {
   try {
-    const response = await api.put(`/api/v1/collection/${collectionId}/details/${key}`, {
-      value: value
-    })
+    const response = await updateCollectionDetailsApi(collectionId, key, value)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '更新集合详情失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
   }
 }
 
+// 使用流式处理URL并获取进度更新
 export const processUrlWithStreaming = async (url, onProgress) => {
-  const token = localStorage.getItem('access_token')
-  const apiBaseUrl = 'http://localhost:8000' // Keep the base URL as you requested
+  try {
+    const responseStream = await processUrlWithProgressApi(url)
+    const reader = responseStream.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
 
-  const response = await fetch(`${apiBaseUrl}/api/v1/collection/url`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'text/event-stream',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({ url })
-  })
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) {
+        break
+      }
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`HTTP error! status: ${response.code}, message: ${errorText}`)
-  }
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
 
-  if (!response.body) {
-    throw new Error('Response body is empty')
-  }
-
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) {
-      break
-    }
-
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() || ''
-
-    for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        try {
-          const jsonStr = line.slice(6)
-          if (jsonStr) {
-            const data = JSON.parse(jsonStr)
-            onProgress(data)
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const jsonStr = line.slice(6)
+            if (jsonStr) {
+              const data = JSON.parse(jsonStr)
+              onProgress(data)
+            }
+          } catch (error) {
+            console.error('Error parsing SSE event:', error, 'raw line:', line)
           }
-        } catch (error) {
-          console.error('Error parsing SSE event:', error, 'raw line:', line)
         }
       }
     }
+  } catch (error) {
+    throw error.message || '流式处理网页URL失败'
   }
 }
 
 // 删除收藏
 export const deleteCollection = async (collectionId) => {
   try {
-    const response = await api.delete(`/api/v1/collection/${collectionId}`)
+    const response = await deleteCollectionApi(collectionId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '删除收藏失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -150,7 +187,12 @@ export const deleteCollection = async (collectionId) => {
 // 健康检查
 export const healthCheck = async () => {
   try {
-    const response = await api.get('/api/v1/health')
+    const response = await healthCheckApi()
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '健康检查失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message

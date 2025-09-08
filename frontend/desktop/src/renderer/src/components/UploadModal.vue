@@ -288,7 +288,7 @@ const handleUpload = async () => {
       category: category.value.trim()
     })
 
-    if (collectionResult.status === 'success') {
+    if (collectionResult.code === 200) {
       // 显示成功通知
       showNotification(
         'success',
