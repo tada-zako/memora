@@ -108,8 +108,7 @@
 <script setup>
 import { ref, onMounted, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getCollectionsByCategory } from '../services/collection'
-import { getAttachment } from '../services/attachment'
+import { getAttachmentCollectionsByCategory } from '../services/collection'
 import { isAuthenticated } from '../services/auth'
 
 // Icons
@@ -162,6 +161,7 @@ const categoryId = route.params.category_id
 const collections = ref([])
 const loading = ref(false)
 
+// 基于分类获取带有附件属性的收藏
 const fetchAttachmentCollectionsByCategory = async () => {
   // 检查用户是否已登录
   if (!isAuthenticated()) {
@@ -171,46 +171,19 @@ const fetchAttachmentCollectionsByCategory = async () => {
   }
 
   loading.value = true
+
   try {
-    const result = await getCollectionsByCategory(categoryId)
-    if (result.code === 200 && result.data && result.data.collections) {
-      const filteredCollections = result.data.collections.filter(
-        (item) => item.details && item.details.attachment
-      )
-
-      const collectionsWithDetails = await Promise.all(
-        filteredCollections.map(async (collection) => {
-          try {
-            const attachmentId = collection.details.attachment
-            const attachmentDetails = await getAttachment(attachmentId)
-            return {
-              ...collection,
-              description: attachmentDetails.description,
-              imageUrl: attachmentDetails.url
-            }
-          } catch (e) {
-            console.error(`获取 collection ${collection.id} 的附件详情失败:`, e)
-            return {
-              ...collection,
-              description: '描述加载失败',
-              imageUrl: null
-            }
-          }
-        })
-      )
-
-      collections.value = collectionsWithDetails
-    } else {
-      collections.value = []
-    }
+    const collectionsWithDetails = await getAttachmentCollectionsByCategory(categoryId)
+    collections.value = collectionsWithDetails
   } catch (e) {
-    console.error('获取附件收藏失败:', e)
-    collections.value = []
-    // 如果是认证错误，重定向到登录页面
-    if (e.detail === 'Not authenticated' || e.message?.includes('401')) {
+    // 认证错误，重定向到登录页面
+    if (e.code === 'AUTH_REQUIRED') {
       console.log('认证失败，跳转到登录页面')
       router.push('/login')
     }
+
+    // 打印错误
+    console.error('获取失败', e)
   } finally {
     loading.value = false
   }

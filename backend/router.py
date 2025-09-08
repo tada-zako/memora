@@ -11,7 +11,7 @@ from routers.category import router as category_router
 from routers.auth import router as auth_router
 from routers.community import router as community_router
 from routers.static import mount_static_files
-
+from entity.response import Response
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -67,18 +67,18 @@ mount_static_files(app)
 
 
 # Add root endpoint
-@app.get("/api/v1/health")
+@app.get("/api/v1/health", response_model=Response[dict])
 async def root():
     """
     Root endpoint
     """
-    return {"message": "Memora API", "status": "running", "version": "1.0.0"}
+    return Response(data={"message": "Memora API", "status": "running", "version": "1.0.0"})
 
 
 # Add health check endpoint
-@app.get("/api/v1/health")
+@app.get("/api/v1/health", response_model=Response[dict])
 async def health_check():
     """
     Simple health check endpoint
     """
-    return {"status": "healthy", "message": "Memora API is running"}
+    return Response(data={"status": "healthy", "message": "Memora API is running"})

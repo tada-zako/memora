@@ -239,11 +239,13 @@ const fetchDetails = async () => {
   loading.value = true
   try {
     const result = await getCollectionDetails(collectionId)
-    if (result.code === 200 && result.data && result.data.details) {
-      details.value = result.data.details
-    } else {
+
+    if (!result?.details) {
       details.value = {}
+      return
     }
+
+    details.value = result.details
   } catch (e) {
     details.value = {}
     // 如果是认证错误，重定向到登录页面

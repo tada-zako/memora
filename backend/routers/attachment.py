@@ -74,7 +74,7 @@ def save_file(file: UploadFile) -> str:
     return str(file_path)
 
 # Upload attachment endpoint
-@router.post("/upload/", response_model=AttachmentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/upload/", response_model=Response[AttachmentResponse], status_code=status.HTTP_201_CREATED)
 async def upload_attachment(
     description: Optional[str] = Form(None),
     file: UploadFile = File(...),
@@ -102,7 +102,7 @@ async def upload_attachment(
         await db.commit()
         await db.refresh(db_attachment)
         
-        return db_attachment
+        return Response(data=db_attachment)
         
     except Exception as e:
         # Clean up file if database operation fails

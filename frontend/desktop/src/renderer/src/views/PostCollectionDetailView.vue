@@ -253,8 +253,8 @@ const fetchCollectionDetails = async () => {
     // 如果有postId，使用推文收藏详情接口
     if (postId) {
       result = await getPostCollectionDetails(postId)
-      if (result.code === 200 && result.data && result.data.collection) {
-        collection.value = result.data.collection
+      if (result && result.collection) {
+        collection.value = result.collection
       } else {
         throw new Error('无法获取收藏详情')
       }
@@ -262,8 +262,8 @@ const fetchCollectionDetails = async () => {
     // 如果有collectionId，使用公共收藏详情接口
     else if (collectionId) {
       result = await getPublicCollectionDetails(collectionId)
-      if (result.code === 200 && result.data && result.data.collection) {
-        collection.value = result.data.collection
+      if (result && result.collection) {
+        collection.value = result.collection
       } else {
         throw new Error('无法获取收藏详情')
       }

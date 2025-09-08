@@ -327,6 +327,7 @@ import UploadModal from '../components/UploadModal.vue'
 import { getCategories, deleteCategory } from '../services/category'
 import { getCollectionsByCategory } from '../services/collection'
 import { isAuthenticated, getLocalUserInfo, refreshAuthStatus } from '../services/auth'
+import { uploadAttachment } from '@/services/attachment'
 import '../services/debug' // 引入调试工具
 
 const router = useRouter()
@@ -367,8 +368,8 @@ const fetchCollections = async () => {
   try {
     const result = await getCategories()
 
-    if (result.code === 200 && result.data && result.data.categories) {
-      collections.value = result.data.categories.map((category, index) => ({
+    if (result && result.categories) {
+      collections.value = result.categories.map((category, index) => ({
         id: category.id,
         name: category.name,
         icon: category.emoji || '📚',
@@ -400,8 +401,8 @@ const viewCollection = async (collection) => {
     // 先获取该分类下的collections来检查是否有attachment
     const result = await getCollectionsByCategory(collection.id)
 
-    if (result.code === 200 && result.data && result.data.collections) {
-      const collections = result.data.collections
+    if (result && result.collections) {
+      const collections = result.collections
 
       // 检查是否有任何collection包含attachment
       const hasAttachment = collections.some((item) => item.details && item.details.attachment)

@@ -515,7 +515,7 @@ const isUpdating = ref(false)
 const isTesting = ref(false)
 
 // 事件数据 (简化版，只用于保存事件)
-const events = ref([])
+// const events = ref([])
 
 // 彩蛋：F11按键计数器
 const f11PressCount = ref(0)
@@ -851,7 +851,7 @@ const fetchCollectionTags = async (collectionId) => {
 
     const result = await getCollectionTags(collectionId)
     console.log('获取标签成功:', result)
-    return result.data.tags
+    return result.tags
   } catch (error) {
     console.error('获取集合标签失败:', error)
     statusMessage.value = {
@@ -874,7 +874,7 @@ const updateCollectionTags = async (collectionId, tags) => {
 
     const result = await updateTagsAPI(collectionId, tags)
     console.log('更新标签响应:', result)
-    return result.data.tags
+    return result.tags
   } catch (error) {
     console.error('更新集合标签失败:', error)
     statusMessage.value = {

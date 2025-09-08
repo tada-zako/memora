@@ -4,7 +4,7 @@ import {
   deletePostApi,
   getPostsApi,
   likeAssetApi,
-  unlikeAsset as unlikeAssetApi,
+  unlikeAssetApi,
   createCommentApi,
   getPostCommentsApi,
   deleteCommentApi,
@@ -160,8 +160,6 @@ export const getPostCollectionDetails = async (postId) => {
 // 获取当前用户推文列表
 export const getUserPosts = async (page = 1, limit = 20) => {
   try {
-    // getUserPostsApi 需要 userId 参数，但这里我们需要获取当前用户的推文
-    // 暂时使用 null 作为 userId，API层需要处理这种情况
     const response = await getUserPostsApi(page, limit)
 
     if (response.code !== 200) {

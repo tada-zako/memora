@@ -224,9 +224,9 @@ import {
   getUserProfile,
   updateUserProfile,
   logout,
-  uploadUserAvatar,
   getUserAvatarUrl
 } from '../services/auth'
+import { uploadAvatar } from '../services/attachment'
 import { getUserPosts } from '../services/community' // 新增：引入获取用户推文API
 
 const router = useRouter()
@@ -358,19 +358,17 @@ const handleAvatarUpload = async (event) => {
   avatarUploading.value = true
 
   try {
-    const response = await uploadUserAvatar(file)
-    if (response.code === 200) {
-      // 更新用户信息
-      userInfo.value = response.data
-      // 重新加载头像
-      await loadAvatar()
+    const response = await uploadAvatar(file)
+    // 更新用户信息
+    userInfo.value = response.data
+    // 重新加载头像
+    await loadAvatar()
 
-      // 可以显示成功提示
-      editSuccessMessage.value = '头像上传成功！'
-      setTimeout(() => {
-        editSuccessMessage.value = ''
-      }, 3000)
-    }
+    // 可以显示成功提示
+    editSuccessMessage.value = '头像上传成功！'
+    setTimeout(() => {
+      editSuccessMessage.value = ''
+    }, 3000)
   } catch (error) {
     console.error('头像上传失败:', error)
     editErrorMessage.value = error.message || '头像上传失败，请重试'
@@ -392,8 +390,8 @@ const loadRecentPosts = async () => {
   recentPostsError.value = ''
   try {
     const res = await getUserPosts({ limit: 3 })
-    if (res.code === 200 && res.data?.posts) {
-      recentPosts.value = res.data.posts
+    if (res.posts) {
+      recentPosts.value = res.posts
     } else {
       recentPostsError.value = res.message || '推文获取失败'
       recentPosts.value = []

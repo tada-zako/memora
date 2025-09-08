@@ -416,9 +416,9 @@ const loadPosts = async (page = 1) => {
 
     const result = await getPosts(page, 10)
 
-    if (result.code === 200 && result.data && result.data.posts) {
+    if (result && result.posts) {
       const newPosts = await Promise.all(
-        result.data.posts.map(async (post) => {
+        result.posts.map(async (post) => {
           return {
             ...post,
             showComments: false,
@@ -503,9 +503,9 @@ const loadComments = async (post, page = 1) => {
 
     const result = await getPostComments(post.post_id, page, 5)
 
-    if (result.code === 200 && result.data && result.data.comments) {
+    if (result && result.comments) {
       const newComments = await Promise.all(
-        result.data.comments.map(async (comment) => {
+        result.comments.map(async (comment) => {
           return {
             ...comment,
             avatar_url: await buildAvatarUrl(comment.user?.avatar_attachment_id)
@@ -519,7 +519,7 @@ const loadComments = async (post, page = 1) => {
         post.comments.push(...newComments)
       }
 
-      post.hasMoreComments = result.data.comments.length === 5
+      post.hasMoreComments = result.comments.length === 5
       post.commentsPage = page
     }
   } catch (error) {
@@ -545,9 +545,9 @@ const submitComment = async (post) => {
 
     const result = await createComment(post.post_id, post.newComment.trim())
 
-    if (result.code === 200 && result.data && result.data.comment) {
+    if (result && result.comment) {
       // 在评论列表顶部添加新评论
-      post.comments.unshift(result.data.comment)
+      post.comments.unshift(result.comment)
       post.comments_count += 1
       post.newComment = ''
     }

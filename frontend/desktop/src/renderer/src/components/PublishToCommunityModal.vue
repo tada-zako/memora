@@ -9,7 +9,7 @@
       <!-- 模态框头部 -->
       <div class="flex items-center justify-between p-6 border-b border-gray-200">
         <h3 class="text-lg font-semibold text-gray-900">发布到社区</h3>
-        <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <button class="text-gray-400 hover:text-gray-600 transition-colors" @click="closeModal">
           <XIcon class="w-5 h-5" />
         </button>
       </div>
@@ -37,16 +37,16 @@
       <!-- 模态框底部 -->
       <div class="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
         <button
-          @click="closeModal"
-          class="px-4 py-2 bg-white text-black border border-black rounded-lg hover:bg-gray-100 transition-colors font-medium"
           :disabled="loading"
+          class="px-4 py-2 bg-white text-black border border-black rounded-lg hover:bg-gray-100 transition-colors font-medium"
+          @click="closeModal"
         >
           取消
         </button>
         <button
-          @click="handlePublish"
-          :disabled="loading"
           class="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          :disabled="loading"
+          @click="handlePublish"
         >
           <span
             v-if="loading"
@@ -107,16 +107,14 @@ const handlePublish = async () => {
 
     const result = await createPost(parseInt(props.collectionId), description.value.trim() || null)
 
-    if (result.code === 200) {
-      emit('success', result)
-      successMessage.value = '已成功发布到社区！'
-      // 保持 loading 为 true，禁止再次点击
-      setTimeout(() => {
-        loading.value = false
-        closeModal()
-      }, 1500)
-      return // 不再执行 finally 的 closeModal
-    }
+    emit('success', result)
+    successMessage.value = '已成功发布到社区！'
+    // 保持 loading 为 true，禁止再次点击
+    setTimeout(() => {
+      loading.value = false
+      closeModal()
+    }, 1500)
+    return // 不再执行 finally 的 closeModal
   } catch (error) {
     console.error('发布失败:', error)
 

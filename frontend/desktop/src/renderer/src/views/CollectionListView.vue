@@ -381,20 +381,22 @@ const fetchCollectionsByCategory = async () => {
   loading.value = true
   try {
     const result = await getCollectionsByCategory(categoryId)
-    if (result.code === 200 && result.data && result.data.collections) {
-      let collectionsData = result.data.collections || []
-      // 将 tag 转成数组
-      collectionsData = collectionsData.map((item) => ({
-        ...item,
-        tags: item.tags ? item.tags.split(',').map((tag) => tag.trim()) : []
-      }))
-      collections.value = collectionsData
-      filteredCollections.value = collectionsData // 初始化过滤列表
-      category.value = result.data.category
-    } else {
+
+    if (!result?.collections) {
       collections.value = []
       filteredCollections.value = []
+      return
     }
+
+    let collectionsData = result.collections || []
+    // 将 tag 转成数组
+    collectionsData = collectionsData.map((item) => ({
+      ...item,
+      tags: item.tags ? item.tags.split(',').map((tag) => tag.trim()) : []
+    }))
+    collections.value = collectionsData
+    filteredCollections.value = collectionsData // 初始化过滤列表
+    category.value = result.category
   } catch (e) {
     collections.value = []
     filteredCollections.value = []
@@ -439,12 +441,10 @@ const createKnowledgeBase = async () => {
 
   try {
     creatingKnowledgeBase.value = true
-    const result = await apiCreateKnowledgeBase(categoryId)
-    if (result.code === 200) {
-      // 知识库创建已启动，后台处理
-      alert('知识库创建已启动，请稍后刷新页面查看状态。请不要重复点击')
-      // 可以添加一个定时器来检查状态，但暂时使用alert
-    }
+    await apiCreateKnowledgeBase(categoryId)
+    // 知识库创建已启动，后台处理
+    alert('知识库创建已启动，请稍后刷新页面查看状态。请不要重复点击')
+    // 可以添加一个定时器来检查状态，但暂时使用alert
   } catch (error) {
     console.error('创建知识库失败:', error)
     alert('创建知识库失败: ' + (error.detail || error.message || '未知错误'))
@@ -471,18 +471,19 @@ const askAI = async () => {
     // 更详细的响应检查
     console.log('AI查询结果:', result)
 
-    if (result && result.code === 200) {
-      if (result.data && result.data.response) {
-        aiResponse.value = result.data.response
-      } else if (result.data && result.data.length > 0) {
-        // 如果返回的是数组，尝试提取第一个元素
-        aiResponse.value = result.data[0] || '抱歉，没有找到相关信息。'
-      } else {
-        aiResponse.value = 'AI返回了空响应，请重试。'
-      }
-    } else {
+    if (!result) {
       console.warn('AI查询返回非成功状态:', result)
-      aiResponse.value = 'AI查询失败: ' + (result?.message || '返回状态异常')
+      aiResponse.value = 'AI查询失败: ' + (result || '返回状态异常')
+      return
+    }
+
+    if (result.response) {
+      aiResponse.value = result.response
+    } else if (result.length > 0) {
+      // 如果返回的是数组，尝试提取第一个元素
+      aiResponse.value = result[0] || '抱歉，没有找到相关信息。'
+    } else {
+      aiResponse.value = 'AI返回了空响应，请重试。'
     }
   } catch (error) {
     console.error('AI查询失败:', error)

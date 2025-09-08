@@ -158,8 +158,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, h, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getCollectionDetails, getCollectionTags } from '../services/collection'
-import { getAttachment } from '../services/attachment'
+import { getCollectionWithAttachment } from '../services/collection'
 import { isAuthenticated } from '../services/auth'
 
 // Icons
@@ -228,6 +227,7 @@ const loading = ref(true)
 const error = ref(null)
 const showImageModal = ref(false)
 
+// 请求收藏和附件详情
 const fetchCollectionAndAttachment = async () => {
   // 检查用户是否已登录
   if (!isAuthenticated()) {
@@ -240,45 +240,16 @@ const fetchCollectionAndAttachment = async () => {
   error.value = null
 
   try {
-    // 并行获取数据以提高性能
-    const [detailsResult, tagsResult] = await Promise.all([
-      getCollectionDetails(collectionId),
-      getCollectionTags(collectionId)
-    ])
-
-    if (detailsResult.status !== 'success' || !detailsResult.data?.details) {
-      throw new Error('无法获取收藏详情')
-    }
-
-    const collectionDetails = detailsResult.data.details
-
-    // 检查是否有 attachment
-    if (!collectionDetails.attachment) {
-      throw new Error('此收藏没有关联的附件')
-    }
-
-    const tags =
-      tagsResult.code === 200 && tagsResult.data?.tags ? tagsResult.data.tags.join(',') : ''
-
-    // 获取附件信息
-    const attachmentId = collectionDetails.attachment
-    const attachmentResult = await getAttachment(attachmentId)
-
-    attachment.value = attachmentResult
-
-    // 构建 collection 对象
-    collection.value = {
-      id: parseInt(collectionId),
-      category_id: 'unknown', // 这个信息在当前API中无法获取
-      tags: tags,
-      details: collectionDetails,
-      created_at: attachmentResult.created_at, // 使用附件的创建时间作为参考
-      updated_at: attachmentResult.created_at
-    }
+    // 使用服务函数获取完整数据
+    const result = await getCollectionWithAttachment(collectionId)
+    
+    collection.value = result.collection
+    attachment.value = result.attachment
   } catch (e) {
     error.value = e.message
+    
     // 如果是认证错误，重定向到登录页面
-    if (e.detail === 'Not authenticated' || e.message?.includes('401')) {
+    if (e.code === 'AUTH_REQUIRED') {
       console.log('认证失败，跳转到登录页面')
       router.push('/login')
     }
