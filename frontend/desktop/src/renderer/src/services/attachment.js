@@ -46,12 +46,13 @@ export const getAttachment = async (attachmentId) => {
 export const getAttachmentFile = async (attachmentId) => {
   try {
     const response = await getAttachmentFileApi(attachmentId)
-
-    if (response.status !== 200) {
-      throw new Error('获取附件文件失败')
-    }
-
-    return response.data
+    const fileBlob = new Blob([response], { type: 'application/octet-stream' })
+    const fileURL = URL.createObjectURL(fileBlob)
+    const link = document.createElement('a')
+    link.href = fileURL
+    link.download = '' // Let the browser decide the filename
+    link.click()
+    URL.revokeObjectURL(fileURL)
   } catch (error) {
     throw error.response?.data || error.message
   }
