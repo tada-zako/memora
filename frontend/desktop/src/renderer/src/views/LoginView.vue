@@ -6,14 +6,14 @@
           <img src="../assets/icon.png" alt="Memora Logo" class="h-12 w-12">
         </div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {{ isLogin ? '登录到你的账户' : '创建新账户' }}
+          {{ isLogin ? t('login.loginTitle') : t('login.registerTitle') }}
         </h2>
         <p class="mt-2 text-center text-sm text-gray-600">
           <button 
             @click="toggleMode"
             class="font-medium text-black hover:text-indigo-500"
           >
-            {{ isLogin ? '还没有账户？立即注册' : '已有账户？立即登录' }}
+            {{ isLogin ? t('login.noAccount') : t('login.hasAccount') }}
           </button>
         </p>
       </div>
@@ -22,7 +22,7 @@
         <div class="rounded-md shadow-sm -space-y-px">
           <!-- 注册时显示邮箱字段 -->
           <div v-if="!isLogin">
-            <label for="email" class="sr-only">邮箱地址</label>
+            <label for="email" class="sr-only">{{ t('login.email') }}</label>
             <input
               id="email"
               name="email"
@@ -31,12 +31,12 @@
               required
               v-model="form.email"
               class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="邮箱地址"
+              :placeholder="t('login.email')"
             />
           </div>
           
           <div>
-            <label for="username" class="sr-only">用户名</label>
+            <label for="username" class="sr-only">{{ t('login.username') }}</label>
             <input
               id="username"
               name="username"
@@ -48,12 +48,12 @@
                 'relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm',
                 isLogin ? 'rounded-t-md' : ''
               ]"
-              placeholder="用户名"
+              :placeholder="t('login.username')"
             />
           </div>
           
           <div>
-            <label for="password" class="sr-only">密码</label>
+            <label for="password" class="sr-only">{{ t('login.password') }}</label>
             <input
               id="password"
               name="password"
@@ -62,7 +62,7 @@
               required
               v-model="form.password"
               class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="密码"
+              :placeholder="t('login.password')"
             />
           </div>
         </div>
@@ -83,8 +83,8 @@
             :disabled="loading"
             class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            <span v-if="loading">处理中...</span>
-            <span v-else>{{ isLogin ? '登录' : '注册' }}</span>
+            <span v-if="loading">{{ t('login.processing') }}</span>
+            <span v-else>{{ isLogin ? t('login.login') : t('login.register') }}</span>
           </button>
         </div>
       </form>
@@ -95,8 +95,10 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { login, register } from '../services/auth'
 
+const { t } = useI18n()
 const router = useRouter()
 const isLogin = ref(true)
 const loading = ref(false)
@@ -133,7 +135,7 @@ const handleSubmit = async () => {
       })
       
       if (response.status === 'success') {
-        successMessage.value = '登录成功！'
+        successMessage.value = t('login.loginSuccess')
         setTimeout(() => {
           router.push({ name: 'Profile' })
         }, 1000)
@@ -147,7 +149,7 @@ const handleSubmit = async () => {
       })
       
       if (response.status === 'success') {
-        successMessage.value = '注册成功！请登录'
+        successMessage.value = t('login.registerSuccess')
         setTimeout(() => {
           isLogin.value = true
           form.password = ''
@@ -155,7 +157,7 @@ const handleSubmit = async () => {
       }
     }
   } catch (error) {
-    errorMessage.value = error.detail || error.message || '操作失败，请重试'
+    errorMessage.value = error.detail || error.message || t('login.operationFailed')
   } finally {
     loading.value = false
   }

@@ -11,7 +11,7 @@
                 <Earth class="text-black-400 w-8 h-8" />
               </div>
               <div>
-                <h1 class="text-2xl font-bold text-gray-900">社区</h1>
+                <h1 class="text-2xl font-bold text-gray-900">{{ t('community.title') }}</h1>
               </div>
             </div>
             <!-- 刷新按钮 -->
@@ -22,7 +22,7 @@
               title="刷新"
             >
               <RefreshIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-              <span>{{ loading ? '刷新中...' : '刷新' }}</span>
+              <span>{{ loading ? t('community.refreshing') : t('community.refresh') }}</span>
             </button>
         </div>
 
@@ -30,7 +30,7 @@
         <div v-if="loading && posts.length === 0" class="flex justify-center py-12">
           <div class="flex items-center gap-2 text-gray-500">
             <div class="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-            加载中...
+            {{ t('community.loading') }}
           </div>
         </div>
 
@@ -46,7 +46,7 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                    <img v-if="post.avatar_url" :src="post.avatar_url" alt="Avatar" class="w-full h-full object-cover">
+                    <img v-if="post.avatar_url" :src="post.avatar_url" :alt="t('profile.avatar')" class="w-full h-full object-cover">
                     <User v-else class="w-6 h-6 text-gray-500" />
                   </div>
                   <div>
@@ -80,7 +80,7 @@
                   @click="post.showFullDescription = !post.showFullDescription"
                   class="text-blue-600 hover:text-blue-700 text-sm mt-1"
                 >
-                  {{ post.showFullDescription ? '收起' : '展开' }}
+                  {{ post.showFullDescription ? t('community.collapse') : t('community.expand') }}
                 </button>
               </div>
             </div>
@@ -154,14 +154,14 @@
               <div class="p-4">
                 <div class="flex gap-3 items-center">
                   <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    <img v-if="currentUser && currentUser.avatar_attachment_id" :src="buildAvatarUrl(currentUser.avatar_attachment_id)" alt="My Avatar" class="w-full h-full object-cover">
+                    <img v-if="currentUser && currentUser.avatar_attachment_id" :src="buildAvatarUrl(currentUser.avatar_attachment_id)" :alt="t('community.myAvatar')" class="w-full h-full object-cover">
                     <span v-else class="text-white font-semibold text-xs">我</span>
                   </div>
                   <div class="flex-1 flex items-center bg-gray-100 rounded-lg px-2">
                     <input
                       v-model="post.newComment"
                       type="text"
-                      placeholder="写下你的评论..."
+                      :placeholder="t('community.writeComment')"
                       class="flex-1 bg-transparent border-none border-radius-lg outline-none py-3 text-sm"
                       @keyup.enter="submitComment(post)"
                       :disabled="post.commentLoading"
@@ -187,7 +187,7 @@
                   class="flex gap-3 mb-4 last:mb-0"
                 >
                   <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    <img v-if="comment.avatar_url" :src="comment.avatar_url" alt="Comment Avatar" class="w-full h-full object-cover">
+                    <img v-if="comment.avatar_url" :src="comment.avatar_url" :alt="t('community.commentAvatar')" class="w-full h-full object-cover">
                     <User v-else class="w-6 h-6 text-gray-500" />
                   </div>
                   <div class="flex-1">
@@ -233,7 +233,7 @@
                   :disabled="post.loadingComments"
                   class="w-full py-2 text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
                 >
-                  {{ post.loadingComments ? '加载中...' : '加载更多评论' }}
+                  {{ post.loadingComments ? t('community.loadingComments') : t('community.loadMoreComments') }}
                 </button>
               </div>
             </div>
@@ -245,16 +245,16 @@
           <div class="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Earth class="w-12 h-12 text-blue-600" />
           </div>
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">还没有人分享内容</h2>
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ t('community.noContent') }}</h2>
           <p class="text-gray-600 mb-6">
-            成为第一个在社区分享收藏的人吧！
+            {{ t('community.beFirst') }}
           </p>
           <button
             @click="goToCollections"
             class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
           >
             <BookmarkIcon class="w-5 h-5" />
-            去看看我的收藏
+            {{ t('community.viewCollections') }}
           </button>
         </div>
 
@@ -265,14 +265,14 @@
             :disabled="loadingMore"
             class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {{ loadingMore ? '加载中...' : '加载更多' }}
+            {{ loadingMore ? t('community.loadingComments') : t('community.loadMore') }}
           </button>
         </div>
 
         <!-- 无更多内容提示 -->
         <div v-if="posts.length > 0 && !hasMore" class="text-center py-6">
           <div class="text-gray-500 text-sm">
-            🎉 没有更多内容了，快去分享一些收藏吧！
+            {{ t('community.noMoreContent') }}
           </div>
         </div>
     </div>
@@ -282,6 +282,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { 
   Earth, 
   RefreshCw as RefreshIcon,
@@ -303,6 +304,7 @@ import {
 } from '../services/community'
 import { isAuthenticated, buildAvatarUrl } from '../services/auth'
 
+const { t } = useI18n()
 const router = useRouter()
 
 // 状态管理
