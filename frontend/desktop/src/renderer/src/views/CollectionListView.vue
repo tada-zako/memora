@@ -304,12 +304,12 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getCollectionsByCategory } from '../services/collection'
+import { getCollectionsByCategory } from '@/api'
 import {
   createKnowledgeBase as apiCreateKnowledgeBase,
   queryKnowledgeBase
-} from '../services/category'
-import { isAuthenticated } from '../services/auth'
+} from '@/api'
+import { isAuthenticated } from '@/api'
 import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
 import { Sparkle } from 'lucide-vue-next'
 import { Sparkles } from 'lucide-vue-next'

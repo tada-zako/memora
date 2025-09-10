@@ -193,8 +193,8 @@ import {
     logout,
     uploadUserAvatar,
     getUserAvatarUrl
-} from '../services/auth'
-import { getUserPosts } from '../services/community' // 新增：引入获取用户推文API
+} from '@/api'
+import { getUserPosts } from '@/api' // 新增：引入获取用户推文API
 
 const { t } = useI18n()
 const router = useRouter()

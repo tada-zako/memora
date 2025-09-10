@@ -158,8 +158,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, h, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getCollectionWithAttachment } from '../services/collection'
-import { isAuthenticated } from '../services/auth'
+import { getCollectionWithAttachment } from '@/api'
+import { isAuthenticated } from '@/api'
 
 // Icons
 const createIcon = (paths) => ({

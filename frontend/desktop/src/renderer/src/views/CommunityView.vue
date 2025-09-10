@@ -301,8 +301,8 @@ import {
   getPostComments, 
   deletePost, 
   deleteComment 
-} from '../services/community'
-import { isAuthenticated, buildAvatarUrl } from '../services/auth'
+} from '@/api'
+import { isAuthenticated, buildAvatarUrl } from '@/api'
 
 const { t } = useI18n()
 const router = useRouter()

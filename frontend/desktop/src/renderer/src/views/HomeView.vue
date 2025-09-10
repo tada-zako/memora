@@ -309,11 +309,11 @@ import {
   X, ExternalLink, RefreshCw as RefreshIcon, Globe, Star, Home
 } from 'lucide-vue-next'
 import UploadModal from '../components/UploadModal.vue'
-import { getCategories, deleteCategory } from '../services/category'
-import { getCollectionsByCategory } from '../services/collection'
-import { isAuthenticated, getLocalUserInfo, refreshAuthStatus } from '../services/auth'
-import { uploadAttachment } from '@/services/attachment'
-import '../services/debug' // 引入调试工具
+import { getCategories, deleteCategory } from '@/api'
+import { getCollectionsByCategory } from '@/api'
+import { isAuthenticated, getLocalUserInfo, refreshAuthStatus } from '@/api'
+import { uploadAttachment } from '@/api'
+import '../api/debug' // 引入调试工具
 
 const { t } = useI18n()
 const router = useRouter()

@@ -470,8 +470,8 @@ import {
   healthCheck,
   getCollectionTags,
   processUrlWithStreaming
-} from '../services/collection'
-import { isAuthenticated } from '../services/auth'
+} from '@/api'
+import { isAuthenticated } from '@/api'
 
 const { t } = useI18n()
 

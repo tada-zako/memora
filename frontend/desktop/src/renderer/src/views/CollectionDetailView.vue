@@ -188,8 +188,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getCollectionDetails } from '../services/collection'
-import { isAuthenticated } from '../services/auth'
+import { getCollectionDetails } from '@/api'
+import { isAuthenticated } from '@/api'
 import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
 
 const { t } = useI18n()

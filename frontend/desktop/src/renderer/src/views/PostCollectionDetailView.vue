@@ -174,8 +174,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getPostCollectionDetails } from '../services/community'
-import { getPublicCollectionDetails } from '../services/collection'
+import { getPostCollectionDetails } from '@/api'
+import { getPublicCollectionDetails } from '@/api'
 import { marked } from 'marked'
 
 const { t } = useI18n()
