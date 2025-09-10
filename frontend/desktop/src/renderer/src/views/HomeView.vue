@@ -5,12 +5,19 @@
       <!-- 收藏管理页面 -->
       <div v-if="currentPage === 'collections'" class="h-full">
         <!-- 主要内容区域 -->
-        <div class="bg-white/90 glass-effect border border-gray-100 h-full min-h-0" style="padding: 16px;">  
-          
+        <div
+          class="bg-white/90 glass-effect border border-gray-100 h-full min-h-0"
+          style="padding: 16px"
+        >
           <!-- 标题区域 -->
-          <div class="flex items-center justify-between sticky top-0 z-10 bg-white/90 glass-effect  w-full px-4 py-4" style="margin-bottom: 40px;">
+          <div
+            class="flex items-center justify-between sticky top-0 z-10 bg-white/90 glass-effect w-full px-4 py-4"
+            style="margin-bottom: 40px"
+          >
             <div class="flex items-center">
-              <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
+              <div
+                class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3"
+              >
                 <Star class="text-black-400 w-8 h-8" />
               </div>
               <div>
@@ -18,7 +25,7 @@
               </div>
             </div>
             <!-- 刷新按钮 -->
-            <button 
+            <button
               @click="refreshCollections"
               :disabled="isLoadingCollections"
               class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-smooth font-medium text-sm btn-hover flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -31,32 +38,43 @@
               <span>{{ isLoadingCollections ? t('home.refreshing') : t('home.refresh') }}</span>
             </button>
           </div>
-<div style="width: 92%; margin-left: 20px;">
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; max-width: 100%;">
-    <!-- 收藏卡片 -->
-    <div 
-      v-for="collection in collections" 
-      :key="collection.id"
-      @click="viewCollection(collection)"
-      :class="[ 
-        'h-36 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out text-gray-800 relative overflow-hidden group collection-card',
-      ]"
-      style="width: 100%; max-width: 280px;"
-    >
-      <!-- 内容 -->
-      <div class="relative flex flex-col justify-between" style="height: 100%;">
-        <div>
-          <div class="text-xl mb-1">{{ collection.icon }}</div>
-          <h3 class="text-2xl font-bold mb-0 truncate text-gray-1000">{{ collection.name }}</h3>
-        </div>
-        <p class="text-gray-600 text-sm truncate leading-tight">{{ collection.collection_count }} {{ t('home.items') }}</p>
-      </div>
-    </div>
-  </div>
-</div>
+        
+          <div style="width: 92%; margin-left: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; max-width: 100%;">
+              <!-- 收藏卡片 -->
+              <div 
+                v-for="collection in collections" 
+                :key="collection.id"
+                @click="viewCollection(collection)"
+                :class="[ 
+                  'h-36 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out text-gray-800 relative overflow-hidden group collection-card',
+                ]"
+                style="width: 100%; max-width: 280px;"
+              >
+                <!-- 内容 -->
+                <div class="relative flex flex-col justify-between" style="height: 100%;">
+                  <div>
+                    <div class="text-xl mb-1">{{ collection.icon }}</div>
+                    <h3 class="text-2xl font-bold mb-0 truncate text-gray-1000">{{ collection.name }}</h3>
+                  </div>
+                  <p class="text-gray-600 text-sm truncate leading-tight">{{ collection.collection_count }} {{ t('home.items') }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- 空状态 -->
-          <div v-if="collections.length === 0 && !isLoadingCollections" class="text-center" style="height: calc(100% - 84px); display: flex; justify-content: center; align-items: center; flex-direction: column;">
+          <div
+            v-if="collections.length === 0 && !isLoadingCollections"
+            class="text-center"
+            style="
+              height: calc(100% - 84px);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              flex-direction: column;
+            "
+          >
             <div class="text-6xl mb-4">📚</div>
             <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('home.noCollections') }}</h3>
           </div>
@@ -67,51 +85,76 @@
           </div>
         </div>
       </div>
-      <!-- 事件列表页面 -->
-      <div v-if="currentPage === 'events'" class="space-y-6 max-w-4xl">
-        <!-- 创建事件按钮 -->
-        <div class="flex justify-between items-center">
-          <div>
-            <h3 class="text-lg font-semibold text-gray-900">{{ t('home.myEvents') }}</h3>
-            <p class="text-sm text-gray-500">{{ t('home.manageEvents') }}</p>
+        <!-- 事件列表页面 -->
+        <div v-if="currentPage === 'events'" class="space-y-6 max-w-4xl">
+          <!-- 创建事件按钮 -->
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">{{ t('home.myEvents') }}</h3>
+              <p class="text-sm text-gray-500">{{ t('home.manageEvents') }}</p>
+            </div>
+            <button
+              @click="showCreateEvent = true"
+              class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-smooth font-medium text-sm btn-hover flex items-center space-x-2"
+            >
+              <Plus class="w-4 h-4" />
+              <span>{{ t('home.createEvent') }}</span>
+            </button>
           </div>
-          <button 
-            @click="showCreateEvent = true"
-            class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-smooth font-medium text-sm btn-hover flex items-center space-x-2"
-          >
-            <Plus class="w-4 h-4" />
-            <span>{{ t('home.createEvent') }}</span>
-          </button>
-        </div>
-        <!-- 事件列表 -->
-        <div class="bg-white/80 glass-effect rounded-xl border border-gray-100">
-            <div class="p-4">
-              <div class="space-y-3">
-                <div v-for="event in events" :key="event.id" class="p-4 border border-gray-100 rounded-lg hover:bg-gray-50/80 transition-smooth">
-                  <div class="flex items-start justify-between">
-                    <div class="flex-1 min-w-0">
-                      <p class="font-medium text-gray-900 truncate">{{ event.description }}</p>
-                      <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                        <span>{{ formatDate(event.created_at) }}</span>
-                        <span v-if="event.metadata" class="truncate">{{ Object.keys(event.metadata).length }} {{ t('home.tags') }}</span>
+
+          <!-- 事件列表 -->
+          <div class="bg-white/80 glass-effect rounded-xl border border-gray-100">
+              <div class="p-4">
+                <div class="space-y-3">
+                  <div v-for="event in events" :key="event.id" class="p-4 border border-gray-100 rounded-lg hover:bg-gray-50/80 transition-smooth">
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1 min-w-0">
+                        <p class="font-medium text-gray-900 truncate">{{ event.description }}</p>
+                        <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                          <span>{{ formatDate(event.created_at) }}</span>
+                          <span v-if="event.metadata" class="truncate">{{ Object.keys(event.metadata).length }} {{ t('home.tags') }}</span>
+                        </div>
+                      </div>
+                      <div class="flex items-center space-x-1 ml-4">
+                        <button 
+                          @click="viewEvent(event)"
+                          class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-smooth"
+                          title="查看"
+                        >
+                          <Eye class="w-4 h-4" />
+                        </button>
+                        <button 
+                          @click="editEvent(event)"
+                          class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-smooth"
+                          title="编辑"
+                        >
+                          <Edit class="w-4 h-4" />
+                        </button>
+                        <button 
+                          @click="deleteEvent(event.id)"
+                          class="p-1.5 text-red-400 hover:text-red-600 rounded hover:bg-red-50 transition-smooth"
+                          title="删除"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                     <div class="flex items-center space-x-1 ml-4">
-                      <button 
+                      <button
                         @click="viewEvent(event)"
                         class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-smooth"
                         title="查看"
                       >
                         <Eye class="w-4 h-4" />
                       </button>
-                      <button 
+                      <button
                         @click="editEvent(event)"
                         class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-smooth"
                         title="编辑"
                       >
                         <Edit class="w-4 h-4" />
                       </button>
-                      <button 
+                      <button
                         @click="deleteEvent(event.id)"
                         class="p-1.5 text-red-400 hover:text-red-600 rounded hover:bg-red-50 transition-smooth"
                         title="删除"
@@ -120,17 +163,19 @@
                       </button>
                     </div>
                   </div>
-                </div>
-                
-                <div v-if="events.length === 0" class="text-center py-12">
-                  <Calendar class="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p class="text-gray-500">{{ t('home.noEvents') }}</p>
-                  <p class="text-sm text-gray-400 mt-1">{{ t('home.createFirstEvent') }}</p>
+                  
+                  <div v-if="events.length === 0" class="text-center py-12">
+                    <Calendar class="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p class="text-gray-500">{{ t('home.noEvents') }}</p>
+                    <p class="text-sm text-gray-400 mt-1">{{ t('home.createFirstEvent') }}</p>
+                  </div>
                 </div>
               </div>
-            </div>
           </div>
+
         </div>
+
+
       <!-- 附件管理页面 -->
       <div v-if="currentPage === 'attachments'" class="space-y-6 max-w-4xl">
         <!-- 上传区域 -->
@@ -150,13 +195,15 @@
             </div>
 
             <!-- 文件上传 -->
-            <div 
+            <div
               @drop="handleDrop"
               @dragover.prevent
               @dragenter.prevent
               :class="[
                 'border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200',
-                isDragging ? 'border-gray-400 bg-gray-50/50' : 'border-gray-200 hover:border-gray-300'
+                isDragging
+                  ? 'border-gray-400 bg-gray-50/50'
+                  : 'border-gray-200 hover:border-gray-300'
               ]"
             >
               <Upload class="w-10 h-10 text-gray-400 mx-auto mb-3" />
@@ -168,13 +215,13 @@
               >
                 {{ t('home.selectFile') }}
               </button>
-              <input 
-                ref="fileInput" 
-                type="file" 
-                multiple 
-                @change="handleFileSelect" 
+              <input
+                ref="fileInput"
+                type="file"
+                multiple
+                @change="handleFileSelect"
                 class="hidden"
-              >
+              />
             </div>
 
             <!-- 描述 -->
@@ -188,7 +235,7 @@
               ></textarea>
             </div>
 
-            <button 
+            <button
               @click="uploadAttachment"
               :disabled="!selectedEventId || !selectedFile"
               class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-smooth font-medium text-sm btn-hover"
@@ -206,27 +253,35 @@
           <div class="p-4">
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               <div v-for="attachment in attachments" :key="attachment.id" class="relative group">
-                <div class="aspect-square bg-gray-100 rounded-lg border border-gray-200 overflow-hidden">
-                  <img 
+                <div
+                  class="aspect-square bg-gray-100 rounded-lg border border-gray-200 overflow-hidden"
+                >
+                  <img
                     v-if="isImage(attachment.url)"
-                    :src="attachment.url" 
+                    :src="attachment.url"
                     :alt="attachment.description"
                     class="w-full h-full object-cover"
-                  >
+                  />
                   <div v-else class="w-full h-full flex items-center justify-center">
                     <FileText class="w-6 h-6 text-gray-400" />
                   </div>
                 </div>
                 <div class="mt-2">
-                  <p class="text-xs text-gray-700 truncate font-medium">{{ getFileName(attachment.url) }}</p>
-                  <p class="text-xs text-gray-400 mt-0.5">{{ formatDate(attachment.created_at) }}</p>
+                  <p class="text-xs text-gray-700 truncate font-medium">
+                    {{ getFileName(attachment.url) }}
+                  </p>
+                  <p class="text-xs text-gray-400 mt-0.5">
+                    {{ formatDate(attachment.created_at) }}
+                  </p>
                 </div>
-                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
+                <div
+                  class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center"
+                >
                   <div class="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
                     <button class="p-1.5 bg-white rounded shadow-lg hover:bg-gray-50">
                       <Eye class="w-3 h-3 text-gray-600" />
                     </button>
-                    <button 
+                    <button
                       @click="deleteAttachment(attachment.id)"
                       class="p-1.5 bg-white rounded shadow-lg hover:bg-red-50"
                     >
@@ -238,8 +293,10 @@
             </div>
           </div>
         </div>
+        
       </div>
-    </main>
+    
+  </main>
   </div>
 </template>
 
@@ -255,6 +312,7 @@ import UploadModal from '../components/UploadModal.vue'
 import { getCategories, deleteCategory } from '../services/category'
 import { getCollectionsByCategory } from '../services/collection'
 import { isAuthenticated, getLocalUserInfo, refreshAuthStatus } from '../services/auth'
+import { uploadAttachment } from '@/services/attachment'
 import '../services/debug' // 引入调试工具
 
 const { t } = useI18n()
@@ -269,9 +327,7 @@ const showAnnoyanceModal = ref(false)
 const currentPage = ref('collections')
 
 // 菜单项
-const menuItems = [
-  { id: 'collections', name: '收藏', icon: Star },
-]
+const menuItems = [{ id: 'collections', name: '收藏', icon: Star }]
 
 // 用户信息
 const currentUserId = ref(1)
@@ -297,9 +353,9 @@ const fetchCollections = async () => {
 
   try {
     const result = await getCategories()
-    
-    if (result.status === 'success' && result.data && result.data.categories) {
-      collections.value = result.data.categories.map((category, index) => ({
+
+    if (result && result.categories) {
+      collections.value = result.categories.map((category, index) => ({
         id: category.id,
         name: category.name,
         icon: category.emoji || '📚',
@@ -313,8 +369,11 @@ const fetchCollections = async () => {
     console.error('获取分类失败:', error)
     // 如果是认证错误，重定向到登录页面
     const is401or403 = error.response?.status === 401 || error.response?.status === 403
-    const hasAuthError = error.detail === 'Not authenticated' || error.message?.includes('401') || error.message?.includes('403')
-    
+    const hasAuthError =
+      error.detail === 'Not authenticated' ||
+      error.message?.includes('401') ||
+      error.message?.includes('403')
+
     if (is401or403 || hasAuthError) {
       console.log('认证失败，跳转到登录页面')
       router.push('/login')
@@ -327,13 +386,13 @@ const viewCollection = async (collection) => {
   try {
     // 先获取该分类下的collections来检查是否有attachment
     const result = await getCollectionsByCategory(collection.id)
-    
-    if (result.status === 'success' && result.data && result.data.collections) {
-      const collections = result.data.collections
-      
+
+    if (result && result.collections) {
+      const collections = result.collections
+
       // 检查是否有任何collection包含attachment
-      const hasAttachment = collections.some(item => item.details && item.details.attachment)
-      
+      const hasAttachment = collections.some((item) => item.details && item.details.attachment)
+
       if (hasAttachment) {
         // 如果有attachment，跳转到CollectionAttachmentListView
         router.push({ name: 'CollectionAttachmentList', params: { category_id: collection.id } })
@@ -372,7 +431,7 @@ const editCollection = (collection) => {
 const deleteCollection = async (collectionId) => {
   try {
     await deleteCategory(collectionId)
-    collections.value = collections.value.filter(collection => collection.id !== collectionId)
+    collections.value = collections.value.filter((collection) => collection.id !== collectionId)
   } catch (error) {
     console.error('删除分类失败:', error)
   }
@@ -417,7 +476,9 @@ onMounted(async () => {
 }
 
 .shadow-minimal {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 .btn-hover:hover {
@@ -453,4 +514,4 @@ onMounted(async () => {
 .collection-card:hover {
   background: #e5e0e8;
 }
-</style> 
+</style>

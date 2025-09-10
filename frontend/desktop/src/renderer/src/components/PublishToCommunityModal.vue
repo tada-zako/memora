@@ -114,7 +114,7 @@ const handlePublish = async () => {
       description.value.trim() || null
     )
     
-    if (result.status === 'success') {
+    if (result) {
       emit('success', result)
       successMessage.value = t('community.publishSuccess')
       // 保持 loading 为 true，禁止再次点击

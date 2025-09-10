@@ -76,7 +76,7 @@ async def create_category(
 
     logger.info(f"Created category: {db_category.name} (id: {db_category.id})")
     return Response(
-        status="success",
+        code=200,
         message="Category created successfully",
         data={
             "id": db_category.id,
@@ -107,7 +107,7 @@ async def get_categories(
     categories_with_counts = result.all()
 
     return Response(
-        status="success",
+        code=200,
         message="Categories retrieved successfully",
         data={
             "categories": [
@@ -181,7 +181,7 @@ async def update_category(
 
     logger.info(f"Updated category: {category.name} (id: {category.id})")
     return Response(
-        status="success",
+        code=200,
         message="Category updated successfully",
         data={
             "id": category.id,
@@ -221,7 +221,7 @@ async def delete_category(
 
     logger.info(f"Deleted category: {category.name} (id: {category.id})")
     return Response(
-        status="success",
+        code=200,
         message="Category deleted successfully",
         data=None,
     )
@@ -255,7 +255,7 @@ async def create_knowledge_base(
     background_tasks.add_task(create_knowledge_base_task, category_id, current_user.id)
     
     return Response(
-        status="success", message="Knowledge base creation started", data=None
+        code=200, message="Knowledge base creation started", data=None
     )
 
 async def create_knowledge_base_task(category_id: int, user_id: int):
@@ -362,7 +362,7 @@ async def query_knowledge_base(
         if not documents:
             logger.warning(f"No documents found for query: {query} in collection: {collection_name}")
             return Response(
-                status="success",
+                code=200,
                 message="No relevant documents found",
                 data={
                     "response": "抱歉，在知识库中没有找到相关信息。请尝试使用不同的关键词或创建更多内容。",
@@ -378,7 +378,7 @@ async def query_knowledge_base(
         if not documents_str.strip():
             logger.warning(f"All documents are empty for query: {query}")
             return Response(
-                status="success",
+                code=200,
                 message="Documents found but all are empty",
                 data={
                     "response": "找到了一些内容，但内容为空。请检查知识库中的文档。",
@@ -399,7 +399,7 @@ async def query_knowledge_base(
         if not ai_response or not ai_response.completion_text:
             logger.error(f"AI response is empty for query: {query}")
             return Response(
-                status="error",
+                code=500,
                 message="AI response is empty",
                 data={
                     "response": "AI暂时无法生成回答，请稍后重试。",
@@ -408,7 +408,7 @@ async def query_knowledge_base(
             )
 
         return Response(
-            status="success",
+            code=200,
             message="Knowledge base queried successfully",
             data={
                 "response": ai_response.completion_text.strip(),

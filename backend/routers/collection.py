@@ -63,6 +63,7 @@ async def streaming_create_collection_url(
     """
     Create a new collection which type is url reference
     """
+    # 不是哥们，这样手搓流式函数是吧...
     # step 1: created to collection table
     user_id = current_user.id
 
@@ -154,12 +155,14 @@ async def streaming_create_collection_url(
         },
     )
 
+    # 看笑了...
+
     # get category_id
     category_query = select(Category.id).where(Category.name == category, Category.user_id == user_id)
     category_result = await db.execute(category_query)
     category_id = category_result.scalar_one_or_none()
 
-    # step 2.5: update collection with category and tags
+    # step 3.5: update collection with category and tags
     if not category_id:
         category_id = -1
 
@@ -169,7 +172,7 @@ async def streaming_create_collection_url(
 
     await db.commit()
 
-    # step 3: llm summarize the content, using streaming
+    # step 4: llm summarize the content, using streaming
     summary_sys_prompt = PROMPT_SUMMARIZE_CONTENT
     summary_sys_prompt += f"\n\n{ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE}"
     summary_llm_resp = provider_openai.text_chat_stream(
@@ -312,7 +315,7 @@ async def create_collection_url(
 #     await db.commit()
 
 #     return Response(
-#         status="success",
+#         code=200,
 #         message="Collection created successfully",
 #         data={
 #             "collection_id": db_collection.id,
@@ -355,7 +358,7 @@ async def get_current_user_collections(
     collections = collections_result.scalars().unique().all()
 
     return Response(
-        status="success",
+        code=200,
         message="Collections retrieved successfully",
         data={
             "collections": [
@@ -402,7 +405,7 @@ async def get_collections_by_category(
     category = category_result.scalar_one_or_none()
 
     return Response(
-        status="success",
+        code=200,
         message="Collections fetched by category successfully",
         data={
             "category": {
@@ -446,7 +449,7 @@ async def search_collections(
     collections_result = await db.execute(collections_query)
     collections = collections_result.scalars().unique().all()
     return Response(
-        status="success",
+        code=200,
         message="Collections searched successfully",
         data={
             "collections": [
@@ -491,7 +494,7 @@ async def get_collection_details(
     details_result = await db.execute(details_query)
     details = details_result.scalars().all()
     return Response(
-        status="success",
+        code=200,
         message="Collection details fetched successfully",
         data={"details": {d.key: d.value for d in details}},
     )
@@ -525,7 +528,7 @@ async def get_collection_detail(
     if not detail:
         raise HTTPException(status_code=404, detail="Detail not found")
     return Response(
-        status="success",
+        code=200,
         message="Collection detail fetched successfully",
         data={"key": detail.key, "value": detail.value},
     )
@@ -572,7 +575,7 @@ async def update_collection_detail(
         await db.refresh(detail)
         msg = "Detail created successfully"
     return Response(
-        status="success", message=msg, data={"key": detail.key, "value": detail.value}
+        code=200, message=msg, data={"key": detail.key, "value": detail.value}
     )
 
 
@@ -606,7 +609,7 @@ async def delete_collection_detail(
     await db.delete(detail)
     await db.commit()
     return Response(
-        status="success",
+        code=200,
         message="Detail deleted successfully",
         data={"key": key}
     )
@@ -630,7 +633,7 @@ async def get_collection_tags(
         )
     tags = collection.tags.split(",") if collection.tags else [] # type: ignore
     return Response(
-        status="success",
+        code=200,
         message="Collection tags fetched successfully",
         data={"tags": tags}
     )
@@ -673,7 +676,7 @@ async def get_public_collection_details(
             category_name = category.name
     
     return Response(
-        status="success",
+        code=200,
         message="Collection details fetched successfully",
         data={
             "collection": {
@@ -712,7 +715,7 @@ async def update_collection_tags(
     await db.commit()
     await db.refresh(collection)
     return Response(
-        status="success",
+        code=200,
         message="Collection tags updated successfully",
         data={"tags": update.tags}
     )
@@ -742,7 +745,7 @@ async def delete_collection(
     await db.commit()
 
     return Response(
-        status="success",
+        code=200,
         message="Collection deleted successfully",
         data={"collection_id": collection_id}
     )

@@ -18,7 +18,6 @@ try {
   console.error('Failed to set new userData path:', error)
 }
 
-
 const execAsync = promisify(exec)
 
 let mainWindow = null
@@ -73,12 +72,12 @@ function createWindow() {
 function createQuickWindow() {
   try {
     console.log('Creating quick window...')
-    
+
     const primaryDisplay = screen.getPrimaryDisplay()
     const { workAreaSize } = primaryDisplay
     const windowWidth = 320
     const windowHeight = 480 // 统一窗口高度
-    
+
     quickWindow = new BrowserWindow({
       width: windowWidth,
       height: windowHeight,
@@ -138,17 +137,21 @@ function createQuickWindow() {
     })
 
     // 加载快速窗口内容
-    const quickUrl = is.dev && process.env['ELECTRON_RENDERER_URL'] 
-      ? `${process.env['ELECTRON_RENDERER_URL']}#/quick`
-      : `file://${join(__dirname, '../renderer/index.html')}#/quick`
-    
+    const quickUrl =
+      is.dev && process.env['ELECTRON_RENDERER_URL']
+        ? `${process.env['ELECTRON_RENDERER_URL']}#/quick`
+        : `file://${join(__dirname, '../renderer/index.html')}#/quick`
+
     console.log('Loading quick window URL:', quickUrl)
-    
-    quickWindow.loadURL(quickUrl).then(() => {
-      console.log('Quick window loaded successfully')
-    }).catch((error) => {
-      console.error('Failed to load quick window:', error)
-    })
+
+    quickWindow
+      .loadURL(quickUrl)
+      .then(() => {
+        console.log('Quick window loaded successfully')
+      })
+      .catch((error) => {
+        console.error('Failed to load quick window:', error)
+      })
 
     return quickWindow
   } catch (error) {
@@ -378,11 +381,14 @@ try {
 
       fs.writeFileSync(scriptPath, psScript, 'utf8')
 
-      const { stdout, stderr } = await execAsync(`powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`, {
-        encoding: 'utf8',
-        timeout: 5000,
-        windowsHide: true
-      })
+      const { stdout, stderr } = await execAsync(
+        `powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`,
+        {
+          encoding: 'utf8',
+          timeout: 5000,
+          windowsHide: true
+        }
+      )
 
       // 清理临时文件
       try {
@@ -396,7 +402,10 @@ try {
         console.log('Browser detection stderr:', JSON.stringify(stderr))
       }
 
-      const lines = stdout.split('\n').map(line => line.trim()).filter(line => line.length > 0)
+      const lines = stdout
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
       console.log('Browser detection lines:', lines)
 
       // 查找结果行
@@ -423,16 +432,22 @@ try {
         hasBrowser: browserResult !== 'NONE',
         windowTitle: windowTitle
       }
-
     } catch (psError) {
       console.warn('PowerShell browser detection failed, trying fallback method:', psError.message)
 
       // Fallback: Try to detect browsers using Node.js process enumeration
       try {
         const { execSync } = require('child_process')
-        const output = execSync('tasklist /FI "IMAGENAME eq msedge.exe" /FI "IMAGENAME eq chrome.exe" /FI "IMAGENAME eq firefox.exe"', { encoding: 'utf8' })
+        const output = execSync(
+          'tasklist /FI "IMAGENAME eq msedge.exe" /FI "IMAGENAME eq chrome.exe" /FI "IMAGENAME eq firefox.exe"',
+          { encoding: 'utf8' }
+        )
 
-        if (output.includes('msedge.exe') || output.includes('chrome.exe') || output.includes('firefox.exe')) {
+        if (
+          output.includes('msedge.exe') ||
+          output.includes('chrome.exe') ||
+          output.includes('firefox.exe')
+        ) {
           console.log('Fallback detection found browser processes')
           return {
             success: true,
@@ -448,7 +463,6 @@ try {
       // If all detection methods fail, assume no browser is running
       throw new Error(`Browser detection failed: ${psError.message}`)
     }
-
   } catch (error) {
     console.error('Error detecting browser:', error)
     return {
@@ -471,7 +485,7 @@ async function captureBrowserUrl() {
     // Use app's userData directory for temporary scripts (writable in production)
     const userDataDir = app.getPath('userData')
     const scriptPath = join(userDataDir, 'capture_url.ps1')
-    
+
     // 通用浏览器URL抓取脚本
     const psScript = `
 # Universal Browser URL Capture Script
@@ -637,31 +651,37 @@ try {
     Write-Output "ERROR:Script execution failed - $($_.Exception.Message)"
 }
 `
-    
+
     // 写入临时脚本文件
     fs.writeFileSync(scriptPath, psScript, 'utf8')
-    
+
     console.log('Executing browser URL capture script...')
-    
+
     // 执行脚本
-    const { stdout, stderr } = await execAsync(`powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`, {
-      encoding: 'utf8',
-      timeout: 12000,
-      windowsHide: true
-    })
-    
+    const { stdout, stderr } = await execAsync(
+      `powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`,
+      {
+        encoding: 'utf8',
+        timeout: 12000,
+        windowsHide: true
+      }
+    )
+
     // 清理临时文件
     try {
       fs.unlinkSync(scriptPath)
     } catch (e) {
       console.log('Failed to delete temp script:', e.message)
     }
-    
+
     console.log('Browser capture output:', JSON.stringify(stdout))
     console.log('Browser capture error:', JSON.stringify(stderr))
-    
-    const lines = stdout.split('\n').map(line => line.trim()).filter(line => line.length > 0)
-    
+
+    const lines = stdout
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+
     // 找到 URL 行
     for (const line of lines) {
       if (line.startsWith('ERROR:')) {
@@ -672,15 +692,14 @@ try {
         return { success: true, url: line }
       }
     }
-    
+
     throw new Error('No valid URL found in output')
-    
   } catch (error) {
     console.error('Error capturing browser URL:', error)
-    
+
     // 用户友好的错误消息
     let errorMessage = error.message || 'Failed to capture URL'
-    
+
     if (errorMessage.includes('No browser processes running')) {
       errorMessage = '没有检测到运行中的浏览器，请先打开浏览器'
     } else if (errorMessage.includes('No browser windows found')) {
@@ -690,9 +709,9 @@ try {
     } else if (errorMessage.includes('timeout')) {
       errorMessage = '操作超时，请重试'
     }
-    
-    return { 
-      success: false, 
+
+    return {
+      success: false,
       error: errorMessage
     }
   }
@@ -703,7 +722,7 @@ try {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   console.log('App ready, setting up...')
-  
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.memora.app')
 
@@ -719,10 +738,10 @@ app.whenReady().then(() => {
 
   // 注册全局快捷键 - Windows 使用 Ctrl+Space，macOS 使用 Cmd+Space
   console.log('Registering global shortcuts...')
-  
+
   const shortcutKey = process.platform === 'darwin' ? 'Cmd+K' : 'Ctrl+Space'
   console.log('Attempting to register:', shortcutKey)
-  
+
   const ret = globalShortcut.register(shortcutKey, () => {
     console.log(`Global shortcut triggered: ${shortcutKey}`)
     toggleQuickWindow()
@@ -736,7 +755,7 @@ app.whenReady().then(() => {
       console.log('Global shortcut triggered: Alt+Space')
       toggleQuickWindow()
     })
-    
+
     if (altRet) {
       console.log('Alt+Space registered successfully')
     } else {
@@ -745,13 +764,13 @@ app.whenReady().then(() => {
   }
 
   // 检查快捷键是否注册成功
-  const isRegistered = globalShortcut.isRegistered(shortcutKey) || 
-                      globalShortcut.isRegistered('Alt+Space')
+  const isRegistered =
+    globalShortcut.isRegistered(shortcutKey) || globalShortcut.isRegistered('Alt+Space')
   console.log('Global shortcut registered:', isRegistered)
 
   // IPC handlers
   ipcMain.on('ping', () => console.log('pong'))
-  
+
   ipcMain.handle('show-main-window', () => {
     console.log('IPC: show-main-window called')
     try {

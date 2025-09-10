@@ -1,10 +1,22 @@
-import api from './api'
-import { uploadAvatar } from './attachment'
+import {
+  registerApi,
+  loginApi,
+  getUserProfileApi,
+  updateUserProfileApi,
+  getAttachmentApi,
+  uploadAttachmentApi,
+  baseURL
+} from '@/api'
 
 // 用户注册
 export const register = async (userData) => {
   try {
-    const response = await api.post('/api/v1/auth/register', userData)
+    const response = await registerApi(userData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '注册失败')
+    }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -14,13 +26,12 @@ export const register = async (userData) => {
 // 用户登录
 export const login = async (credentials) => {
   try {
-    const response = await api.post('/api/v1/auth/login', credentials)
-    if (response.data.status === 'success') {
-      const { access_token } = response.data.data
-      // 存储token
-      localStorage.setItem('access_token', access_token)
-      console.log('登录成功，token已保存:', access_token.substring(0, 20) + '...')
+    const response = await loginApi(credentials)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '登录失败')
     }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -30,11 +41,12 @@ export const login = async (credentials) => {
 // 获取用户信息
 export const getUserProfile = async () => {
   try {
-    const response = await api.get('/api/v1/auth/profile')
-    if (response.data.status === 'success') {
-      // 存储用户信息
-      localStorage.setItem('user_info', JSON.stringify(response.data.data))
+    const response = await getUserProfileApi()
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取用户信息失败')
     }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
@@ -44,22 +56,30 @@ export const getUserProfile = async () => {
 // 更新用户信息
 export const updateUserProfile = async (userData) => {
   try {
-    const response = await api.put('/api/v1/auth/profile', userData)
-    if (response.data.status === 'success') {
-      // 更新本地存储的用户信息
-      localStorage.setItem('user_info', JSON.stringify(response.data.data))
+    const response = await updateUserProfileApi(userData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '更新用户信息失败')
     }
+
     return response.data
   } catch (error) {
     throw error.response?.data || error.message
   }
 }
 
-// 上传头像
+// 上传头像 -> 由 ./attachment.js 的 uploadAvatar 处理
 export const uploadUserAvatar = async (file) => {
   try {
     // 验证文件类型
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp']
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/bmp'
+    ]
     if (!allowedTypes.includes(file.type)) {
       throw new Error('不支持的文件类型，请上传 JPG、PNG、GIF、WebP 或 BMP 格式的图片')
     }
@@ -70,18 +90,34 @@ export const uploadUserAvatar = async (file) => {
       throw new Error('文件大小不能超过 10MB')
     }
 
+    // 创建 FormData
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('description', 'avatar')
+
     // 上传头像
-    const attachment = await uploadAvatar(file)
-    
+    const uploadResponse = await uploadAttachmentApi(formData)
+
+    if (uploadResponse.code !== 200) {
+      throw new Error(uploadResponse.message || '上传头像失败')
+    }
+
+    const attachment = uploadResponse.data
+
     // 更新用户头像信息
     const updateData = {
       avatar_attachment_id: attachment.attachment_id
     }
-    
-    const response = await updateUserProfile(updateData)
-    return response
+
+    const response = await updateUserProfileApi(updateData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '更新用户信息失败')
+    }
+
+    return response.data
   } catch (error) {
-    throw error
+    throw error.response?.data || error.message
   }
 }
 
@@ -90,12 +126,17 @@ export const getUserAvatarUrl = async (userInfo) => {
   if (!userInfo || !userInfo.avatar_attachment_id) {
     return null
   }
-  
+
   try {
-    const response = await api.get(`/api/v1/attachments/${userInfo.avatar_attachment_id}`)
+    const response = await getAttachmentApi(userInfo.avatar_attachment_id)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取头像URL失败')
+    }
+
     const attachment = response.data
     // Concatenate base URL with the relative path from attachment.url for absolute URL
-    return `${api.defaults.baseURL}/${attachment.url.replace(/\\/g, '/')}`
+    return `${baseURL}/${attachment.url.replace(/\\/g, '/')}`
   } catch (error) {
     console.error('获取头像URL失败:', error)
     return null
@@ -108,10 +149,15 @@ export const buildAvatarUrl = async (avatarAttachmentId) => {
     return null
   }
   try {
-    const response = await api.get(`/api/v1/attachments/${avatarAttachmentId}`)
+    const response = await getAttachmentApi(avatarAttachmentId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取头像URL失败')
+    }
+
     const attachment = response.data
     // Concatenate base URL with the relative path from attachment.url for absolute URL
-    return `${api.defaults.baseURL}/${attachment.url.replace(/\\/g, '/')}`
+    return `${baseURL}/${attachment.url.replace(/\\/g, '/')}`
   } catch (error) {
     console.error('构建头像URL失败:', error)
     return null
