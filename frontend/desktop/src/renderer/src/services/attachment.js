@@ -73,45 +73,49 @@ export const deleteAttachment = async (attachmentId) => {
   }
 }
 
-// 上传用户头像
-export const uploadAvatar = async (file) => {
-  try {
-    // 验证上传文件类型
-    const allowedTypes = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'image/bmp'
-    ]
+// 上传用户头像-> 由 ./auth.js 的 uploadUserAvatar 处理
+// export const uploadAvatar = async (file) => {
+//   try {
+//     // 验证上传文件类型
+//     const allowedTypes = [
+//       'image/jpeg',
+//       'image/jpg',
+//       'image/png',
+//       'image/gif',
+//       'image/webp',
+//       'image/bmp'
+//     ]
 
-    if (!allowedTypes.includes(file.type)) {
-      throw new Error('不支持的文件类型，请上传 JPG、PNG、GIF、WebP 或 BMP 格式的图片')
-    }
+//     if (!allowedTypes.includes(file.type)) {
+//       throw new Error('不支持的文件类型，请上传 JPG、PNG、GIF、WebP 或 BMP 格式的图片')
+//     }
 
-    // 验证上传文件大小 (10MB)
-    const maxSize = 10 * 1024 * 1024
-    if (file.size > maxSize) {
-      throw new Error('文件大小不能超过 10MB')
-    }
+//     // 验证上传文件大小 (10MB)
+//     const maxSize = 10 * 1024 * 1024
+//     if (file.size > maxSize) {
+//       throw new Error('文件大小不能超过 10MB')
+//     }
 
-    // 上传头像
-    const attachment = await uploadAttachmentApi(file, 'avatar')
+//     // 上传头像
+//     const formData = new FormData()
+//     formData.append('file', file)
+//     formData.append('description', 'avatar')
+    
+//     const attachment = await uploadAttachmentApi(formData)
 
-    if (attachment.code !== 200) {
-      throw new Error(attachment.message || '上传头像失败')
-    }
+//     if (attachment.code !== 200) {
+//       throw new Error(attachment.message || '上传头像失败')
+//     }
 
-    // 更新用户头像信息
-    const attachmentData = attachment.data
+//     // 更新用户头像信息
+//     const attachmentData = attachment.data
 
-    const response = await updateUserProfileApi({
-      avatar_attachment_id: attachmentData.attachment_id
-    })
+//     const response = await updateUserProfileApi({
+//       avatar_attachment_id: attachmentData.attachment_id
+//     })
 
-    return response.data
-  } catch (error) {
-    throw error.response?.data || error.message
-  }
-}
+//     return response.data
+//   } catch (error) {
+//     throw error.response?.data || error.message
+//   }
+// }

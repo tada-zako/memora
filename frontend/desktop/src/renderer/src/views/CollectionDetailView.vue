@@ -4,8 +4,8 @@
     <header class="border-b border-gray-200">
       <div class="max-w-4xl mx-auto px-6 py-8">
         <button
-          @click="$router.back()"
           class="mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
+          @click="$router.back()"
         >
           <svg
             class="w-4 h-4"
@@ -37,15 +37,15 @@
             </div>
             <div class="flex gap-2">
               <button
-                @click="showPublishModal = true"
                 class="shrink-0 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
+                @click="showPublishModal = true"
               >
                 <ShareIcon class="w-4 h-4" />
                 分享到社区
               </button>
               <button
-                @click="openOriginalLink"
                 class="shrink-0 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 bg-transparent transition-colors flex items-center gap-2 text-sm"
+                @click="openOriginalLink"
               >
                 <ExternalLinkIcon class="w-4 h-4" />
                 访问原文

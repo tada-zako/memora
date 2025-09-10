@@ -1,4 +1,3 @@
-
 import {
   createPostApi,
   deletePostApi,
@@ -63,7 +62,6 @@ export const getPosts = async (page = 1, limit = 20) => {
 // 点赞推文或评论
 export const likeAsset = async (assetId, assetType) => {
   try {
-    // 目前API层的likePostApi只接受post_id，未来可能需要扩展支持asset_type
     const response = await likeAssetApi(assetId, assetType)
 
     if (response.code !== 200) {
@@ -146,8 +144,11 @@ export const getPostCollectionDetails = async (postId) => {
   try {
     const response = await getPostCollectionDetailsApi(postId)
 
-    // 由于Axios拦截器已经提取了data字段，这里直接返回响应
-    return response
+    if (response.code !== 200) {
+      throw new Error(response.message || "获取推文收藏详情失败")
+    }
+
+    return response.data
   } catch (error) {
     console.error('获取推文收藏详情失败:', error)
     throw error.response?.data || error

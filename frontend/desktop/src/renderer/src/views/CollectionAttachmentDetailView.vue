@@ -3,7 +3,7 @@
     <!-- Header -->
     <header class="page-header">
       <div class="header-content">
-        <button @click="$router.back()" class="back-btn">
+        <button class="back-btn" @click="$router.back()">
           <svg
             class="back-icon"
             fill="none"
@@ -134,7 +134,7 @@
       class="image-modal"
       @click="showImageModal = false"
     >
-      <button @click.stop="showImageModal = false" class="modal-close">
+      <button class="modal-close" @click.stop="showImageModal = false">
         <svg
           class="close-icon"
           fill="none"
@@ -242,12 +242,12 @@ const fetchCollectionAndAttachment = async () => {
   try {
     // 使用服务函数获取完整数据
     const result = await getCollectionWithAttachment(collectionId)
-    
+
     collection.value = result.collection
     attachment.value = result.attachment
   } catch (e) {
     error.value = e.message
-    
+
     // 如果是认证错误，重定向到登录页面
     if (e.code === 'AUTH_REQUIRED') {
       console.log('认证失败，跳转到登录页面')

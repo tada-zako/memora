@@ -48,8 +48,11 @@ export const getPublicCollectionDetails = async (collectionId) => {
   try {
     const response = await getPublicCollectionDetailsApi(collectionId)
 
-    // 由于Axios拦截器已经提取了data字段，这里直接返回响应
-    return response
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取公共收藏详情失败')
+    }
+
+    return response.data
   } catch (error) {
     throw error.response?.data || error.message
   }
@@ -297,7 +300,7 @@ export const getCollectionWithAttachment = async (collectionId) => {
   }
 }
 
-// 基于分类获取带有附件的收藏列表（优化版本）
+// 基于分类获取带有附件的收藏列表
 export const getAttachmentCollectionsByCategory = async (categoryId, options = {}) => {
   const { batchSize = 10, includeAttachmentDetails = true } = options
 

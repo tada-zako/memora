@@ -68,7 +68,7 @@ export const updateUserProfile = async (userData) => {
   }
 }
 
-// 上传头像 -> 由 ./attachment.js 的 uploadAvatar 处理
+// 上传头像 
 export const uploadUserAvatar = async (file) => {
   try {
     // 验证文件类型
@@ -80,6 +80,7 @@ export const uploadUserAvatar = async (file) => {
       'image/webp',
       'image/bmp'
     ]
+
     if (!allowedTypes.includes(file.type)) {
       throw new Error('不支持的文件类型，请上传 JPG、PNG、GIF、WebP 或 BMP 格式的图片')
     }
@@ -102,14 +103,12 @@ export const uploadUserAvatar = async (file) => {
       throw new Error(uploadResponse.message || '上传头像失败')
     }
 
-    const attachment = uploadResponse.data
+    const attachmentData = uploadResponse.data
 
     // 更新用户头像信息
-    const updateData = {
-      avatar_attachment_id: attachment.attachment_id
-    }
-
-    const response = await updateUserProfileApi(updateData)
+    const response = await updateUserProfileApi({
+      avatar_attachment_id: attachmentData.attachment_id
+    })
 
     if (response.code !== 200) {
       throw new Error(response.message || '更新用户信息失败')

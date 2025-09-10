@@ -8,6 +8,7 @@
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
+    "fix-standard": "prettier --write . && eslint --cache --fix .",
     "type-check": "vue-tsc --noEmit",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",

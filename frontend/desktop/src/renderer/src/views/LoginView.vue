@@ -9,10 +9,7 @@
           {{ isLogin ? t('login.loginTitle') : t('login.registerTitle') }}
         </h2>
         <p class="mt-2 text-center text-sm text-gray-600">
-          <button 
-            @click="toggleMode"
-            class="font-medium text-black hover:text-indigo-500"
-          >
+          <button class="font-medium text-black hover:text-indigo-500" @click="toggleMode">
             {{ isLogin ? t('login.noAccount') : t('login.hasAccount') }}
           </button>
         </p>
@@ -25,11 +22,11 @@
             <label for="email" class="sr-only">{{ t('login.email') }}</label>
             <input
               id="email"
+              v-model="form.email"
               name="email"
               type="email"
               autocomplete="email"
               required
-              v-model="form.email"
               class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               :placeholder="t('login.email')"
             />
@@ -39,11 +36,11 @@
             <label for="username" class="sr-only">{{ t('login.username') }}</label>
             <input
               id="username"
+              v-model="form.username"
               name="username"
               type="text"
               autocomplete="username"
               required
-              v-model="form.username"
               :class="[
                 'relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm',
                 isLogin ? 'rounded-t-md' : ''
@@ -56,11 +53,11 @@
             <label for="password" class="sr-only">{{ t('login.password') }}</label>
             <input
               id="password"
+              v-model="form.password"
               name="password"
               type="password"
               autocomplete="current-password"
               required
-              v-model="form.password"
               class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               :placeholder="t('login.password')"
             />
@@ -129,32 +126,28 @@ const handleSubmit = async () => {
   try {
     if (isLogin.value) {
       // 登录
-      const response = await login({
+      await login({
         username: form.username,
         password: form.password
       })
-      
-      if (response) {
-        successMessage.value = t('login.loginSuccess')
-        setTimeout(() => {
-          router.push({ name: 'Profile' })
-        }, 1000)
-      }
+
+      successMessage.value = t('login.loginSuccess')
+      setTimeout(() => {
+        router.push({ name: 'Profile' })
+      }, 1000)
     } else {
       // 注册
-      const response = await register({
+      await register({
         username: form.username,
         email: form.email,
         password: form.password
       })
-      
-      if (response) {
-        successMessage.value = t('login.registerSuccess')
-        setTimeout(() => {
-          isLogin.value = true
-          form.password = ''
-        }, 1000)
-      }
+
+      successMessage.value = t('login.registerSuccess')
+      setTimeout(() => {
+        isLogin.value = true
+        form.password = ''
+      }, 1000)
     }
   } catch (error) {
     errorMessage.value = error.detail || error.message || t('login.operationFailed')

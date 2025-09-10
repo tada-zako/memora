@@ -4,8 +4,8 @@
     <header class="border-b border-gray-200 bg-white">
       <div class="max-w-6xl mx-auto px-6 py-8">
         <button
-          @click="$router.back()"
           class="mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2 transition-colors"
+          @click="$router.back()"
         >
           <svg
             class="w-4 h-4"

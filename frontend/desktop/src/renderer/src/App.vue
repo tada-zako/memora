@@ -99,7 +99,7 @@ const sidebarToggleCount = ref(0)
 const menuItems = [
   { id: 'collections', name: t('menu.collections'), icon: Star, route: { name: 'Home' } },
   { id: 'community', name: t('menu.community'), icon: Earth, route: { name: 'Community' } },
-  { id: 'profile', name: t('menu.profile'), icon: User, route: { name: 'Profile' } },
+  { id: 'profile', name: t('menu.profile'), icon: User, route: { name: 'Profile' } }
 ]
 
 const handleSidebarEnter = () => {
