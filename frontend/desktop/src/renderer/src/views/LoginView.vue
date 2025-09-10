@@ -134,7 +134,7 @@ const handleSubmit = async () => {
         password: form.password
       })
       
-      if (response.status === 'success') {
+      if (response) {
         successMessage.value = t('login.loginSuccess')
         setTimeout(() => {
           router.push({ name: 'Profile' })
@@ -142,13 +142,13 @@ const handleSubmit = async () => {
       }
     } else {
       // 注册
-      await register({
+      const response = await register({
         username: form.username,
         email: form.email,
         password: form.password
       })
       
-      if (response.status === 'success') {
+      if (response) {
         successMessage.value = t('login.registerSuccess')
         setTimeout(() => {
           isLogin.value = true
