@@ -10,16 +10,16 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path d="M15 19l-7-7 7-7" />
             </svg>
-            返回
+            {{ t('collection.back') }}
           </button>
           
         </div>
           <div class="flex items-center gap-3 mb-2">
             <BookmarkIcon class="w-6 h-6 text-black" />
-            <h1 class="text-2xl font-bold text-black">推文收藏详情</h1>
+            <h1 class="text-2xl font-bold text-black">{{ t('community.postCollectionDetail') }}</h1>
           </div>
 
-        <p class="text-gray-600">查看推文分享的收藏内容</p>
+        <p class="text-gray-600">{{ t('community.viewPostCollection') }}</p>
       </div>
     </header>
 
@@ -29,7 +29,7 @@
       <div v-if="loading" class="flex justify-center py-12">
         <div class="flex items-center gap-2 text-gray-500">
           <div class="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-          加载中...
+          {{ t('community.loadingPost') }}
         </div>
       </div>
 
@@ -38,13 +38,13 @@
         <div class="w-24 h-24 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mx-auto mb-6">
           <AlertCircle class="w-12 h-12 text-red-600" />
         </div>
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">加载失败</h2>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ t('community.loadFailed') }}</h2>
         <p class="text-gray-600 mb-6">{{ error }}</p>
         <button
           @click="fetchCollectionDetails"
           class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          重试
+          {{ t('community.retry') }}
         </button>
       </div>
 
@@ -78,29 +78,29 @@
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="flex items-center gap-2">
               <CalendarIcon class="w-4 h-4 text-gray-500" />
-              <span class="text-sm text-gray-600">创建于:</span>
+              <span class="text-sm text-gray-600">{{ t('community.createdAt') }}</span>
               <span class="text-sm font-medium text-gray-900">{{ formatDate(collection.created_at) }}</span>
             </div>
             <div class="flex items-center gap-2">
               <ClockIcon class="w-4 h-4 text-gray-500" />
-              <span class="text-sm text-gray-600">更新于:</span>
+              <span class="text-sm text-gray-600">{{ t('community.updatedAt') }}</span>
               <span class="text-sm font-medium text-gray-900">{{ formatDate(collection.updated_at) }}</span>
             </div>
             <div class="flex items-center gap-2">
               <TagIcon class="w-4 h-4 text-gray-500" />
-              <span class="text-sm text-gray-600">分类:</span>
-              <span class="text-sm font-medium text-gray-900">{{ collection.category_name || '未分类' }}</span>
+              <span class="text-sm text-gray-600">{{ t('community.category') }}</span>
+              <span class="text-sm font-medium text-gray-900">{{ collection.category_name || t('community.uncategorized') }}</span>
             </div>
             <div class="flex items-center gap-2">
               <HashIcon class="w-4 h-4 text-gray-500" />
-              <span class="text-sm text-gray-600">标签:</span>
+              <span class="text-sm text-gray-600">{{ t('community.tags') }}</span>
               <span class="text-sm font-medium text-gray-900">{{ collection.tags ? collection.tags.split(',').length : 0 }}个</span>
             </div>
           </div>
 
           <!-- Tags -->
           <div class="flex items-center gap-2 pt-4">
-            <span class="text-sm font-medium text-black">标签:</span>
+            <span class="text-sm font-medium text-black">{{ t('community.tags') }}</span>
             <div class="flex flex-wrap gap-2">
               <span
                 v-for="(tag, index) in tagList"
@@ -109,7 +109,7 @@
               >
                 #{{ tag }}
               </span>
-              <span v-if="tagList.length === 0" class="text-sm text-gray-500">无标签</span>
+              <span v-if="tagList.length === 0" class="text-sm text-gray-500">{{ t('community.noTags') }}</span>
             </div>
           </div>
         </div>
@@ -119,7 +119,7 @@
           <div v-if="collection.details.url" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div class="flex items-center gap-2 mb-2">
               <ExternalLinkIcon class="w-4 h-4 text-gray-500" />
-              <span class="text-sm font-medium text-black">原文链接</span>
+              <span class="text-sm font-medium text-black">{{ t('community.originalLink') }}</span>
             </div>
             <a
               :href="collection.details.url"
@@ -133,7 +133,7 @@
 
           <!-- Content Preview -->
           <div v-if="collection.details.content">
-            <h3 class="text-lg font-semibold text-black mb-4">内容预览</h3>
+            <h3 class="text-lg font-semibold text-black mb-4">{{ t('community.contentPreview') }}</h3>
             <div class="prose prose-gray max-w-none">
               <!-- 新增：md渲染 -->
               <div v-html="contentMarkdown"></div>
@@ -153,7 +153,7 @@
             <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <FileText class="w-8 h-8 text-gray-400" />
             </div>
-            <p class="text-gray-500">暂无内容预览</p>
+            <p class="text-gray-500">{{ t('community.noContentPreview') }}</p>
           </div>
         </div>
       </div>
@@ -163,7 +163,7 @@
     <footer class="border-t border-gray-200 mt-16">
       <div class="max-w-4xl mx-auto px-6 py-8">
         <div class="text-center text-sm text-gray-500">
-          <p>© 2025 网页收藏系统 · 简约 · 现代 · 高效</p>
+          <p>{{ t('community.copyright') }}</p>
         </div>
       </div>
     </footer>
@@ -173,9 +173,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { getPostCollectionDetails } from '../services/community'
 import { getPublicCollectionDetails } from '../services/collection'
 import { marked } from 'marked'
+
+const { t } = useI18n()
 
 // Icons
 const BookmarkIcon = {
@@ -289,7 +292,7 @@ const formatDate = (dateString) => {
 // summary json解析
 const parsedSummary = computed(() => {
   const summary = collection.value?.details?.summary
-  if (!summary) return '无摘要'
+  if (!summary) return t('community.noSummary')
   // 去除前后多余的反引号和空白
   let cleanSummary = summary
   if (typeof cleanSummary === 'string') {

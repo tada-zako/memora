@@ -2,7 +2,7 @@
   <!-- 快速窗口模式 -->
   <div class="quick-window" :class="{ 'mac-style': platform === 'darwin', 'win-style': platform === 'win32' }">
     <!-- 退出按钮 -->
-    <button @click="closeQuickWindow" class="exit-button" title="退出">
+    <button @click="closeQuickWindow" class="exit-button" :title="t('quick.exit')">
       <svg class="exit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
@@ -15,8 +15,8 @@
         <div class="greeting-content">
           <span class="greeting-emoji">👋</span>
           <div class="greeting-texts">
-            <div class="greeting-text">下午好，</div>
-            <div class="greeting-question">有什么想收集的吗？</div>
+            <div class="greeting-text">{{ t('quick.greeting') }}</div>
+            <div class="greeting-question">{{ t('quick.question') }}</div>
           </div>
         </div>
       </div>
@@ -311,9 +311,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Zap } from 'lucide-vue-next'
 import { updateCollectionTags as updateTagsAPI, updateCollectionDetail as updateDetailAPI, healthCheck, getCollectionTags, processUrlWithStreaming } from '../services/collection'
 import { isAuthenticated } from '../services/auth'
+
+const { t } = useI18n()
 
 // 快速窗口相关状态
 const capturedUrl = ref('')

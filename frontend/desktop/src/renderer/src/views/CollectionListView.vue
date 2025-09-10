@@ -27,7 +27,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path d="M15 19l-7-7 7-7" />
             </svg>
-            返回
+            {{ t('collection.back') }}
           </button>
         </div>
 
@@ -48,7 +48,7 @@
               <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
               </svg>
-              {{ creatingKnowledgeBase ? '创建中...' : '创建知识库' }}
+              {{ creatingKnowledgeBase ? t('collection.creating') : t('collection.createKnowledgeBase') }}
             </button>
             <!-- Ask AI Button -->
             <button v-else @click="showAskAIPanel = true"
@@ -57,7 +57,7 @@
                 <path
                   d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
               </svg>
-              Ask AI
+              {{ t('collection.askAI') }}
             </button>
             
             <!-- Search Box -->
@@ -67,7 +67,7 @@
                 @input="handleSearch"
                 @keydown.enter="handleSearch"
                 type="text"
-                placeholder="搜索收藏..."
+                :placeholder="t('collection.searchCollections')"
                 class="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-64"
               />
               <button
@@ -84,23 +84,23 @@
 
         </div>
         <p class="text-gray-500 text-sm">
-          共 {{ filteredCollections.length }} 个收藏
-          <span v-if="searchQuery">(已过滤 {{ collections.length - filteredCollections.length }} 个)</span>
+          {{ t('collection.totalCollections', { count: filteredCollections.length }) }}
+          <span v-if="searchQuery">({{ t('collection.filtered', { count: collections.length - filteredCollections.length }) }})</span>
         </p>
       </div>
     </header>
 
     <!-- Main Content -->
     <main class="max-w-6xl px-6 py-6 flex-1 min-h-0">
-      <div v-if="loading" class="text-center py-16 text-gray-500">加载中...</div>
+      <div v-if="loading" class="text-center py-16 text-gray-500">{{ t('collection.loading') }}</div>
       <div v-else class="h-full">
         <div v-if="filteredCollections.length === 0" class="text-center py-16">
           <BookmarkIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 class="text-lg font-medium text-gray-900 mb-2">
-            {{ searchQuery ? '没有找到匹配的收藏' : '没有找到相关收藏' }}
+            {{ searchQuery ? t('collection.noMatchingCollections') : t('collection.noCollections') }}
           </h3>
           <p class="text-gray-500">
-            {{ searchQuery ? '尝试使用不同的搜索词' : '该分类下暂无收藏' }}
+            {{ searchQuery ? t('collection.tryDifferentSearch') : t('collection.noCollectionsInCategory') }}
           </p>
         </div>
         <div v-else class="h-full">
@@ -124,7 +124,7 @@
 
                   <div class="flex items-center justify-between text-xs text-gray-500 mt-2">
                     <div>
-                      <div>创建时间: {{ formatDate(item.created_at) }}</div>
+                      <div>{{ t('collection.createdAt', { date: formatDate(item.created_at) }) }}</div>
                     </div>
                     <button @click.stop="showPublishModal(item.id)"
                       class="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 flex items-center justify-center">
@@ -133,7 +133,7 @@
                   </div>
                   <div v-if="item.details && item.details.attachment" class="mt-4 pt-4 border-t border-gray-100">
                     <div class="flex items-center gap-2">
-                      <span class="text-xs text-gray-500 truncate">附件ID: {{ item.details.attachment }}</span>
+                      <span class="text-xs text-gray-500 truncate">{{ t('collection.attachmentId', { id: item.details.attachment }) }}</span>
                     </div>
                   </div>
                 </div>
@@ -145,12 +145,13 @@
                 <div class="flex items-center justify-between p-4 flex-shrink-0">
                   <div class="flex items-center gap-2">
                     <Sparkles class="w-6 h-6" fill="#4577e5" style="color: #4577e5;" />
-                    <h1 class="text-2xl font-semibold text-black">{{ showAskAIPanel ? 'Ask AI' : 'AI Overview' }}</h1>
+                    <h1 class="text-2xl font-semibold text-black">{{ showAskAIPanel ? t('collection.askAI') : t('collection.aiOverview') }}</h1>
                   </div>
 
                   <!-- 关闭 -->
                   <button @click="selectedCollection = null; showAskAIPanel = false"
-                    class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                    class="text-gray-500 hover:text-gray-700 focus:outline-none"
+                    :title="t('collection.close')">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                       <path d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -169,13 +170,13 @@
                       <div class="text-gray-700 prose" v-html="renderedAiResponse"></div>
                     </div>
                     <div v-else class="flex-1 p-4 flex items-center justify-center text-gray-500">
-                      Ask me anything about this category's knowledge base!
+                      {{ t('collection.askAnything') }}
                     </div>
 
                     <div class="p-4 flex-shrink-0">
                       <div class="border border-gray-300 rounded-2xl">
                         <textarea id="input-field" v-model="aiQuery" @keydown="handleInputKeyDown"
-                          @click:clear="clearMessage" placeholder="Ask AI..."
+                          @click:clear="clearMessage" :placeholder="t('collection.askAIPlaceholder')"
                           class="w-full resize-none outline-none border-none rounded-t-2xl p-4 min-h-[60px] font-inherit text-base bg-transparent"
                         ></textarea>
                         <div class="flex justify-between items-center px-2 pb-2">
@@ -232,6 +233,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { getCollectionsByCategory } from '../services/collection'
 import { createKnowledgeBase as apiCreateKnowledgeBase, queryKnowledgeBase } from '../services/category'
 import { isAuthenticated } from '../services/auth'
@@ -242,7 +244,7 @@ import { ArrowUp } from 'lucide-vue-next'
 import { MessageSquareShare } from 'lucide-vue-next'
 import { marked } from 'marked'
 
-// Icons
+const { t } = useI18n()
 const BookmarkIcon = {
   template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`
 }
