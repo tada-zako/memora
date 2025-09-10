@@ -48,11 +48,8 @@ export const getPublicCollectionDetails = async (collectionId) => {
   try {
     const response = await getPublicCollectionDetailsApi(collectionId)
 
-    if (response.code !== 200) {
-      throw new Error(response.message || '获取公共收藏详情失败')
-    }
-
-    return response.data
+    // 由于Axios拦截器已经提取了data字段，这里直接返回响应
+    return response
   } catch (error) {
     throw error.response?.data || error.message
   }

@@ -11,7 +11,7 @@ export const baseURL: string = typeof envBaseURL === 'string' ? envBaseURL : 'ht
 
 const api = axios.create({
   baseURL: baseURL,
-  timeout: 30000, // 增加超时时间到30秒，因为AI查询可能需要更长时间
+  timeout: 60000, // 增加超时时间到60秒，因为AI查询可能需要更长时间
   headers: {
     'Content-Type': 'application/json'
   }

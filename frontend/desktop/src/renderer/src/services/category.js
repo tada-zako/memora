@@ -103,11 +103,8 @@ export const queryKnowledgeBase = async (categoryId, query) => {
   try {
     const response = await queryKnowledgeBaseApi(categoryId, query)
 
-    if (response.code !== 200) {
-      throw new Error(response.message || '查询知识库失败')
-    }
-
-    return response.data
+    // 由于Axios拦截器已经提取了data字段，这里直接返回响应
+    return response
   } catch (error) {
     console.error('查询知识库API错误:', {
       categoryId,

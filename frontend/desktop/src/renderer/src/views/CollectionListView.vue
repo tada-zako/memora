@@ -456,16 +456,17 @@ const askAI = async () => {
     console.log('AI查询结果:', result)
 
     if (!result) {
-      console.warn('AI查询返回非成功状态:', result)
-      aiResponse.value = 'AI查询失败: ' + (result || '返回状态异常')
+      console.warn('AI查询返回空结果')
+      aiResponse.value = 'AI查询失败: 返回结果为空'
       return
     }
 
-    if (result.response) {
+    // 检查后端返回的数据结构：result.data.response
+    if (result.data && result.data.response) {
+      aiResponse.value = result.data.response
+    } else if (result.response) {
+      // 兼容旧的数据结构
       aiResponse.value = result.response
-    } else if (result.length > 0) {
-      // 如果返回的是数组，尝试提取第一个元素
-      aiResponse.value = result[0] || '抱歉，没有找到相关信息。'
     } else {
       aiResponse.value = 'AI返回了空响应，请重试。'
     }
@@ -481,7 +482,13 @@ const askAI = async () => {
       const data = error.response.data
 
       if (status === 404) {
-        errorMessage = '知识库不存在，请先创建知识库'
+        if (data?.detail?.includes('Knowledge base')) {
+          errorMessage = '知识库不存在，请先创建知识库'
+        } else if (data?.detail?.includes('Category')) {
+          errorMessage = '分类不存在'
+        } else {
+          errorMessage = '请求的资源不存在'
+        }
       } else if (status === 500) {
         errorMessage = '服务器内部错误，请稍后重试'
       } else if (status === 401 || status === 403) {
@@ -506,6 +513,9 @@ const askAI = async () => {
       } else {
         errorMessage = error.message
       }
+    } else if (error.detail) {
+      // 处理后端返回的错误信息
+      errorMessage = error.detail
     }
 
     aiResponse.value = 'AI查询失败: ' + errorMessage

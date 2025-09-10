@@ -34,7 +34,7 @@ export const createKnowledgeBaseApi = async (categoryId) => {
 
 // 查询知识库
 export const queryKnowledgeBaseApi = async (categoryId, query) => {
-  return await api.get(`/api/v1/category/query_knowledge_base/${categoryId}`, {
+  return await api.get(`/api/v1/category/knowledge_base/${categoryId}`, {
     params: { query }
   })
 }
