@@ -21,7 +21,7 @@
                 <Star class="text-black-400 w-8 h-8" />
               </div>
               <div>
-                <h1 class="text-2xl font-bold text-gray-900">收藏</h1>
+                <h1 class="text-2xl font-bold text-gray-900">{{ t('home.collections') }}</h1>
               </div>
             </div>
             <!-- 刷新按钮 -->
@@ -31,40 +31,33 @@
               class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-smooth font-medium text-sm btn-hover flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               title="刷新收藏列表"
             >
-              <RefreshIcon :class="['w-4 h-4', isLoadingCollections ? 'animate-spin' : '']" />
-              <span>{{ isLoadingCollections ? '刷新中...' : '刷新' }}</span>
+              <RefreshIcon :class="[
+                'w-4 h-4',
+                isLoadingCollections ? 'animate-spin' : ''
+              ]" />
+              <span>{{ isLoadingCollections ? t('home.refreshing') : t('home.refresh') }}</span>
             </button>
           </div>
-          <div style="width: 92%; margin-left: 20px">
-            <div
-              style="
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 16px;
-                max-width: 100%;
-              "
-            >
+        
+          <div style="width: 92%; margin-left: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; max-width: 100%;">
               <!-- 收藏卡片 -->
-              <div
-                v-for="collection in collections"
+              <div 
+                v-for="collection in collections" 
                 :key="collection.id"
                 @click="viewCollection(collection)"
-                :class="[
-                  'h-36 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out text-gray-800 relative overflow-hidden group collection-card'
+                :class="[ 
+                  'h-36 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-300 ease-out text-gray-800 relative overflow-hidden group collection-card',
                 ]"
-                style="width: 100%; max-width: 280px"
+                style="width: 100%; max-width: 280px;"
               >
                 <!-- 内容 -->
-                <div class="relative flex flex-col justify-between" style="height: 100%">
+                <div class="relative flex flex-col justify-between" style="height: 100%;">
                   <div>
                     <div class="text-xl mb-1">{{ collection.icon }}</div>
-                    <h3 class="text-2xl font-bold mb-0 truncate text-gray-1000">
-                      {{ collection.name }}
-                    </h3>
+                    <h3 class="text-2xl font-bold mb-0 truncate text-gray-1000">{{ collection.name }}</h3>
                   </div>
-                  <p class="text-gray-600 text-sm truncate leading-tight">
-                    {{ collection.collection_count }} 个收藏
-                  </p>
+                  <p class="text-gray-600 text-sm truncate leading-tight">{{ collection.collection_count }} {{ t('home.items') }}</p>
                 </div>
               </div>
             </div>
@@ -83,112 +76,118 @@
             "
           >
             <div class="text-6xl mb-4">📚</div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">还没有收藏</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('home.noCollections') }}</h3>
           </div>
           <!-- 加载状态 -->
-          <div
-            v-if="isLoadingCollections && collections.length === 0"
-            class="text-center"
-            style="
-              height: calc(100% - 84px);
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              flex-direction: column;
-            "
-          >
-            <div
-              class="w-8 h-8 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mb-4"
-            ></div>
-            <p class="text-gray-500">正在加载收藏...</p>
+          <div v-if="isLoadingCollections && collections.length === 0" class="text-center" style="height: calc(100% - 84px); display: flex; justify-content: center; align-items: center; flex-direction: column;">
+            <div class="w-8 h-8 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mb-4"></div>
+            <p class="text-gray-500">{{ t('home.loadingCollections') }}</p>
           </div>
         </div>
       </div>
-      <!-- 事件列表页面 -->
-      <div v-if="currentPage === 'events'" class="space-y-6 max-w-4xl">
-        <!-- 创建事件按钮 -->
-        <div class="flex justify-between items-center">
-          <div>
-            <h3 class="text-lg font-semibold text-gray-900">我的事件</h3>
-            <p class="text-sm text-gray-500">管理和查看您的所有事件记录</p>
+        <!-- 事件列表页面 -->
+        <div v-if="currentPage === 'events'" class="space-y-6 max-w-4xl">
+          <!-- 创建事件按钮 -->
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">{{ t('home.myEvents') }}</h3>
+              <p class="text-sm text-gray-500">{{ t('home.manageEvents') }}</p>
+            </div>
+            <button
+              @click="showCreateEvent = true"
+              class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-smooth font-medium text-sm btn-hover flex items-center space-x-2"
+            >
+              <Plus class="w-4 h-4" />
+              <span>{{ t('home.createEvent') }}</span>
+            </button>
           </div>
-          <button
-            @click="showCreateEvent = true"
-            class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-smooth font-medium text-sm btn-hover flex items-center space-x-2"
-          >
-            <Plus class="w-4 h-4" />
-            <span>新建事件</span>
-          </button>
-        </div>
-        <!-- 事件列表 -->
-        <div class="bg-white/80 glass-effect rounded-xl border border-gray-100">
-          <div class="p-4">
-            <div class="space-y-3">
-              <div
-                v-for="event in events"
-                :key="event.id"
-                class="p-4 border border-gray-100 rounded-lg hover:bg-gray-50/80 transition-smooth"
-              >
-                <div class="flex items-start justify-between">
-                  <div class="flex-1 min-w-0">
-                    <p class="font-medium text-gray-900 truncate">{{ event.description }}</p>
-                    <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                      <span>{{ formatDate(event.created_at) }}</span>
-                      <span v-if="event.metadata" class="truncate"
-                        >{{ Object.keys(event.metadata).length }} 个标签</span
+
+          <!-- 事件列表 -->
+          <div class="bg-white/80 glass-effect rounded-xl border border-gray-100">
+              <div class="p-4">
+                <div class="space-y-3">
+                  <div v-for="event in events" :key="event.id" class="p-4 border border-gray-100 rounded-lg hover:bg-gray-50/80 transition-smooth">
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1 min-w-0">
+                        <p class="font-medium text-gray-900 truncate">{{ event.description }}</p>
+                        <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                          <span>{{ formatDate(event.created_at) }}</span>
+                          <span v-if="event.metadata" class="truncate">{{ Object.keys(event.metadata).length }} {{ t('home.tags') }}</span>
+                        </div>
+                      </div>
+                      <div class="flex items-center space-x-1 ml-4">
+                        <button 
+                          @click="viewEvent(event)"
+                          class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-smooth"
+                          title="查看"
+                        >
+                          <Eye class="w-4 h-4" />
+                        </button>
+                        <button 
+                          @click="editEvent(event)"
+                          class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-smooth"
+                          title="编辑"
+                        >
+                          <Edit class="w-4 h-4" />
+                        </button>
+                        <button 
+                          @click="deleteEvent(event.id)"
+                          class="p-1.5 text-red-400 hover:text-red-600 rounded hover:bg-red-50 transition-smooth"
+                          title="删除"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div class="flex items-center space-x-1 ml-4">
+                      <button
+                        @click="viewEvent(event)"
+                        class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-smooth"
+                        title="查看"
                       >
+                        <Eye class="w-4 h-4" />
+                      </button>
+                      <button
+                        @click="editEvent(event)"
+                        class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-smooth"
+                        title="编辑"
+                      >
+                        <Edit class="w-4 h-4" />
+                      </button>
+                      <button
+                        @click="deleteEvent(event.id)"
+                        class="p-1.5 text-red-400 hover:text-red-600 rounded hover:bg-red-50 transition-smooth"
+                        title="删除"
+                      >
+                        <Trash2 class="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                  <div class="flex items-center space-x-1 ml-4">
-                    <button
-                      @click="viewEvent(event)"
-                      class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-smooth"
-                      title="查看"
-                    >
-                      <Eye class="w-4 h-4" />
-                    </button>
-                    <button
-                      @click="editEvent(event)"
-                      class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-smooth"
-                      title="编辑"
-                    >
-                      <Edit class="w-4 h-4" />
-                    </button>
-                    <button
-                      @click="deleteEvent(event.id)"
-                      class="p-1.5 text-red-400 hover:text-red-600 rounded hover:bg-red-50 transition-smooth"
-                      title="删除"
-                    >
-                      <Trash2 class="w-4 h-4" />
-                    </button>
+                  
+                  <div v-if="events.length === 0" class="text-center py-12">
+                    <Calendar class="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p class="text-gray-500">{{ t('home.noEvents') }}</p>
+                    <p class="text-sm text-gray-400 mt-1">{{ t('home.createFirstEvent') }}</p>
                   </div>
                 </div>
               </div>
-
-              <div v-if="events.length === 0" class="text-center py-12">
-                <Calendar class="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p class="text-gray-500">暂无事件记录</p>
-                <p class="text-sm text-gray-400 mt-1">点击上方按钮创建您的第一个事件</p>
-              </div>
-            </div>
           </div>
+
         </div>
-      </div>
+
+
       <!-- 附件管理页面 -->
       <div v-if="currentPage === 'attachments'" class="space-y-6 max-w-4xl">
         <!-- 上传区域 -->
         <div class="bg-white/80 glass-effect rounded-xl border border-gray-100 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">上传附件</h3>
-
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ t('home.uploadAttachments') }}</h3>
+          
           <div class="space-y-4">
             <!-- 事件选择 -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">关联事件</label>
-              <select
-                v-model="selectedEventId"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white/80 transition-smooth text-sm"
-              >
-                <option value="">选择事件</option>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('home.associatedEvent') }}</label>
+              <select v-model="selectedEventId" class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white/80 transition-smooth text-sm">
+                <option value="">{{ t('home.selectEvent') }}</option>
                 <option v-for="event in events" :key="event.id" :value="event.id">
                   {{ event.description }}
                 </option>
@@ -208,15 +207,13 @@
               ]"
             >
               <Upload class="w-10 h-10 text-gray-400 mx-auto mb-3" />
-              <h4 class="text-base font-semibold text-gray-900 mb-2">拖拽文件到这里上传</h4>
-              <p class="text-gray-500 mb-4 font-light text-sm">
-                支持图片、文档等格式，单个文件不超过 10MB
-              </p>
-              <button
+              <h4 class="text-base font-semibold text-gray-900 mb-2">{{ t('home.dragFilesHere') }}</h4>
+              <p class="text-gray-500 mb-4 font-light text-sm">{{ t('home.uploadDescription') }}</p>
+              <button 
                 @click="triggerFileInput"
                 class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-smooth font-medium text-sm btn-hover"
               >
-                选择文件
+                {{ t('home.selectFile') }}
               </button>
               <input
                 ref="fileInput"
@@ -229,12 +226,12 @@
 
             <!-- 描述 -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">描述（可选）</label>
-              <textarea
-                v-model="attachmentDescription"
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('home.description') }}</label>
+              <textarea 
+                v-model="attachmentDescription" 
                 class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white/80 transition-smooth text-sm resize-none"
                 rows="2"
-                placeholder="为此附件添加描述..."
+                :placeholder="t('home.addDescription')"
               ></textarea>
             </div>
 
@@ -243,7 +240,7 @@
               :disabled="!selectedEventId || !selectedFile"
               class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-smooth font-medium text-sm btn-hover"
             >
-              上传附件
+              {{ t('home.uploadAttachment') }}
             </button>
           </div>
         </div>
@@ -251,7 +248,7 @@
         <!-- 附件列表 -->
         <div class="bg-white/80 glass-effect rounded-xl border border-gray-100">
           <div class="p-4 border-b border-gray-50">
-            <h3 class="text-lg font-semibold text-gray-900">最近上传</h3>
+            <h3 class="text-lg font-semibold text-gray-900">{{ t('home.recentUploads') }}</h3>
           </div>
           <div class="p-4">
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -296,32 +293,20 @@
             </div>
           </div>
         </div>
+        
       </div>
-    </main>
+    
+  </main>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  Camera,
-  User,
-  Bell,
-  Settings,
-  Calendar,
-  Upload,
-  Plus,
-  Eye,
-  Edit,
-  Trash2,
-  FileText,
-  X,
-  ExternalLink,
-  RefreshCw as RefreshIcon,
-  Globe,
-  Star,
-  Home
+import { useI18n } from 'vue-i18n'
+import { 
+  Camera, User, Bell, Settings, Calendar, Upload, Plus, Eye, Edit, Trash2, FileText,
+  X, ExternalLink, RefreshCw as RefreshIcon, Globe, Star, Home
 } from 'lucide-vue-next'
 import UploadModal from '../components/UploadModal.vue'
 import { getCategories, deleteCategory } from '../services/category'
@@ -330,6 +315,7 @@ import { isAuthenticated, getLocalUserInfo, refreshAuthStatus } from '../service
 import { uploadAttachment } from '@/services/attachment'
 import '../services/debug' // 引入调试工具
 
+const { t } = useI18n()
 const router = useRouter()
 
 // 侧边栏展开状态

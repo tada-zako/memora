@@ -187,9 +187,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { getCollectionDetails } from '../services/collection'
 import { isAuthenticated } from '../services/auth'
 import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
+
+const { t } = useI18n()
 
 // Icons (你可以使用任何图标库，这里用简单的SVG组件)
 const BookmarkIcon = {
@@ -276,6 +279,6 @@ const openOriginalLink = () => {
 const handlePublishSuccess = (result) => {
   console.log('发布成功:', result)
   // 可以添加成功提示或其他处理逻辑
-  alert('已成功发布到社区！')
+  alert(t('community.publishSuccess'))
 }
 </script>
