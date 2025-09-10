@@ -146,11 +146,8 @@ export const getPostCollectionDetails = async (postId) => {
   try {
     const response = await getPostCollectionDetailsApi(postId)
 
-    if (response.code !== 200) {
-      throw new Error(response.message || '获取推文收藏详情失败')
-    }
-
-    return response.data
+    // 由于Axios拦截器已经提取了data字段，这里直接返回响应
+    return response
   } catch (error) {
     console.error('获取推文收藏详情失败:', error)
     throw error.response?.data || error

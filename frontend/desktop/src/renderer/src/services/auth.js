@@ -4,6 +4,7 @@ import {
   getUserProfileApi,
   updateUserProfileApi,
   getAttachmentApi,
+  uploadAttachmentApi,
   baseURL
 } from '@/api'
 
@@ -68,41 +69,57 @@ export const updateUserProfile = async (userData) => {
 }
 
 // 上传头像 -> 由 ./attachment.js 的 uploadAvatar 处理
-// export const uploadUserAvatar = async (file) => {
-//   try {
-//     // 验证文件类型
-//     const allowedTypes = [
-//       'image/jpeg',
-//       'image/jpg',
-//       'image/png',
-//       'image/gif',
-//       'image/webp',
-//       'image/bmp'
-//     ]
-//     if (!allowedTypes.includes(file.type)) {
-//       throw new Error('不支持的文件类型，请上传 JPG、PNG、GIF、WebP 或 BMP 格式的图片')
-//     }
+export const uploadUserAvatar = async (file) => {
+  try {
+    // 验证文件类型
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/bmp'
+    ]
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('不支持的文件类型，请上传 JPG、PNG、GIF、WebP 或 BMP 格式的图片')
+    }
 
-//     // 验证文件大小 (10MB)
-//     const maxSize = 10 * 1024 * 1024
-//     if (file.size > maxSize) {
-//       throw new Error('文件大小不能超过 10MB')
-//     }
+    // 验证文件大小 (10MB)
+    const maxSize = 10 * 1024 * 1024
+    if (file.size > maxSize) {
+      throw new Error('文件大小不能超过 10MB')
+    }
 
-//     // 上传头像
-//     const attachment = await uploadAvatar(file)
+    // 创建 FormData
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('description', 'avatar')
 
-//     // 更新用户头像信息
-//     const updateData = {
-//       avatar_attachment_id: attachment.attachment_id
-//     }
+    // 上传头像
+    const uploadResponse = await uploadAttachmentApi(formData)
 
-//     const response = await updateUserProfile(updateData)
-//     return response.data
-//   } catch (error) {
-//     throw error.response?.data || error.message
-//   }
-// }
+    if (uploadResponse.code !== 200) {
+      throw new Error(uploadResponse.message || '上传头像失败')
+    }
+
+    const attachment = uploadResponse.data
+
+    // 更新用户头像信息
+    const updateData = {
+      avatar_attachment_id: attachment.attachment_id
+    }
+
+    const response = await updateUserProfileApi(updateData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '更新用户信息失败')
+    }
+
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error.message
+  }
+}
 
 // 获取用户头像URL
 export const getUserAvatarUrl = async (userInfo) => {

@@ -79,22 +79,22 @@
             <div class="flex items-center gap-2">
               <CalendarIcon class="w-4 h-4 text-gray-500" />
               <span class="text-sm text-gray-600">{{ t('community.createdAt') }}</span>
-              <span class="text-sm font-medium text-gray-900">{{ formatDate(collection.created_at) }}</span>
+              <span class="text-sm font-medium text-gray-900">{{ collection ? formatDate(collection.created_at) : '--' }}</span>
             </div>
             <div class="flex items-center gap-2">
               <ClockIcon class="w-4 h-4 text-gray-500" />
               <span class="text-sm text-gray-600">{{ t('community.updatedAt') }}</span>
-              <span class="text-sm font-medium text-gray-900">{{ formatDate(collection.updated_at) }}</span>
+              <span class="text-sm font-medium text-gray-900">{{ collection ? formatDate(collection.updated_at) : '--' }}</span>
             </div>
             <div class="flex items-center gap-2">
               <TagIcon class="w-4 h-4 text-gray-500" />
               <span class="text-sm text-gray-600">{{ t('community.category') }}</span>
-              <span class="text-sm font-medium text-gray-900">{{ collection.category_name || t('community.uncategorized') }}</span>
+              <span class="text-sm font-medium text-gray-900">{{ collection ? (collection.category_name || t('community.uncategorized')) : '--' }}</span>
             </div>
             <div class="flex items-center gap-2">
               <HashIcon class="w-4 h-4 text-gray-500" />
               <span class="text-sm text-gray-600">{{ t('community.tags') }}</span>
-              <span class="text-sm font-medium text-gray-900">{{ collection.tags ? collection.tags.split(',').length : 0 }}个</span>
+              <span class="text-sm font-medium text-gray-900">{{ collection && collection.tags ? collection.tags.split(',').length : 0 }}个</span>
             </div>
           </div>
 
@@ -116,7 +116,7 @@
 
         <div class="p-6 pt-0">
           <!-- URL Display -->
-          <div v-if="collection.details.url" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div v-if="collection && collection.details && collection.details.url" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div class="flex items-center gap-2 mb-2">
               <ExternalLinkIcon class="w-4 h-4 text-gray-500" />
               <span class="text-sm font-medium text-black">{{ t('community.originalLink') }}</span>
@@ -132,7 +132,7 @@
           </div>
 
           <!-- Content Preview -->
-          <div v-if="collection.details.content">
+          <div v-if="collection && collection.details && collection.details.content">
             <h3 class="text-lg font-semibold text-black mb-4">{{ t('community.contentPreview') }}</h3>
             <div class="prose prose-gray max-w-none">
               <!-- 新增：md渲染 -->
@@ -232,8 +232,27 @@ const fetchCollectionDetails = async () => {
     // 如果有postId，使用推文收藏详情接口
     if (postId) {
       result = await getPostCollectionDetails(postId)
-      if (result.status === 'success' && result.data && result.data.collection) {
+      console.log('推文收藏详情API返回结果:', result)
+      
+      if (result && result.collection) {
+        collection.value = result.collection
+        console.log('设置collection对象 (result.collection):', collection.value)
+        console.log('collection.details:', collection.value.details)
+      } else if (result && result.data && result.data.collection) {
+        // 如果返回的是完整的响应对象，取其中的data.collection
         collection.value = result.data.collection
+        console.log('设置collection对象 (result.data.collection):', collection.value)
+        console.log('collection.details:', collection.value.details)
+      } else if (result && result.data) {
+        // 如果data直接就是collection对象
+        collection.value = result.data
+        console.log('设置collection对象 (result.data):', collection.value)
+        console.log('collection.details:', collection.value.details)
+      } else if (result) {
+        // 如果直接返回了collection对象
+        collection.value = result
+        console.log('设置collection对象 (result):', collection.value)
+        console.log('collection.details:', collection.value.details)
       } else {
         throw new Error('无法获取收藏详情')
       }
@@ -241,8 +260,27 @@ const fetchCollectionDetails = async () => {
     // 如果有collectionId，使用公共收藏详情接口
     else if (collectionId) {
       result = await getPublicCollectionDetails(collectionId)
-      if (result.status === 'success' && result.data && result.data.collection) {
+      console.log('公共收藏详情API返回结果:', result)
+      
+      if (result && result.collection) {
+        collection.value = result.collection
+        console.log('设置collection对象 (result.collection):', collection.value)
+        console.log('collection.details:', collection.value.details)
+      } else if (result && result.data && result.data.collection) {
+        // 如果返回的是完整的响应对象，取其中的data.collection
         collection.value = result.data.collection
+        console.log('设置collection对象 (result.data.collection):', collection.value)
+        console.log('collection.details:', collection.value.details)
+      } else if (result && result.data) {
+        // 如果data直接就是collection对象
+        collection.value = result.data
+        console.log('设置collection对象 (result.data):', collection.value)
+        console.log('collection.details:', collection.value.details)
+      } else if (result) {
+        // 如果直接返回了collection对象
+        collection.value = result
+        console.log('设置collection对象 (result):', collection.value)
+        console.log('collection.details:', collection.value.details)
       } else {
         throw new Error('无法获取收藏详情')
       }
@@ -274,8 +312,14 @@ const contentParagraphs = computed(() => {
 // 新增：正文 markdown 渲染
 const contentMarkdown = computed(() => {
   const content = collection.value?.details?.content
-  if (!content) return ''
-  return marked.parse(content)
+  console.log('原始content数据:', content)
+  if (!content) {
+    console.log('content为空，返回空字符串')
+    return ''
+  }
+  const result = marked.parse(content)
+  console.log('Markdown渲染结果长度:', result.length)
+  return result
 })
 
 const formatDate = (dateString) => {
@@ -292,35 +336,27 @@ const formatDate = (dateString) => {
 // summary json解析
 const parsedSummary = computed(() => {
   const summary = collection.value?.details?.summary
-  if (!summary) return t('community.noSummary')
-  // 去除前后多余的反引号和空白
-  let cleanSummary = summary
-  if (typeof cleanSummary === 'string') {
-    cleanSummary = cleanSummary.trim()
-    // 去除前后的三个反引号
-    if (cleanSummary.startsWith('```') && cleanSummary.endsWith('```')) {
-      cleanSummary = cleanSummary.slice(3, -3).trim()
-    }
-    // 解析json
-    try {
-      if (cleanSummary.startsWith('{')) {
-        const obj = JSON.parse(cleanSummary)
-        if (obj && typeof obj === 'object' && obj.summary) return obj.summary
-      }
-      // 解析失败时尝试用正则提取 summary 字段
-      const match = cleanSummary.match(/"summary"\s*:\s*"([^"]+)"/)
-      if (match && match[1]) return match[1]
-      return cleanSummary
-    } catch {
-      // 解析失败时尝试用正则提取 summary 字段
-      const match = cleanSummary.match(/"summary"\s*:\s*"([^"]+)"/)
-      if (match && match[1]) return match[1]
-      return cleanSummary
-    }
+  console.log('原始summary数据:', summary)
+  
+  if (!summary) {
+    console.log('summary为空，返回默认值')
+    return t('community.noSummary')
   }
+  
+  // 如果是纯字符串，直接返回
+  if (typeof summary === 'string') {
+    console.log('summary是字符串，直接返回:', summary)
+    return summary
+  }
+  
   // 如果是对象且有 summary 字段
-  if (typeof cleanSummary === 'object' && cleanSummary.summary) return cleanSummary.summary
-  return String(cleanSummary)
+  if (typeof summary === 'object' && summary.summary) {
+    console.log('summary是对象，返回summary字段:', summary.summary)
+    return summary.summary
+  }
+  
+  console.log('其他情况，转为字符串:', String(summary))
+  return String(summary)
 })
 </script>
 

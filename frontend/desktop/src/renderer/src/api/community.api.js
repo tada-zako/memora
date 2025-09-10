@@ -59,7 +59,7 @@ export const deleteCommentApi = async (commentId) => {
 
 // 获取推文关联的收藏详情（公共接口，无需登录）
 export const getPostCollectionDetailsApi = async (postId) => {
-  return await api.get(`/api/v1/community/collections/${postId}/collection`)
+  return await api.get(`/api/v1/community/posts/${postId}/collection`)
 }
 
 // 获取当前用户推文列表
