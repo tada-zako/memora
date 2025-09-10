@@ -4,7 +4,7 @@ import {
   getPublicCollectionDetailsApi,
   getCollectionTagsApi,
   updateCollectionTagsApi,
-  createUrlCollectionApi,
+  // createUrlCollectionApi,
   createPictureCollectionApi,
   updateCollectionDetailsApi,
   processUrlWithProgressApi,
@@ -89,19 +89,20 @@ export const updateCollectionTags = async (collectionId, tags) => {
 }
 
 // 创建URL收藏
-export const createUrlCollection = async (collectionData) => {
-  try {
-    const response = await createUrlCollectionApi(collectionData)
+// export const createUrlCollection = async (collectionData) => {
+//   try {
+//     const response = await createUrlCollectionApi(collectionData)
 
-    if (response.code !== 200) {
-      throw new Error(response.message || '创建URL收藏失败')
-    }
+//     if (response.code !== 200) {
+//       throw new Error(response.message || '创建URL收藏失败')
+//     }
 
-    return response.data
-  } catch (error) {
-    throw error.response?.data || error.message
-  }
-}
+//     return response.data
+//   } catch (error) {
+//     throw error.response?.data || error.message
+//   }
+// }
+// 使用 fetch 处理流式 api 响应
 
 // 创建图片收藏
 export const createPictureCollection = async (collectionData) => {
