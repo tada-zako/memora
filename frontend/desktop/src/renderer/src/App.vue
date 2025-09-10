@@ -30,7 +30,7 @@
               sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
             ]"
           >
-            <h1 class="text-xl font-bold text-gray-900 whitespace-nowrap">Memora</h1>
+            <h1 class="text-xl font-bold text-gray-900 whitespace-nowrap">{{ t('app.title') }}</h1>
           </div>
         </div>
       </div>
@@ -86,8 +86,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Star, Earth, User } from 'lucide-vue-next'
 
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
@@ -95,9 +97,9 @@ const sidebarExpanded = ref(true)
 const sidebarToggleCount = ref(0)
 
 const menuItems = [
-  { id: 'collections', name: '收藏', icon: Star, route: { name: 'Home' } },
-  { id: 'community', name: '社区', icon: Earth, route: { name: 'Community' } },
-  { id: 'profile', name: '我', icon: User, route: { name: 'Profile' } }
+  { id: 'collections', name: t('menu.collections'), icon: Star, route: { name: 'Home' } },
+  { id: 'community', name: t('menu.community'), icon: Earth, route: { name: 'Community' } },
+  { id: 'profile', name: t('menu.profile'), icon: User, route: { name: 'Profile' } },
 ]
 
 const handleSidebarEnter = () => {

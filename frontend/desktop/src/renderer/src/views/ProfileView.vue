@@ -111,16 +111,37 @@
                       :key="idx"
                       class="px-2 py-0.5 text-gray-700 rounded text-xs hover:bg-gray-50"
                     >
-                      #{{ tag }}
+                        <img v-if="avatarUrl" :src="avatarUrl" :alt="t('profile.avatar')" class="h-full w-full object-cover" />
+                        <User v-else class="h-10 w-10 text-gray-600" />
+                        <div v-if="avatarUploading" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                            <RefreshCw class="h-6 w-6 text-white animate-spin" />
+                        </div>
                     </span>
-                    <span v-if="getTagList(post.tags).length === 0" class="text-xs text-gray-500"
-                      >无标签</span
-                    >
-                  </div>
+                    </div>
+                    <input
+                        ref="avatarInput"
+                        type="file"
+                        accept="image/*"
+                        @change="handleAvatarUpload"
+                        class="hidden"
+                    />
                 </div>
-                <!-- 发布时间 -->
-                <div class="flex items-center gap-1">
-                  <span class="text-xs text-gray-500">{{ formatDate(post.created_at) }}</span>
+                <div style="display: flex; justify-content: space-between;" class="flex-1">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <h2 class="text-3xl font-bold text-gray-900">{{ userInfo?.username }}</h2>
+                        <p class="text-gray-600">{{ userInfo?.email }}</p>
+                        <p class="text-sm text-gray-500">
+                            {{ t('profile.registrationTime', { date: formatDate(userInfo?.created_at) }) }}
+                        </p>
+                    </div>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        <button @click="showEdit"
+                            class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <Edit3 class="h-4 w-4 mr-1" />
+                            {{ t('profile.edit') }}
+                        </button>
+                    </div>
+
                 </div>
               </div>
               <!-- 摘要 -->
@@ -134,40 +155,60 @@
       </div>
     </div>
 
-    <!-- 全局消息提示 -->
-    <div v-if="editErrorMessage || editSuccessMessage" class="fixed top-4 right-4 z-50">
-      <div
-        v-if="editErrorMessage"
-        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg"
-      >
-        {{ editErrorMessage }}
-      </div>
-      <div
-        v-if="editSuccessMessage"
-        class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg"
-      >
-        {{ editSuccessMessage }}
-      </div>
-    </div>
+            <!-- 最近发布的推文展示（悬浮在最上层） -->
+            <div class="mt-6 mb-8" style="margin-top: 105px;">
+                <h3 class="text-lg font-semibold text-gray-900 mb-3" style="margin-bottom: 30px;">{{ t('profile.recentPosts') }}</h3>
+                <div v-if="recentPostsLoading" class="py-6 flex justify-center text-gray-500">
+                    <RefreshCw class="h-5 w-5 animate-spin mr-2" /> {{ t('profile.loading') }}
+                </div>
+                <div v-else-if="recentPostsError" class="py-6 flex flex-col items-center text-red-500">
+                    <span>{{ recentPostsError }}</span>
+                    <button @click="loadRecentPosts" class="mt-2 px-4 py-1 bg-red-100 rounded hover:bg-red-200 text-sm text-red-700">{{ t('profile.retry') }}</button>
+                </div>
+                <div v-else-if="recentPosts.length" class="space-y-3">
+                    <div
+                        v-for="post in recentPosts.slice(0, 2)"
+                        :key="post.id"
+                        class="p-4 rounded shadow  transition cursor-pointer  backdrop-blur-sm"
+                        style="margin-bottom: 20px; background-color: rgba(255,255,255,0.9);border-radius: 15px;"
+                        @click="goToPost(post.id)"
+                    >
+                        <div class="flex flex-col gap-2">
+                            <!-- 分类/标签/发布时间 一行均匀分布 -->
+                            <div class="flex flex-row items-center justify-between gap-2 mb-1">
 
-    <!-- 编辑用户信息模态框 -->
-    <div
-      v-if="showEditModal"
-      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-    >
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">编辑个人信息</h3>
+                                <!-- 标签 -->
+                                <div class="flex items-center gap-1">
 
-          <form @submit.prevent="updateProfile" class="space-y-4">
-            <div>
-              <label for="edit-email" class="block text-sm font-medium text-gray-700">邮箱</label>
-              <input
-                id="edit-email"
-                type="email"
-                v-model="editForm.email"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
+                                    <!-- 分类 -->
+                                    <div class="flex items-center gap-1" style="margin-right: 10px;">
+                                        <span class="text-xs font-bold text-gray-900">{{ post.category_name || t('profile.uncategorized') }}</span>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-1">
+                                        <span
+                                            v-for="(tag, idx) in getTagList(post.tags)"
+                                            :key="idx"
+                                            class="px-2 py-0.5 text-gray-700 rounded text-xs hover:bg-gray-50"
+                                        >
+                                            #{{ tag }}
+                                        </span>
+                                        <span v-if="getTagList(post.tags).length === 0" class="text-xs text-gray-500">{{ t('profile.noTags') }}</span>
+                                    </div>
+                                </div>
+                                <!-- 发布时间 -->
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs text-gray-500">{{ formatDate(post.created_at) }}</span>
+                                </div>
+                            </div>
+                            <!-- 摘要 -->
+                            <div class="text-sm text-gray-600 summary-ellipsis">
+                                {{ t('profile.summary', { text: getSummary(post.collection_details?.summary) }) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="py-6 text-gray-400 text-sm text-center">{{ t('profile.noPosts') }}</div>
             </div>
 
             <!-- 错误提示 -->
@@ -180,25 +221,51 @@
               {{ editSuccessMessage }}
             </div>
 
-            <div class="flex space-x-3">
-              <button
-                type="submit"
-                :disabled="editLoading"
-                class="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-              >
-                <span v-if="editLoading">保存中...</span>
-                <span v-else>保存</span>
-              </button>
+        <!-- 编辑用户信息模态框 -->
+        <div v-if="showEditModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">{{ t('profile.editProfile') }}</h3>
 
-              <button
-                type="button"
-                @click="cancelEdit"
-                class="flex-1 inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                取消
-              </button>
+                    <form @submit.prevent="updateProfile" class="space-y-4">
+                        <div>
+                            <label for="edit-email" class="block text-sm font-medium text-gray-700">{{ t('profile.email') }}</label>
+                            <input id="edit-email" type="email" v-model="editForm.email"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                        </div>
+
+                        <!-- 错误提示 -->
+                        <div v-if="editErrorMessage" class="text-red-600 text-sm">
+                            {{ editErrorMessage }}
+                        </div>
+
+                        <!-- 成功提示 -->
+                        <div v-if="editSuccessMessage" class="text-green-600 text-sm">
+                            {{ editSuccessMessage }}
+                        </div>
+
+                        <div class="flex space-x-3">
+                            <button type="submit" :disabled="editLoading"
+                                class="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+                                <span v-if="editLoading">{{ t('profile.saving') }}</span>
+                                <span v-else>{{ t('profile.save') }}</span>
+                            </button>
+
+                            <button type="button" @click="cancelEdit"
+                                class="flex-1 inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                {{ t('profile.cancel') }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <button @click="handleLogout" style="margin-top: 16px;"
+                        class="w-full flex items-center justify-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        <LogOut class="h-4 w-4 mr-2" />
+                        {{ t('profile.logout') }}
+                    </button>
+                </div>
             </div>
-          </form>
+          </div>
 
           <button
             @click="handleLogout"
@@ -209,14 +276,13 @@
             退出登录
           </button>
         </div>
-      </div>
-    </div>
-  </div>
+
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { User, Edit3, Star, Upload, Clock, RefreshCw, LogOut } from 'lucide-vue-next'
 import {
   isAuthenticated,
@@ -229,6 +295,7 @@ import {
 import { uploadAvatar } from '../services/attachment'
 import { getUserPosts } from '../services/community' // 新增：引入获取用户推文API
 
+const { t } = useI18n()
 const router = useRouter()
 const isLoggedIn = ref(false)
 const userInfo = ref(null)
