@@ -5,7 +5,8 @@
   "menu": {
     "collections": "Collections",
     "community": "Community",
-    "profile": "Me"
+    "profile": "Me",
+    "settings": "Settings"
   },
   "home": {
     "collections": "Collections",
@@ -131,5 +132,10 @@
     "askAnything": "Ask me anything about this category's knowledge base!",
     "askAIPlaceholder": "Ask AI...",
     "sending": "Sending..."
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select Language"
   }
 }

@@ -5,7 +5,8 @@
   "menu": {
     "collections": "收藏",
     "community": "社区",
-    "profile": "我"
+    "profile": "我",
+    "settings": "设置"
   },
   "home": {
     "collections": "收藏",
@@ -131,5 +132,10 @@
     "askAnything": "Ask me anything about this category's knowledge base!",
     "askAIPlaceholder": "Ask AI...",
     "sending": "发送中..."
+  },
+  "settings": {
+    "title": "设置",
+    "language": "语言",
+    "selectLanguage": "选择语言"
   }
 }

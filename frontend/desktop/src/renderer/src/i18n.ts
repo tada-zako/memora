@@ -8,7 +8,7 @@ const messages = {
 }
 
 const i18n = createI18n({
-  locale: 'en', // default locale
+  locale: localStorage.getItem('language') || 'en', // default locale
   fallbackLocale: 'en',
   messages,
   // 明确指定插值分隔符

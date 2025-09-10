@@ -8,6 +8,7 @@ import CommunityView from '../views/CommunityView.vue'
 import PostCollectionDetailView from '../views/PostCollectionDetailView.vue'
 import LoginView from '../views/LoginView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import SettingsView from '../views/SettingsView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -71,6 +72,11 @@ const routes: RouteRecordRaw[] = [
     path: '/profile',
     name: 'Profile',
     component: ProfileView
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: SettingsView
   }
 ]
 

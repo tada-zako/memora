@@ -84,10 +84,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Star, Earth, User } from 'lucide-vue-next'
+import { Star, Earth, User, Settings } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -96,11 +96,12 @@ const route = useRoute()
 const sidebarExpanded = ref(true)
 const sidebarToggleCount = ref(0)
 
-const menuItems = [
+const menuItems = computed(() => [
   { id: 'collections', name: t('menu.collections'), icon: Star, route: { name: 'Home' } },
   { id: 'community', name: t('menu.community'), icon: Earth, route: { name: 'Community' } },
   { id: 'profile', name: t('menu.profile'), icon: User, route: { name: 'Profile' } },
-]
+  { id: 'settings', name: t('menu.settings'), icon: Settings, route: { name: 'Settings' } },
+])
 
 const handleSidebarEnter = () => {
   sidebarExpanded.value = true
@@ -135,6 +136,10 @@ const isActiveMenu = (item) => {
     // 对于个人中心菜单
     if (item.id === 'profile') {
       return route.name === 'Profile' || route.name === 'Login'
+    }
+    // 对于设置菜单
+    if (item.id === 'settings') {
+      return route.name === 'Settings'
     }
     // 默认匹配
     return route.name === item.route.name
