@@ -1,13 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./src/renderer/index.html",
-    "./src/renderer/src/**/*.{vue,js,ts,jsx,tsx}",
-  ],
+  content: ['./src/renderer/index.html', './src/renderer/src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
       },
       colors: {
         gray: {
@@ -20,7 +17,7 @@ export default {
           600: '#4b5563',
           700: '#374151',
           800: '#1f2937',
-          900: '#111827',
+          900: '#111827'
         }
       },
       backdropBlur: {
@@ -28,23 +25,23 @@ export default {
         sm: '4px',
         md: '8px',
         lg: '12px',
-        xl: '16px',
+        xl: '16px'
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
-        'slide-up': 'slideUp 0.3s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out'
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
         },
         slideUp: {
           '0%': { transform: 'translateY(20px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+          '100%': { transform: 'translateY(0)', opacity: '1' }
         }
       }
-    },
+    }
   },
-  plugins: [],
-} 
+  plugins: []
+}

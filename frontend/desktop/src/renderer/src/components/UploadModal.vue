@@ -11,10 +11,7 @@
           <h2 class="text-xl font-bold text-gray-900">上传图片</h2>
           <p class="text-sm text-gray-500 mt-1">支持连续上传多张图片到不同分类</p>
         </div>
-        <button
-          @click="closeModal"
-          class="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-        >
+        <button class="p-1 hover:bg-gray-100 rounded-lg transition-colors" @click="closeModal">
           <X class="w-5 h-5 text-gray-500" />
         </button>
       </div>
@@ -23,9 +20,7 @@
       <div class="space-y-4 mt-6">
         <!-- 分类输入 -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            分类 *
-          </label>
+          <label class="block text-sm font-medium text-gray-700 mb-2"> 分类 * </label>
           <input
             v-model="category"
             type="text"
@@ -40,38 +35,30 @@
 
         <!-- 图片选择 -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            选择图片 *
-          </label>
+          <label class="block text-sm font-medium text-gray-700 mb-2"> 选择图片 * </label>
           <div
-            @click="triggerFileInput"
-            @drop="handleDrop"
-            @dragover.prevent
-            @dragenter.prevent
             :class="[
               'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all',
               isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400',
               errors.file ? 'border-red-300' : '',
               selectedFile ? 'border-green-400 bg-green-50' : ''
             ]"
+            @click="triggerFileInput"
+            @drop="handleDrop"
+            @dragover.prevent
+            @dragenter.prevent
           >
             <Upload class="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p v-if="!selectedFile" class="text-gray-600 text-sm">
-              点击或拖拽图片到此处
-            </p>
-            <p v-else class="text-green-600 text-sm font-medium">
-              已选择：{{ selectedFile.name }}
-            </p>
-            <p class="text-gray-400 text-xs mt-1">
-              支持 JPG, PNG, GIF 格式，最大 10MB
-            </p>
+            <p v-if="!selectedFile" class="text-gray-600 text-sm">点击或拖拽图片到此处</p>
+            <p v-else class="text-green-600 text-sm font-medium">已选择：{{ selectedFile.name }}</p>
+            <p class="text-gray-400 text-xs mt-1">支持 JPG, PNG, GIF 格式，最大 10MB</p>
           </div>
           <input
             ref="fileInput"
             type="file"
             accept="image/*"
-            @change="handleFileSelect"
             class="hidden"
+            @change="handleFileSelect"
           />
           <p v-if="errors.file" class="text-red-500 text-sm mt-1">
             {{ errors.file }}
@@ -80,9 +67,7 @@
 
         <!-- 描述 (可选) -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            描述 (可选)
-          </label>
+          <label class="block text-sm font-medium text-gray-700 mb-2"> 描述 (可选) </label>
           <textarea
             v-model="description"
             placeholder="为这张图片添加描述..."
@@ -94,18 +79,21 @@
         <!-- 操作按钮 -->
         <div class="flex space-x-3 pt-4">
           <button
-            @click="closeModal"
-            class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             :disabled="isUploading"
+            class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            @click="closeModal"
           >
             取消
           </button>
           <button
-            @click="handleUpload"
             :disabled="!canUpload || isUploading"
             class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+            @click="handleUpload"
           >
-            <div v-if="isUploading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+            <div
+              v-if="isUploading"
+              class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"
+            ></div>
             {{ isUploading ? uploadStatus : '上传' }}
           </button>
         </div>
@@ -113,14 +101,13 @@
     </div>
 
     <!-- 自定义提示弹窗 -->
-    <div
-      v-if="notification.show"
-      class="fixed top-4 right-4 z-[60] max-w-sm"
-    >
+    <div v-if="notification.show" class="fixed top-4 right-4 z-[60] max-w-sm">
       <div
         :class="[
           'p-4 rounded-lg shadow-lg border-l-4 transition-all duration-300 transform',
-          notification.type === 'success' ? 'bg-green-50 border-green-400 text-green-800' : 'bg-red-50 border-red-400 text-red-800',
+          notification.type === 'success'
+            ? 'bg-green-50 border-green-400 text-green-800'
+            : 'bg-red-50 border-red-400 text-red-800',
           notification.show ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
         ]"
       >
@@ -138,8 +125,8 @@
             </p>
           </div>
           <button
-            @click="hideNotification"
             class="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            @click="hideNotification"
           >
             <X class="w-4 h-4" />
           </button>
@@ -152,8 +139,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { X, Upload, CheckCircle, AlertCircle } from 'lucide-vue-next'
-import { uploadAttachment } from '../services/attachment'
-import { createPictureCollection } from '../services/collection'
+import { uploadPictureCollection } from '../services/collection'
 
 const props = defineProps({
   show: {
@@ -189,7 +175,7 @@ const notification = ref({
   message: ''
 })
 
-const USER_ID = 1
+// const USER_ID = 1
 
 // 计算属性
 const canUpload = computed(() => {
@@ -231,7 +217,7 @@ const handleFileSelect = (event) => {
 const handleDrop = (event) => {
   event.preventDefault()
   isDragging.value = false
-  
+
   const file = event.dataTransfer.files?.[0]
   if (file) {
     validateFile(file)
@@ -264,7 +250,7 @@ const showNotification = (type, title, message) => {
     title,
     message
   }
-  
+
   // 3秒后自动隐藏
   setTimeout(() => {
     hideNotification()
@@ -286,43 +272,33 @@ const handleUpload = async () => {
   uploadStatus.value = '上传中...'
 
   try {
-    // 第一步：上传文件
-    uploadStatus.value = '正在上传文件...'
-    const uploadResult = await uploadAttachment(selectedFile.value, description.value.trim() || null)
-    const attachmentId = uploadResult.attachment_id
+    // 使用组合业务函数进行上传
+    const result = await uploadPictureCollection(
+      selectedFile.value,
+      category.value.trim(),
+      description.value.trim() || null,
+      (status) => {
+        uploadStatus.value = status // 实时更新状态
+      }
+    )
 
-    // 第二步：创建收藏
-    uploadStatus.value = '正在创建收藏...'
-    const collectionResult = await createPictureCollection({
-      attachment_id: attachmentId,
-      category: category.value.trim()
-    })
-    
-    if (collectionResult.status === 'success') {
-      // 显示成功通知
-      showNotification('success', '上传成功！', `图片已添加到"${category.value}"分类中。表单已重置，您可以立即上传下一张图片。`)
-      
-      // 通知父组件刷新数据
-      emit('success', collectionResult.data)
-      
-      // 重置表单而不关闭模态窗口，方便继续上传
-      resetForm()
-    } else {
-      throw new Error(collectionResult.message || '创建收藏失败')
-    }
+    // 显示成功通知
+    showNotification(
+      'success',
+      '上传成功！',
+      `图片已添加到"${category.value}"分类中。表单已重置，您可以立即上传下一张图片。`
+    )
 
+    // 通知父组件刷新数据
+    emit('success', result.collection)
+
+    // 重置表单而不关闭模态窗口，方便继续上传
+    resetForm()
   } catch (error) {
     console.error('上传失败:', error)
-    
+
     // 显示错误通知
-    let errorMessage = '上传过程中发生错误，请重试。'
-    if (error.message.includes('文件上传失败')) {
-      errorMessage = '文件上传失败，请检查网络连接或文件格式。'
-    } else if (error.message.includes('创建收藏失败')) {
-      errorMessage = '创建收藏失败，请检查分类名称是否正确。'
-    }
-    
-    showNotification('error', '上传失败', errorMessage)
+    showNotification('error', '上传失败', error.message || '上传过程中发生错误，请重试。')
   } finally {
     isUploading.value = false
     uploadStatus.value = '上传'
@@ -358,15 +334,18 @@ const fullReset = () => {
 }
 
 // 监听拖拽事件
-watch(() => props.show, (newVal) => {
-  if (newVal) {
-    fullReset()
+watch(
+  () => props.show,
+  (newVal) => {
+    if (newVal) {
+      fullReset()
+    }
   }
-})
+)
 </script>
 
 <style scoped>
 .max-w-90vw {
   max-width: 90vw;
 }
-</style> 
+</style>

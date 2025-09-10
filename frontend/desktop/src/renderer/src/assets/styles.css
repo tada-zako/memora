@@ -1,6 +1,8 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
   min-height: 100%;
 }
@@ -12,9 +14,9 @@ html, body, #app {
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -45,6 +47,11 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.5);
+}
+
+/* 添加系统主题css变量 */
+@theme {
+  --color-primary: 
 }
 
 /* 心情滑块样式 */
@@ -104,7 +111,7 @@ body {
   .grid-cols-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  
+
   .grid-cols-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -146,7 +153,9 @@ body {
 
 /* 阴影样式 */
 .shadow-minimal {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 /* 焦点样式 */
@@ -219,16 +228,16 @@ button:disabled {
   .space-y-6 > * + * {
     margin-top: 1rem;
   }
-  
+
   .space-y-4 > * + * {
     margin-top: 0.75rem;
   }
-  
+
   .p-6 {
     padding: 1rem;
   }
-  
+
   .p-8 {
     padding: 1.25rem;
   }
-} 
+}

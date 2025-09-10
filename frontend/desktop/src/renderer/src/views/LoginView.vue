@@ -3,7 +3,7 @@
     <div class="max-w-md w-full space-y-8">
       <div>
         <div class="mx-auto h-12 w-12 flex items-center justify-center">
-          <img src="../assets/icon.png" alt="Memora Logo" class="h-12 w-12">
+          <img src="../assets/icon.png" alt="Memora Logo" class="h-12 w-12" />
         </div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
           {{ isLogin ? t('login.loginTitle') : t('login.registerTitle') }}
@@ -17,7 +17,7 @@
           </button>
         </p>
       </div>
-      
+
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="rounded-md shadow-sm -space-y-px">
           <!-- 注册时显示邮箱字段 -->
@@ -34,7 +34,7 @@
               :placeholder="t('login.email')"
             />
           </div>
-          
+
           <div>
             <label for="username" class="sr-only">{{ t('login.username') }}</label>
             <input
@@ -51,7 +51,7 @@
               :placeholder="t('login.username')"
             />
           </div>
-          
+
           <div>
             <label for="password" class="sr-only">{{ t('login.password') }}</label>
             <input
@@ -142,7 +142,7 @@ const handleSubmit = async () => {
       }
     } else {
       // 注册
-      const response = await register({
+      await register({
         username: form.username,
         email: form.email,
         password: form.password

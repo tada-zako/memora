@@ -5,16 +5,16 @@ import { getCategories } from './category'
 // 调试认证状态
 export const debugAuthStatus = () => {
   console.log('=== 认证状态调试 ===')
-  
+
   const token = localStorage.getItem('access_token')
   const userInfo = localStorage.getItem('user_info')
-  
+
   console.log('1. localStorage中的token:', token ? 'YES' : 'NO')
   if (token) {
     console.log('   Token预览:', token.substring(0, 50) + '...')
     console.log('   Token长度:', token.length)
   }
-  
+
   console.log('2. localStorage中的用户信息:', userInfo ? 'YES' : 'NO')
   if (userInfo) {
     try {
@@ -24,9 +24,9 @@ export const debugAuthStatus = () => {
       console.log('   用户信息解析错误:', e.message)
     }
   }
-  
+
   console.log('3. isAuthenticated()返回:', isAuthenticated())
-  
+
   console.log('4. 所有localStorage项:')
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
@@ -37,7 +37,7 @@ export const debugAuthStatus = () => {
 // 测试API调用
 export const testApiCall = async () => {
   console.log('=== 测试API调用 ===')
-  
+
   try {
     console.log('正在调用getCategories()...')
     const result = await getCategories()
@@ -84,4 +84,4 @@ if (typeof window !== 'undefined') {
   console.log('  window.debugAuth.test() - 测试API调用')
   console.log('  window.debugAuth.full() - 完整调试')
   console.log('  window.debugAuth.clear() - 清理认证状态')
-} 
+}

@@ -12,6 +12,7 @@ from pathlib import Path
 from model import User, Attachment
 from db import get_db
 from routers.auth import get_current_user
+from entity.response import Response
 
 # Create router instance
 router = APIRouter(
@@ -73,7 +74,7 @@ def save_file(file: UploadFile) -> str:
     return str(file_path)
 
 # Upload attachment endpoint
-@router.post("/upload/", response_model=AttachmentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/upload/", response_model=Response[AttachmentResponse], status_code=status.HTTP_201_CREATED)
 async def upload_attachment(
     description: Optional[str] = Form(None),
     file: UploadFile = File(...),
@@ -101,7 +102,7 @@ async def upload_attachment(
         await db.commit()
         await db.refresh(db_attachment)
         
-        return db_attachment
+        return Response(data=db_attachment)
         
     except Exception as e:
         # Clean up file if database operation fails
@@ -116,7 +117,7 @@ async def upload_attachment(
         )
 
 # Get attachment by ID
-@router.get("/{attachment_id}", response_model=AttachmentResponse)
+@router.get("/{attachment_id}", response_model=Response[AttachmentResponse])
 async def get_attachment(
     attachment_id: str, 
     current_user: User = Depends(get_current_user),
@@ -136,7 +137,7 @@ async def get_attachment(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Attachment with id {attachment_id} not found or access denied"
         )
-    return attachment
+    return Response(data=attachment)
 
 @router.get("/file/{attachment_id}")
 async def get_attachment_file(

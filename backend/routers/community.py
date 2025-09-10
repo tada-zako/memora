@@ -116,7 +116,7 @@ async def create_post(
     await db.refresh(new_post)
     
     return Response(
-        status="success",
+        code=200,
         message="推文发布成功",
         data={
             "post_id": new_post.post_id,
@@ -152,7 +152,7 @@ async def delete_post(
     await db.commit()
     
     return Response(
-        status="success",
+        code=200,
         message="推文删除成功",
         data={"post_id": post_id}
     )
@@ -244,7 +244,7 @@ async def get_posts(
         )
     
     return Response(
-        status="success",
+        code=200,
         message="推文列表获取成功",
         data={
             "posts": posts,
@@ -340,7 +340,7 @@ async def get_my_posts(
         )
 
     return Response(
-        status="success",
+        code=200,
         message="当前用户推文列表获取成功",
         data={
             "posts": posts,
@@ -410,7 +410,7 @@ async def like_asset(
     await db.commit()
     
     return Response(
-        status="success",
+        code=200,
         message="点赞成功",
         data={
             "asset_id": request.asset_id,
@@ -459,7 +459,7 @@ async def unlike_asset(
     await db.commit()
     
     return Response(
-        status="success",
+        code=200,
         message="取消点赞成功",
         data={
             "asset_id": request.asset_id,
@@ -500,7 +500,7 @@ async def create_comment(
     await db.refresh(new_comment)
     
     return Response(
-        status="success",
+        code=200,
         message="评论添加成功",
         data={
             "comment": CommentResponse(
@@ -594,7 +594,7 @@ async def get_post_comments(
         )
     
     return Response(
-        status="success",
+        code=200,
         message="评论列表获取成功",
         data={
             "comments": comments,
@@ -632,7 +632,7 @@ async def delete_comment(
     await db.commit()
     
     return Response(
-        status="success",
+        code=200,
         message="评论删除成功",
         data={"comment_id": comment_id}
     )
@@ -685,7 +685,7 @@ async def get_post_collection_details(
             category_name = category.name
     
     return Response(
-        status="success",
+        code=200,
         message="收藏详情获取成功",
         data={
             "collection": {
