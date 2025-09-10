@@ -96,7 +96,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { login, register } from '../services/auth'
+import { login, register } from '@/api'
 
 const { t } = useI18n()
 const router = useRouter()

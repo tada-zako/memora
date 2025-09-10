@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import CollectionListView from '../views/CollectionListView.vue'
 import CollectionDetailView from '../views/CollectionDetailView.vue'
@@ -9,7 +9,7 @@ import PostCollectionDetailView from '../views/PostCollectionDetailView.vue'
 import LoginView from '../views/LoginView.vue'
 import ProfileView from '../views/ProfileView.vue'
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Home',

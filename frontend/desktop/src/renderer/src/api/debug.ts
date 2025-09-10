@@ -1,6 +1,6 @@
 // 调试工具 - 用于诊断认证问题
-import { isAuthenticated, getLocalUserInfo, refreshAuthStatus } from './auth'
-import { getCategories } from './category'
+import { isAuthenticated, getLocalUserInfo, refreshAuthStatus } from './auth.api'
+import { getCategories } from './category.api'
 
 // 调试认证状态
 export const debugAuthStatus = () => {

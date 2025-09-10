@@ -1,15 +1,30 @@
-import {
-  registerApi,
-  loginApi,
-  getUserProfileApi,
-  updateUserProfileApi,
-  getAttachmentApi,
-  uploadAttachmentApi,
-  baseURL
-} from '@/api'
+import api from './api'
+import type { ApiResponse } from '@/types'
+import { uploadAttachmentApi, getAttachmentApi } from './attachment.api'
+import { baseURL } from './api'
 
 // 用户注册
-export const register = async (userData) => {
+export const registerApi = async (userData: any): Promise<ApiResponse<any>> => {
+  return await api.post('/api/v1/auth/register', userData)
+}
+
+// 用户登录
+export const loginApi = async (credentials: any): Promise<ApiResponse<any>> => {
+  return await api.post('/api/v1/auth/login', credentials)
+}
+
+// 获取用户信息
+export const getUserProfileApi = async (): Promise<ApiResponse<any>> => {
+  return await api.get('/api/v1/auth/profile')
+}
+
+// 更新用户信息
+export const updateUserProfileApi = async (userData: any): Promise<ApiResponse<any>> => {
+  return await api.put('/api/v1/auth/profile', userData)
+}
+
+// 用户注册 (服务层)
+export const register = async (userData: any): Promise<any> => {
   try {
     const response = await registerApi(userData)
 
@@ -19,12 +34,13 @@ export const register = async (userData) => {
 
     return response.data
   } catch (error) {
-    throw error.response?.data || error.message
+    const err = error as any
+    throw err.response?.data || err.message
   }
 }
 
-// 用户登录
-export const login = async (credentials) => {
+// 用户登录 (服务层)
+export const login = async (credentials: any): Promise<any> => {
   try {
     const response = await loginApi(credentials)
 
@@ -34,12 +50,13 @@ export const login = async (credentials) => {
 
     return response.data
   } catch (error) {
-    throw error.response?.data || error.message
+    const err = error as any
+    throw err.response?.data || err.message
   }
 }
 
-// 获取用户信息
-export const getUserProfile = async () => {
+// 获取用户信息 (服务层)
+export const getUserProfile = async (): Promise<any> => {
   try {
     const response = await getUserProfileApi()
 
@@ -49,12 +66,13 @@ export const getUserProfile = async () => {
 
     return response.data
   } catch (error) {
-    throw error.response?.data || error.message
+    const err = error as any
+    throw err.response?.data || err.message
   }
 }
 
-// 更新用户信息
-export const updateUserProfile = async (userData) => {
+// 更新用户信息 (服务层)
+export const updateUserProfile = async (userData: any): Promise<any> => {
   try {
     const response = await updateUserProfileApi(userData)
 
@@ -64,12 +82,13 @@ export const updateUserProfile = async (userData) => {
 
     return response.data
   } catch (error) {
-    throw error.response?.data || error.message
+    const err = error as any
+    throw err.response?.data || err.message
   }
 }
 
-// 上传头像 -> 由 ./attachment.js 的 uploadAvatar 处理
-export const uploadUserAvatar = async (file) => {
+// 上传头像 (服务层)
+export const uploadUserAvatar = async (file: File): Promise<any> => {
   try {
     // 验证文件类型
     const allowedTypes = [
@@ -117,12 +136,13 @@ export const uploadUserAvatar = async (file) => {
 
     return response.data
   } catch (error) {
-    throw error.response?.data || error.message
+    const err = error as any
+    throw err.response?.data || err.message
   }
 }
 
-// 获取用户头像URL
-export const getUserAvatarUrl = async (userInfo) => {
+// 获取用户头像URL (服务层)
+export const getUserAvatarUrl = async (userInfo: any): Promise<string | null> => {
   if (!userInfo || !userInfo.avatar_attachment_id) {
     return null
   }
@@ -143,8 +163,8 @@ export const getUserAvatarUrl = async (userInfo) => {
   }
 }
 
-// 直接构造头像URL（现在改为异步获取以使用新接口）
-export const buildAvatarUrl = async (avatarAttachmentId) => {
+// 直接构造头像URL (服务层)
+export const buildAvatarUrl = async (avatarAttachmentId: string | number): Promise<string | null> => {
   if (!avatarAttachmentId) {
     return null
   }
@@ -165,26 +185,26 @@ export const buildAvatarUrl = async (avatarAttachmentId) => {
 }
 
 // 登出
-export const logout = () => {
+export const logout = (): void => {
   localStorage.removeItem('access_token')
   localStorage.removeItem('user_info')
 }
 
 // 检查是否已登录
-export const isAuthenticated = () => {
+export const isAuthenticated = (): boolean => {
   const token = localStorage.getItem('access_token')
   console.log('检查认证状态:', token ? '有token' : '无token')
   return !!token
 }
 
 // 获取本地存储的用户信息
-export const getLocalUserInfo = () => {
+export const getLocalUserInfo = (): any => {
   const userInfo = localStorage.getItem('user_info')
   return userInfo ? JSON.parse(userInfo) : null
 }
 
-// 强制刷新认证状态（用于调试）
-export const refreshAuthStatus = () => {
+// 强制刷新认证状态 (用于调试)
+export const refreshAuthStatus = (): boolean => {
   const token = localStorage.getItem('access_token')
   const userInfo = localStorage.getItem('user_info')
   console.log('当前认证状态:', {

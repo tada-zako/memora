@@ -139,7 +139,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { X, Upload, CheckCircle, AlertCircle } from 'lucide-vue-next'
-import { uploadPictureCollection } from '../services/collection'
+import { uploadPictureCollection } from '@/api'
 
 const props = defineProps({
   show: {
