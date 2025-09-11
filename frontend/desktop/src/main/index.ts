@@ -1,7 +1,6 @@
-import { app, shell, BrowserWindow, ipcMain, globalShortcut, screen, session } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, globalShortcut, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import fs from 'fs'
@@ -20,11 +19,25 @@ try {
 
 const execAsync = promisify(exec)
 
-let mainWindow = null
-let quickWindow = null
+let mainWindow: BrowserWindow | null = null
+let quickWindow: BrowserWindow | null = null
 let isCapturingUrl = false // Add a flag to track capture state
 
-function createWindow() {
+interface BrowserInfo {
+  success: boolean
+  browser: string
+  hasBrowser: boolean
+  windowTitle: string
+  error?: string
+}
+
+interface CaptureUrlResult {
+  success: boolean
+  url?: string
+  error?: string
+}
+
+function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1000,
@@ -38,19 +51,17 @@ function createWindow() {
     maximizable: true,
     fullscreenable: false,
     title: 'Memora',
-    windowTitle: 'Memora',
     titleBarStyle: process.platform === 'darwin' ? 'default' : 'default',
     icon: join(__dirname, '../../resources/icon-L.png'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      contextIsolation: true,
-      enableRemoteModule: false
+      contextIsolation: true
     }
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
     console.log('Main window shown')
   })
 
@@ -69,7 +80,7 @@ function createWindow() {
 }
 
 // 调整 createQuickWindow 函数，确保窗口尺寸一致
-function createQuickWindow() {
+function createQuickWindow(): BrowserWindow | null {
   try {
     console.log('Creating quick window...')
 
@@ -95,7 +106,6 @@ function createQuickWindow() {
         preload: join(__dirname, '../preload/index.js'),
         sandbox: false,
         contextIsolation: true,
-        enableRemoteModule: false,
         nodeIntegration: false
       }
     })
@@ -114,8 +124,8 @@ function createQuickWindow() {
     quickWindow.webContents.on('before-input-event', (event, input) => {
       if (input.key === 'F11') {
         event.preventDefault()
-        // 发送F11事件到渲染进程用于彩蛋
-        quickWindow.webContents.send('f11-pressed')
+        // 这里可以添加彩蛋功能的代码
+        console.log('F11 pressed - Easter egg trigger!')
       }
     })
 
@@ -160,7 +170,7 @@ function createQuickWindow() {
   }
 }
 
-async function toggleQuickWindow() {
+async function toggleQuickWindow(): Promise<void> {
   try {
     if (quickWindow && quickWindow.isVisible()) {
       quickWindow.hide()
@@ -171,12 +181,15 @@ async function toggleQuickWindow() {
     if (!quickWindow) {
       createQuickWindow()
       // Wait for the window to be ready to receive messages
-      await new Promise((resolve) => {
-        if (quickWindow) {
-          quickWindow.webContents.once('did-finish-load', resolve)
-        } else {
-          resolve() // Should not happen
+      await new Promise<void>((resolve) => {
+        const checkWindow = () => {
+          if (quickWindow && quickWindow.webContents) {
+            resolve()
+          } else {
+            setTimeout(checkWindow, 100)
+          }
         }
+        checkWindow()
       })
     }
 
@@ -189,7 +202,6 @@ async function toggleQuickWindow() {
     const { workAreaSize } = screen.getPrimaryDisplay()
     const windowWidth = 320
     const windowHeight = 480
-    const frame = false
     quickWindow.setSize(windowWidth, windowHeight)
     const newX = workAreaSize.width - windowWidth - 20
     const newY = workAreaSize.height - windowHeight - 20
@@ -203,47 +215,40 @@ async function toggleQuickWindow() {
     setTimeout(() => {
       // Notify renderer that detection is starting
       if (quickWindow && !quickWindow.isDestroyed()) {
-        quickWindow.webContents.send('browser-detection-start')
+        quickWindow.webContents.send('browser-detection-started')
       }
 
       // Set a fallback timeout to ensure detection doesn't hang indefinitely
       const detectionTimeout = setTimeout(() => {
-        console.log('Browser detection timeout, sending fallback result')
         if (quickWindow && !quickWindow.isDestroyed()) {
-          quickWindow.webContents.send('browser-detected', {
+          quickWindow.webContents.send('browser-detection-result', {
             success: false,
-            browser: 'NONE',
+            browser: 'TIMEOUT',
             hasBrowser: false,
             windowTitle: '',
-            error: 'Detection timeout'
+            error: 'Detection timed out'
           })
         }
-      }, 5000) // Increased timeout to 5 seconds
+      }, 5000)
 
       detectActiveBrowser()
         .then((browserInfo) => {
-          clearTimeout(detectionTimeout) // Clear the timeout if detection succeeds
-          console.log('Asynchronously detected browser:', browserInfo)
+          clearTimeout(detectionTimeout)
           if (quickWindow && !quickWindow.isDestroyed()) {
-            console.log('Sending browser-detected event to quick window')
-            quickWindow.webContents.send('browser-detected', browserInfo)
-          } else {
-            console.log('Quick window is destroyed or null, cannot send event')
+            quickWindow.webContents.send('browser-detection-result', browserInfo)
           }
         })
         .catch((error) => {
-          clearTimeout(detectionTimeout) // Clear the timeout if detection fails
-          console.error('Async browser detection failed:', error)
+          clearTimeout(detectionTimeout)
+          console.error('Browser detection failed:', error)
           if (quickWindow && !quickWindow.isDestroyed()) {
-            console.log('Sending error browser-detected event to quick window')
-            quickWindow.webContents.send('browser-detected', {
+            quickWindow.webContents.send('browser-detection-result', {
               success: false,
-              browser: 'NONE',
+              browser: 'ERROR',
               hasBrowser: false,
+              windowTitle: '',
               error: error.message
             })
-          } else {
-            console.log('Quick window is destroyed or null, cannot send error event')
           }
         })
     }, 500) // Wait 500ms for Vue component to mount
@@ -253,7 +258,7 @@ async function toggleQuickWindow() {
 }
 
 // 检测前台是否有浏览器窗口的函数
-async function detectActiveBrowser() {
+async function detectActiveBrowser(): Promise<BrowserInfo> {
   try {
     console.log('Detecting active browser...')
 
@@ -264,118 +269,56 @@ async function detectActiveBrowser() {
       const scriptPath = join(userDataDir, 'detect_browser.ps1')
 
       const psScript = `
-# Enhanced Browser Detection Script
+# Browser Detection Script
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-public class BrowserDetector {
+public class WindowHelper {
     [DllImport("user32.dll")]
     public static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll")]
-    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-
+    
     [DllImport("user32.dll")]
     public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
-
+    
     [DllImport("user32.dll")]
     public static extern int GetWindowTextLength(IntPtr hWnd);
-
+    
     [DllImport("user32.dll")]
-    public static extern bool IsWindowVisible(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    public static extern int GetClassName(IntPtr hWnd, StringBuilder className, int maxCount);
+    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 }
 '@
 
 try {
-    # Get foreground window
-    $hwnd = [BrowserDetector]::GetForegroundWindow()
-    if ($hwnd -eq [IntPtr]::Zero) {
-        Write-Output "NONE|No foreground window"
-        exit
-    }
-
-    # Check if window is visible
-    if (-not [BrowserDetector]::IsWindowVisible($hwnd)) {
-        Write-Output "NONE|Foreground window not visible"
-        exit
-    }
-
-    # Get process ID
+    $foregroundWindow = [WindowHelper]::GetForegroundWindow()
     $processId = 0
-    [BrowserDetector]::GetWindowThreadProcessId($hwnd, [ref]$processId)
-
-    # Get process info
+    [WindowHelper]::GetWindowThreadProcessId($foregroundWindow, [ref]$processId)
+    
     $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
-    if (-not $process) {
-        Write-Output "NONE|Process not found for PID: $processId"
-        exit
-    }
-
-    # Get window title
-    $titleLength = [BrowserDetector]::GetWindowTextLength($hwnd)
-    $windowTitle = ""
-    if ($titleLength -gt 0) {
-        $title = New-Object System.Text.StringBuilder($titleLength + 1)
-        [BrowserDetector]::GetWindowText($hwnd, $title, $title.Capacity)
-        $windowTitle = $title.ToString()
-    }
-
-    # Get window class name
-    $className = New-Object System.Text.StringBuilder(256)
-    [BrowserDetector]::GetClassName($hwnd, $className, $className.Capacity)
-    $windowClass = $className.ToString()
-
-    $processName = $process.ProcessName.ToLower()
-
-    Write-Host "Debug: Process=$processName, Title=$windowTitle, Class=$windowClass" -ForegroundColor Yellow
-
-    # Enhanced browser detection
-    switch ($processName) {
-        "msedge" {
-            # Additional verification for Edge
-            if ($windowTitle -and ($windowTitle.Contains("Microsoft Edge") -or $windowClass.Contains("Chrome") -or $windowTitle.Length -gt 5)) {
-                Write-Output "EDGE|$windowTitle"
+    
+    if ($process) {
+        $processName = $process.ProcessName.ToLower()
+        $browserNames = @("msedge", "chrome", "firefox", "opera", "brave", "vivaldi", "iexplore")
+        
+        if ($processName -in $browserNames) {
+            $titleLength = [WindowHelper]::GetWindowTextLength($foregroundWindow)
+            if ($titleLength -gt 0) {
+                $title = New-Object System.Text.StringBuilder($titleLength + 1)
+                [WindowHelper]::GetWindowText($foregroundWindow, $title, $title.Capacity)
+                
+                Write-Output "SUCCESS:$processName:$($title.ToString())"
             } else {
-                Write-Output "EDGE|Edge Browser"
+                Write-Output "SUCCESS:$processName:"
             }
+        } else {
+            Write-Output "NO_BROWSER:$processName:"
         }
-        "chrome" {
-            Write-Output "CHROME|$windowTitle"
-        }
-        "firefox" {
-            Write-Output "FIREFOX|$windowTitle"
-        }
-        "iexplore" {
-            Write-Output "IE|$windowTitle"
-        }
-        "opera" {
-            Write-Output "OPERA|$windowTitle"
-        }
-        "brave" {
-            Write-Output "BRAVE|$windowTitle"
-        }
-        "vivaldi" {
-            Write-Output "VIVALDI|$windowTitle"
-        }
-        default {
-            # Check if it might be a browser based on window title or class
-            if (($windowTitle -match "(http|https|www\.)") -or
-                ($windowClass -match "(Chrome|Mozilla|Browser)") -or
-                ($windowTitle -match "(Google|Mozilla|Safari|Edge)")) {
-                Write-Output "UNKNOWN_BROWSER|$processName - $windowTitle"
-            } else {
-                Write-Output "NONE|$processName - $windowTitle"
-            }
-        }
+    } else {
+        Write-Output "ERROR:No process found"
     }
-
 } catch {
-    Write-Output "NONE|Error: $($_.Exception.Message)"
+    Write-Output "ERROR:$($_.Exception.Message)"
 }
 `
 
@@ -390,78 +333,73 @@ try {
         }
       )
 
-      // 清理临时文件
+      // Clean up temporary file
       try {
         fs.unlinkSync(scriptPath)
       } catch (e) {
-        console.log('Failed to delete detect script:', e.message)
+        console.warn('Failed to clean up script file:', e)
       }
 
-      console.log('Browser detection raw output:', JSON.stringify(stdout))
       if (stderr) {
-        console.log('Browser detection stderr:', JSON.stringify(stderr))
+        console.warn('Browser detection stderr:', stderr)
       }
 
-      const lines = stdout
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0)
-      console.log('Browser detection lines:', lines)
+      const output = stdout.trim()
+      console.log('Browser detection output:', output)
 
-      // 查找结果行
-      let browserResult = 'NONE'
-      let windowTitle = ''
+      if (output.startsWith('SUCCESS:')) {
+        const parts = output.split(':')
+        const browser = parts[1] || 'UNKNOWN'
+        const windowTitle = parts.slice(2).join(':') || ''
 
-      for (const line of lines) {
-        if (line.includes('|')) {
-          const [browser, title] = line.split('|', 2)
-          browserResult = browser
-          windowTitle = title || ''
-          break
-        } else if (line.match(/^(EDGE|CHROME|FIREFOX|IE|OPERA|BRAVE|VIVALDI|UNKNOWN_BROWSER)$/)) {
-          browserResult = line
-          break
+        return {
+          success: true,
+          browser: browser.toUpperCase(),
+          hasBrowser: true,
+          windowTitle: windowTitle
         }
-      }
+      } else if (output.startsWith('NO_BROWSER:')) {
+        const parts = output.split(':')
+        const processName = parts[1] || 'UNKNOWN'
 
-      console.log('Final browser detection result:', browserResult, 'Title:', windowTitle)
-
-      return {
-        success: true,
-        browser: browserResult,
-        hasBrowser: browserResult !== 'NONE',
-        windowTitle: windowTitle
+        return {
+          success: true,
+          browser: 'NONE',
+          hasBrowser: false,
+          windowTitle: `Active: ${processName}`
+        }
+      } else {
+        throw new Error(`Unexpected output: ${output}`)
       }
     } catch (psError) {
-      console.warn('PowerShell browser detection failed, trying fallback method:', psError.message)
-
-      // Fallback: Try to detect browsers using Node.js process enumeration
+      console.warn('PowerShell method failed:', psError)
+      
+      // Fallback: Check if any browser processes are running
       try {
-        const { execSync } = require('child_process')
-        const output = execSync(
-          'tasklist /FI "IMAGENAME eq msedge.exe" /FI "IMAGENAME eq chrome.exe" /FI "IMAGENAME eq firefox.exe"',
-          { encoding: 'utf8' }
+        const { stdout } = await execAsync(
+          'tasklist /FI "IMAGENAME eq msedge.exe" /FI "IMAGENAME eq chrome.exe" /FI "IMAGENAME eq firefox.exe" /NH',
+          { timeout: 3000, windowsHide: true }
         )
 
-        if (
-          output.includes('msedge.exe') ||
-          output.includes('chrome.exe') ||
-          output.includes('firefox.exe')
-        ) {
-          console.log('Fallback detection found browser processes')
+        if (stdout && stdout.includes('.exe')) {
           return {
             success: true,
-            browser: 'UNKNOWN_BROWSER',
+            browser: 'DETECTED',
             hasBrowser: true,
-            windowTitle: 'Browser detected via fallback'
+            windowTitle: 'Browser process found'
+          }
+        } else {
+          return {
+            success: true,
+            browser: 'NONE',
+            hasBrowser: false,
+            windowTitle: 'No browser processes'
           }
         }
       } catch (fallbackError) {
-        console.warn('Fallback browser detection also failed:', fallbackError.message)
+        console.error('Fallback detection failed:', fallbackError)
+        throw psError
       }
-
-      // If all detection methods fail, assume no browser is running
-      throw new Error(`Browser detection failed: ${psError.message}`)
     }
   } catch (error) {
     console.error('Error detecting browser:', error)
@@ -470,13 +408,13 @@ try {
       browser: 'NONE',
       hasBrowser: false,
       windowTitle: '',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     }
   }
 }
 
 // 获取活跃浏览器当前网页链接的函数
-async function captureBrowserUrl() {
+async function captureBrowserUrl(): Promise<CaptureUrlResult> {
   try {
     console.log('Attempting to capture browser URL using Win32 API...')
 
@@ -671,7 +609,7 @@ try {
     try {
       fs.unlinkSync(scriptPath)
     } catch (e) {
-      console.log('Failed to delete temp script:', e.message)
+      console.warn('Failed to clean up script file:', e)
     }
 
     console.log('Browser capture output:', JSON.stringify(stdout))
@@ -684,12 +622,13 @@ try {
 
     // 找到 URL 行
     for (const line of lines) {
-      if (line.startsWith('ERROR:')) {
-        const errorMsg = line.substring(6)
-        throw new Error(errorMsg)
-      } else if (line.startsWith('http://') || line.startsWith('https://')) {
-        console.log('Successfully captured URL:', line)
-        return { success: true, url: line }
+      if (line.startsWith('http://') || line.startsWith('https://')) {
+        return {
+          success: true,
+          url: line
+        }
+      } else if (line.startsWith('ERROR:')) {
+        throw new Error(line.substring(6))
       }
     }
 
@@ -698,16 +637,16 @@ try {
     console.error('Error capturing browser URL:', error)
 
     // 用户友好的错误消息
-    let errorMessage = error.message || 'Failed to capture URL'
+    let errorMessage = error instanceof Error ? error.message : String(error)
 
     if (errorMessage.includes('No browser processes running')) {
-      errorMessage = '没有检测到运行中的浏览器，请先打开浏览器'
+      errorMessage = 'No browser is currently running'
     } else if (errorMessage.includes('No browser windows found')) {
-      errorMessage = '未找到浏览器窗口，请确保浏览器正在运行'
+      errorMessage = 'No browser windows are currently open'
     } else if (errorMessage.includes('No valid URL captured')) {
-      errorMessage = '无法获取网页地址，请确保浏览器中打开了网页并重试'
+      errorMessage = 'Could not capture URL from the current browser tab'
     } else if (errorMessage.includes('timeout')) {
-      errorMessage = '操作超时，请重试'
+      errorMessage = 'URL capture timed out - please try again'
     }
 
     return {
@@ -752,7 +691,7 @@ app.whenReady().then(() => {
   } else {
     console.log(`Failed to register ${shortcutKey}, trying Alt+Space`)
     const altRet = globalShortcut.register('Alt+Space', () => {
-      console.log('Global shortcut triggered: Alt+Space')
+      console.log('Alt+Space shortcut triggered')
       toggleQuickWindow()
     })
 
@@ -774,38 +713,29 @@ app.whenReady().then(() => {
   ipcMain.handle('show-main-window', () => {
     console.log('IPC: show-main-window called')
     try {
-      if (mainWindow) {
-        if (mainWindow.isMinimized()) {
-          mainWindow.restore()
-        }
+      if (!mainWindow) {
+        createWindow()
+      } else {
         mainWindow.show()
         mainWindow.focus()
-        console.log('Main window shown via IPC')
-        return { success: true }
-      } else {
-        console.error('Main window does not exist')
-        return { success: false, error: 'Main window does not exist' }
       }
+      return { success: true }
     } catch (error) {
       console.error('Error showing main window:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   })
 
   ipcMain.handle('hide-quick-window', () => {
     console.log('IPC: hide-quick-window called')
     try {
-      if (quickWindow) {
+      if (quickWindow && quickWindow.isVisible()) {
         quickWindow.hide()
-        console.log('Quick window hidden via IPC')
-        return { success: true }
-      } else {
-        console.log('Quick window does not exist')
-        return { success: false, error: 'Quick window does not exist' }
       }
+      return { success: true }
     } catch (error) {
       console.error('Error hiding quick window:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   })
 
@@ -827,7 +757,7 @@ app.whenReady().then(() => {
     console.log('IPC: capture-url-start received')
     isCapturingUrl = true
     if (quickWindow) {
-      quickWindow.setAlwaysOnTop(true, 'screen-saver')
+      quickWindow.setAlwaysOnTop(true)
     }
   })
 
@@ -835,11 +765,7 @@ app.whenReady().then(() => {
     console.log('IPC: capture-url-end received')
     isCapturingUrl = false
     if (quickWindow) {
-      quickWindow.setAlwaysOnTop(true, 'normal') // Revert to normal alwaysOnTop
-      // Refocus the quick window if it's still visible
-      if (quickWindow.isVisible()) {
-        quickWindow.focus()
-      }
+      quickWindow.setAlwaysOnTop(true)
     }
   })
 
