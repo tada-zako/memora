@@ -1,7 +1,11 @@
 {
+    "black-formatter.args": ["-l", "120"],
+    "[python]": {
+        "editor.formatOnSave": true
+    },
+    "python.analysis.typeCheckingMode": "basic",
     "python-envs.pythonProjects": [],
     "i18n-ally.localesPaths": [
-        "frontend/desktop/src/renderer/src/locales",
-        "../../../codes/memora/frontend/desktop/src/renderer/src/locales"
+        "frontend/desktop/src/renderer/src/locales"
     ]
 }
