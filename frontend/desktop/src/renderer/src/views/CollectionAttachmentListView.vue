@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-muted">
     <!-- Header -->
-    <header class="border-b border-gray-200 bg-white">
+    <header class="border-b border-muted-border bg-primary">
       <div class="max-w-6xl mx-auto px-6 py-8">
         <button
-          class="mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2 transition-colors"
+          class="mb-4 px-4 py-2 bg-muted hover:bg-muted rounded text-primary-text font-medium flex items-center gap-2 transition-colors"
           @click="$router.back()"
         >
           <svg
@@ -19,46 +19,46 @@
           返回
         </button>
         <div class="flex items-center gap-3 mb-2">
-          <ImageIcon class="w-6 h-6 text-black" />
-          <h1 class="text-2xl font-bold text-black">附件收藏</h1>
+          <ImageIcon class="w-6 h-6 text-accent-text" />
+          <h1 class="text-2xl font-bold text-accent-text">附件收藏</h1>
         </div>
-        <p class="text-gray-500">分类 #{{ categoryId }} 下的所有附件</p>
+        <p class="text-primary-text">分类 #{{ categoryId }} 下的所有附件</p>
       </div>
     </header>
 
     <!-- Main Content -->
     <main class="max-w-6xl mx-auto px-6 py-12">
-      <div v-if="loading" class="text-center py-16 text-gray-500">加载中...</div>
+      <div v-if="loading" class="text-center py-16 text-primary-text">加载中...</div>
       <div v-else>
         <div v-if="collections.length === 0" class="text-center py-16">
-          <ImageIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-800 mb-2">没有找到相关附件收藏</h3>
-          <p class="text-gray-500">该分类下暂无包含附件的收藏</p>
+          <ImageIcon class="w-16 h-16 text-muted-text mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-accent-text mb-2">没有找到相关附件收藏</h3>
+          <p class="text-primary-text">该分类下暂无包含附件的收藏</p>
         </div>
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div
             v-for="item in collections"
             :key="item.id"
-            class="border border-gray-200 rounded-lg bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col"
+            class="border border-muted-border rounded-lg bg-primary hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col"
             @click="viewAttachmentDetail(item)"
           >
             <!-- Image Thumbnail -->
-            <div class="aspect-video bg-gray-100 rounded-t-lg overflow-hidden">
+            <div class="aspect-video bg-muted rounded-t-lg overflow-hidden">
               <img
                 v-if="item.imageUrl && isImage(item.imageUrl)"
                 :src="getFullUrl(item.imageUrl)"
                 alt="附件预览"
                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
-              <div v-else class="w-full h-full flex items-center justify-center bg-gray-200">
-                <FileIcon class="w-10 h-10 text-gray-400" />
+              <div v-else class="w-full h-full flex items-center justify-center bg-muted">
+                <FileIcon class="w-10 h-10 text-primary-text" />
               </div>
             </div>
 
             <div class="p-5 flex-1 flex flex-col">
               <!-- Title (Description) -->
               <h3
-                class="text-base font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-black transition-colors flex-1"
+                class="text-base font-semibold text-accent-text mb-2 line-clamp-2 group-hover:text-accent-text transition-colors flex-1"
               >
                 {{ item.description || '无描述' }}
               </h3>
@@ -69,7 +69,7 @@
                   <span
                     v-for="(tag, index) in getTagList(item.tags)"
                     :key="index"
-                    class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs"
+                    class="px-2 py-0.5 bg-muted text-primary-text rounded-full text-xs"
                   >
                     {{ tag }}
                   </span>
@@ -78,11 +78,11 @@
 
               <!-- Footer -->
               <div
-                class="flex items-center justify-between text-xs text-gray-400 border-t border-gray-100 pt-3"
+                class="flex items-center justify-between text-xs text-primary-text border-t border-muted-border pt-3"
               >
                 <span>{{ formatDate(item.created_at) }}</span>
                 <div
-                  class="flex items-center gap-1 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                  class="flex items-center gap-1 text-primary-text opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <EyeIcon class="w-3.5 h-3.5" />
                   <span>查看</span>
@@ -95,9 +95,9 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-gray-200 mt-16">
+    <footer class="border-t border-muted-border mt-16">
       <div class="max-w-6xl mx-auto px-6 py-8">
-        <div class="text-center text-sm text-gray-500">
+        <div class="text-center text-sm text-primary-text">
           <p>© 2025 网页收藏系统 · 简约 · 现代 · 高效</p>
         </div>
       </div>

@@ -1,18 +1,18 @@
 <template>
   <div
     v-if="show"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    class="fixed inset-0 bg-inverse bg-opacity-50 flex items-center justify-center z-50"
     @click.self="closeModal"
   >
-    <div class="bg-white rounded-xl p-6 w-96 max-w-90vw shadow-2xl">
+    <div class="bg-primary rounded-xl p-6 w-96 max-w-90vw shadow-2xl">
       <!-- 标题栏 -->
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h2 class="text-xl font-bold text-gray-900">上传图片</h2>
-          <p class="text-sm text-gray-500 mt-1">支持连续上传多张图片到不同分类</p>
+          <h2 class="text-xl font-bold text-accent-text">上传图片</h2>
+          <p class="text-sm text-primary-text mt-1">支持连续上传多张图片到不同分类</p>
         </div>
-        <button class="p-1 hover:bg-gray-100 rounded-lg transition-colors" @click="closeModal">
-          <X class="w-5 h-5 text-gray-500" />
+        <button class="p-1 hover:bg-muted rounded-lg transition-colors" @click="closeModal">
+          <X class="w-5 h-5 text-primary-text" />
         </button>
       </div>
 
@@ -20,12 +20,12 @@
       <div class="space-y-4 mt-6">
         <!-- 分类输入 -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2"> 分类 * </label>
+          <label class="block text-sm font-medium text-primary-text mb-2"> 分类 * </label>
           <input
             v-model="category"
             type="text"
             placeholder="请输入分类名称，如：food, travel, art..."
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+            class="w-full border border-muted-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             :class="{ 'border-red-300': errors.category }"
           />
           <p v-if="errors.category" class="text-red-500 text-sm mt-1">
@@ -35,11 +35,13 @@
 
         <!-- 图片选择 -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2"> 选择图片 * </label>
+          <label class="block text-sm font-medium text-primary-text mb-2"> 选择图片 * </label>
           <div
             :class="[
               'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all',
-              isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400',
+              isDragging
+                ? 'border-blue-400 bg-blue-50'
+                : 'border-muted-border hover:border-primary-border',
               errors.file ? 'border-red-300' : '',
               selectedFile ? 'border-green-400 bg-green-50' : ''
             ]"
@@ -48,10 +50,10 @@
             @dragover.prevent
             @dragenter.prevent
           >
-            <Upload class="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p v-if="!selectedFile" class="text-gray-600 text-sm">点击或拖拽图片到此处</p>
+            <Upload class="w-8 h-8 text-primary-text mx-auto mb-2" />
+            <p v-if="!selectedFile" class="text-primary-text text-sm">点击或拖拽图片到此处</p>
             <p v-else class="text-green-600 text-sm font-medium">已选择：{{ selectedFile.name }}</p>
-            <p class="text-gray-400 text-xs mt-1">支持 JPG, PNG, GIF 格式，最大 10MB</p>
+            <p class="text-primary-text text-xs mt-1">支持 JPG, PNG, GIF 格式，最大 10MB</p>
           </div>
           <input
             ref="fileInput"
@@ -67,12 +69,12 @@
 
         <!-- 描述 (可选) -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2"> 描述 (可选) </label>
+          <label class="block text-sm font-medium text-primary-text mb-2"> 描述 (可选) </label>
           <textarea
             v-model="description"
             placeholder="为这张图片添加描述..."
             rows="3"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+            class="w-full border border-muted-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
           ></textarea>
         </div>
 
@@ -80,14 +82,14 @@
         <div class="flex space-x-3 pt-4">
           <button
             :disabled="isUploading"
-            class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            class="flex-1 px-4 py-2 border border-muted-border text-primary-text rounded-lg hover:bg-muted transition-colors"
             @click="closeModal"
           >
             取消
           </button>
           <button
             :disabled="!canUpload || isUploading"
-            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+            class="flex-1 px-4 py-2 bg-blue-600 text-muted-text rounded-lg hover:bg-blue-700 disabled:bg-muted disabled:cursor-not-allowed transition-colors flex items-center justify-center"
             @click="handleUpload"
           >
             <div
@@ -125,7 +127,7 @@
             </p>
           </div>
           <button
-            class="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            class="ml-4 flex-shrink-0 text-primary-text hover:text-primary-text transition-colors"
             @click="hideNotification"
           >
             <X class="w-4 h-4" />

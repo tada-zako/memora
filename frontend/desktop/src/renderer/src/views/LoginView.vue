@@ -1,15 +1,15 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
       <div>
         <div class="mx-auto h-12 w-12 flex items-center justify-center">
-          <img src="../assets/icon.png" alt="Memora Logo" class="h-12 w-12" />
+          <logo class="h-12 w-12" />
         </div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-accent-text">
           {{ isLogin ? t('login.loginTitle') : t('login.registerTitle') }}
         </h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
-          <button class="font-medium text-black hover:text-indigo-500" @click="toggleMode">
+        <p class="mt-2 text-center text-sm text-primary-text">
+          <button class="font-medium text-accent-text hover:text-indigo-500" @click="toggleMode">
             {{ isLogin ? t('login.noAccount') : t('login.hasAccount') }}
           </button>
         </p>
@@ -27,7 +27,7 @@
               type="email"
               autocomplete="email"
               required
-              class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              class="relative block w-full px-3 py-2 border border-muted-border placeholder-gray-500 text-accent-text rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               :placeholder="t('login.email')"
             />
           </div>
@@ -42,7 +42,7 @@
               autocomplete="username"
               required
               :class="[
-                'relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm',
+                'relative block w-full px-3 py-2 border border-muted-border placeholder-gray-500 text-accent-text focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm',
                 isLogin ? 'rounded-t-md' : ''
               ]"
               :placeholder="t('login.username')"
@@ -58,7 +58,7 @@
               type="password"
               autocomplete="current-password"
               required
-              class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              class="relative block w-full px-3 py-2 border border-muted-border placeholder-gray-500 text-accent-text rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               :placeholder="t('login.password')"
             />
           </div>
@@ -78,7 +78,7 @@
           <button
             type="submit"
             :disabled="loading"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-muted-text bg-inverse focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             <span v-if="loading">{{ t('login.processing') }}</span>
             <span v-else>{{ isLogin ? t('login.login') : t('login.register') }}</span>
@@ -94,6 +94,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { login, register } from '../services/auth'
+import Logo from '@/components/Logo.vue'
 
 const { t } = useI18n()
 const router = useRouter()

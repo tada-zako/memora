@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-white">
+  <div class="min-h-screen bg-primary">
     <!-- Header -->
-    <header class="border-b border-gray-200">
+    <header class="border-b border-muted-border">
       <div class="max-w-4xl mx-auto px-6 py-8">
         <button
-          class="mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
+          class="mb-4 px-4 py-2 bg-muted hover:bg-muted rounded text-primary-text font-medium flex items-center gap-2"
           @click="$router.back()"
         >
           <svg
@@ -19,32 +19,34 @@
           返回
         </button>
         <div class="flex items-center gap-3 mb-2">
-          <BookmarkIcon class="w-6 h-6 text-black" />
-          <h1 class="text-2xl font-bold text-black">网页收藏详情</h1>
+          <BookmarkIcon class="w-6 h-6 text-accent-text" />
+          <h1 class="text-2xl font-bold text-accent-text">网页收藏详情</h1>
         </div>
-        <p class="text-gray-600">查看收藏的详细内容</p>
+        <p class="text-primary-text">查看收藏的详细内容</p>
       </div>
     </header>
 
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto px-6 py-12">
-      <div class="border border-gray-200 shadow-sm rounded-lg bg-white">
+      <div class="border border-muted-border shadow-sm rounded-lg bg-primary">
         <div class="p-6 pb-6">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
-              <h2 class="text-2xl font-bold text-black mb-3 leading-tight">{{ details.title }}</h2>
-              <p class="text-base text-gray-600 leading-relaxed">{{ details.summary }}</p>
+              <h2 class="text-2xl font-bold text-accent-text mb-3 leading-tight">
+                {{ details.title }}
+              </h2>
+              <p class="text-base text-primary-text leading-relaxed">{{ details.summary }}</p>
             </div>
             <div class="flex gap-2">
               <button
-                class="shrink-0 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
+                class="shrink-0 px-4 py-2 bg-blue-600 text-muted-text rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
                 @click="showPublishModal = true"
               >
                 <ShareIcon class="w-4 h-4" />
                 分享到社区
               </button>
               <button
-                class="shrink-0 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 bg-transparent transition-colors flex items-center gap-2 text-sm"
+                class="shrink-0 px-4 py-2 border border-muted-border rounded-md hover:bg-muted bg-transparent transition-colors flex items-center gap-2 text-sm"
                 @click="openOriginalLink"
               >
                 <ExternalLinkIcon class="w-4 h-4" />
@@ -53,37 +55,37 @@
             </div>
           </div>
 
-          <div class="border-t border-gray-200 my-6"></div>
+          <div class="border-t border-muted-border my-6"></div>
 
           <!-- Meta Information -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-3">
-              <div class="flex items-center gap-2 text-sm text-gray-600">
-                <span class="font-medium text-black">作者:</span>
+              <div class="flex items-center gap-2 text-sm text-primary-text">
+                <span class="font-medium text-accent-text">作者:</span>
                 <span>{{ details.author }}</span>
               </div>
-              <div class="flex items-center gap-2 text-sm text-gray-600">
+              <div class="flex items-center gap-2 text-sm text-primary-text">
                 <CalendarIcon class="w-4 h-4" />
                 <span>{{ details.publishDate }}</span>
               </div>
-              <div class="flex items-center gap-2 text-sm text-gray-600">
+              <div class="flex items-center gap-2 text-sm text-primary-text">
                 <ClockIcon class="w-4 h-4" />
                 <span>{{ details.readTime }}</span>
               </div>
             </div>
 
             <div class="space-y-3">
-              <div class="flex items-center gap-2 text-sm text-gray-600">
+              <div class="flex items-center gap-2 text-sm text-primary-text">
                 <EyeIcon class="w-4 h-4" />
                 <span>{{ details.views }} 次浏览</span>
               </div>
-              <div class="flex items-center gap-2 text-sm text-gray-600">
+              <div class="flex items-center gap-2 text-sm text-primary-text">
                 <MessageSquareIcon class="w-4 h-4" />
                 <span>{{ details.comments }} 条评论</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-black">分类:</span>
-                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">{{
+                <span class="text-sm font-medium text-accent-text">分类:</span>
+                <span class="px-2 py-1 bg-muted text-accent-text rounded text-xs">{{
                   details.category
                 }}</span>
               </div>
@@ -92,14 +94,14 @@
 
           <!-- Tags -->
           <div class="flex items-center gap-2 pt-4">
-            <span class="text-sm font-medium text-black">标签:</span>
+            <span class="text-sm font-medium text-accent-text">标签:</span>
             <div class="flex flex-wrap gap-2">
               <span
                 v-for="(tag, index) in details.value && details.value.tags
                   ? details.value.tags
                   : []"
                 :key="index"
-                class="px-2 py-1 border border-gray-300 text-gray-700 rounded text-xs hover:bg-gray-50"
+                class="px-2 py-1 border border-muted-border text-primary-text rounded text-xs hover:bg-muted"
               >
                 #{{ tag }}
               </span>
@@ -109,16 +111,16 @@
 
         <div class="p-6 pt-0">
           <!-- URL Display -->
-          <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div class="mb-6 p-4 bg-muted rounded-lg border border-muted-border">
             <div class="flex items-center gap-2 mb-2">
-              <ExternalLinkIcon class="w-4 h-4 text-gray-500" />
-              <span class="text-sm font-medium text-black">原文链接</span>
+              <ExternalLinkIcon class="w-4 h-4 text-primary-text" />
+              <span class="text-sm font-medium text-accent-text">原文链接</span>
             </div>
             <a
               :href="details.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-sm text-gray-600 hover:text-black transition-colors break-all"
+              class="text-sm text-primary-text hover:text-accent-text transition-colors break-all"
             >
               {{ details.url }}
             </a>
@@ -126,9 +128,9 @@
 
           <!-- Content Preview -->
           <div>
-            <h3 class="text-lg font-semibold text-black mb-4">内容预览</h3>
+            <h3 class="text-lg font-semibold text-accent-text mb-4">内容预览</h3>
             <div class="prose prose-gray max-w-none">
-              <div class="text-gray-700 leading-relaxed space-y-4">
+              <div class="text-primary-text leading-relaxed space-y-4">
                 <p v-for="(paragraph, index) in contentParagraphs" :key="index" class="text-sm">
                   {{ paragraph }}
                 </p>
@@ -141,34 +143,34 @@
       <!-- Collection Stats -->
       <div class="mt-12 text-center">
         <div
-          class="inline-flex items-center gap-6 px-6 py-4 bg-gray-50 rounded-lg border border-gray-200"
+          class="inline-flex items-center gap-6 px-6 py-4 bg-muted rounded-lg border border-muted-border"
         >
           <div class="text-center">
-            <div class="text-2xl font-bold text-black">1</div>
-            <div class="text-sm text-gray-600">收藏文章</div>
+            <div class="text-2xl font-bold text-accent-text">1</div>
+            <div class="text-sm text-primary-text">收藏文章</div>
           </div>
-          <div class="w-px h-8 bg-gray-300"></div>
+          <div class="w-px h-8 bg-muted"></div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-black">
+            <div class="text-2xl font-bold text-accent-text">
               {{ details.value && details.value.category ? details.value.category : '' }}
             </div>
-            <div class="text-sm text-gray-600">主要分类</div>
+            <div class="text-sm text-primary-text">主要分类</div>
           </div>
-          <div class="w-px h-8 bg-gray-300"></div>
+          <div class="w-px h-8 bg-muted"></div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-black">
+            <div class="text-2xl font-bold text-accent-text">
               {{ details.value && details.value.tags ? details.value.tags.length : 0 }}
             </div>
-            <div class="text-sm text-gray-600">相关标签</div>
+            <div class="text-sm text-primary-text">相关标签</div>
           </div>
         </div>
       </div>
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-gray-200 mt-16">
+    <footer class="border-t border-muted-border mt-16">
       <div class="max-w-4xl mx-auto px-6 py-8">
-        <div class="text-center text-sm text-gray-500">
+        <div class="text-center text-sm text-primary-text">
           <p>© 2025 网页收藏系统 · 简约 · 现代 · 高效</p>
         </div>
       </div>

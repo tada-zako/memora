@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './components.css';
 
 html,
 body,
@@ -50,9 +51,85 @@ body {
 }
 
 /* 添加系统主题css变量 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-primary:   
-;
+  /* ========== 主题色彩 ========== */
+
+  /* 系统背景色 */
+  --color-primary: #f9fafb;
+  --color-muted: #fbfdff;
+  --color-accent: #e9eaea;
+  --color-vibrant: #c9c9c9;
+  --color-inverse: #111827;
+
+  /* 文字颜色 */
+  --color-primary-text: #4a5565;
+  --color-muted-text: #939aa5;
+  --color-accent-text: #101828;
+
+  /* 边框颜色 */
+  --color-primary-border: #939aa5;
+  --color-muted-border: #e2e8f0;
+  --color-accent-border: rgb(97, 97, 97);
+  --color-vibrant-border: rgb(40, 39, 39);
+
+  /* ========== 辅助色 ========== */
+
+  /* 成功色 - 绿色系 */
+  --color-success: #22c55e;
+  --color-success-text: #166534;
+  --color-success-border: #a7f3d0;
+
+  /* 警告色 - 黄色系 */
+  --color-warning: #facc15;
+  --color-warning-text: #854d0e;
+  --color-warning-border: #fef3c7;
+
+  /* 错误色 - 红色系 */
+  --color-error: #ef4444;
+  --color-error-text: #991b1b;
+  --color-error-border: #fecaca;
+}
+
+/* dark mode 配色 */
+.dark {
+  /* ========== 主题色彩 ========== */
+
+  /* 系统背景色 */
+  --color-primary: #1f2937;
+  --color-muted: #111827;
+  --color-accent: #374151;
+  --color-vibrant: #4b5563;
+  --color-inverse: #f9fafb;
+
+  /* 文字颜色 */
+  --color-primary-text: #d1d5db;
+  --color-muted-text: #6b7280;
+  --color-accent-text: #f9fafb;
+
+  /* 边框颜色 */
+  --color-primary-border: #4b5563;
+  --color-muted-border: #374151;
+  --color-accent-border: rgb(156, 163, 175);
+  --color-vibrant-border: rgb(212, 212, 212);
+
+  /* ========== 辅助色 ========== */
+
+  /* 成功色 - 绿色系 */
+  --color-success: #22c55e;
+  --color-success-text: #bbf7d0;
+  --color-success-border: #166534;
+
+  /* 警告色 - 黄色系 */
+  --color-warning: #facc15;
+  --color-warning-text: #fef3c7;
+  --color-warning-border: #854d0e;
+
+  /* 错误色 - 红色系 */
+  --color-error: #ef4444;
+  --color-error-text: #fecaca;
+  --color-error-border: #991b1b;
 }
 
 /* 心情滑块样式 */
@@ -164,6 +241,11 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
+}
+
+/* 按钮基础样式 */
+button {
+  cursor: pointer;
 }
 
 /* 按钮禁用状态 */

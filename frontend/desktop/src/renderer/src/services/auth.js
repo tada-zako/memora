@@ -68,7 +68,7 @@ export const updateUserProfile = async (userData) => {
   }
 }
 
-// 上传头像 
+// 上传头像
 export const uploadUserAvatar = async (file) => {
   try {
     // 验证文件类型

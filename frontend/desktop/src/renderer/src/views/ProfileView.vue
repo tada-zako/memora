@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full bg-gray-50 overflow-y-auto relative">
+  <div class="h-full bg-muted overflow-y-auto relative">
     <!-- 背景动画 -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
       <div class="particles-container">
@@ -26,7 +26,7 @@
       <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 24px">
         <div class="relative">
           <div
-            class="h-35 w-35 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+            class="h-35 w-35 rounded-full bg-vibrant flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
             @click="triggerAvatarUpload"
           >
             <img
@@ -35,12 +35,12 @@
               :alt="t('profile.avatar')"
               class="h-full w-full object-cover"
             />
-            <User v-else class="h-10 w-10 text-gray-600" />
+            <User v-else class="h-10 w-10 text-primary-text" />
             <div
               v-if="avatarUploading"
-              class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+              class="absolute inset-0 bg-inverse bg-opacity-50 flex items-center justify-center"
             >
-              <RefreshCw class="h-6 w-6 text-white animate-spin" />
+              <RefreshCw class="h-6 w-6 text-muted-text animate-spin" />
             </div>
           </div>
           <input
@@ -53,15 +53,15 @@
         </div>
         <div style="display: flex; justify-content: space-between" class="flex-1">
           <div style="display: flex; flex-direction: column; gap: 6px">
-            <h2 class="text-3xl font-bold text-gray-900">{{ userInfo?.username }}</h2>
-            <p class="text-gray-600">{{ userInfo?.email }}</p>
-            <p class="text-sm text-gray-500">
+            <h2 class="text-3xl font-bold text-accent-text">{{ userInfo?.username }}</h2>
+            <p class="text-primary-text">{{ userInfo?.email }}</p>
+            <p class="text-sm text-primary-text">
               {{ t('profile.registrationTime', { date: formatDate(userInfo?.created_at) }) }}
             </p>
           </div>
           <div style="display: flex; justify-content: center; align-items: center">
             <button
-              class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="inline-flex items-center px-3 py-2 border border-muted-border shadow-sm text-sm leading-4 font-medium rounded-md text-primary-text bg-primary hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               @click="showEdit"
             >
               <Edit3 class="h-4 w-4 mr-1" />
@@ -73,10 +73,10 @@
 
       <!-- 最近发布的推文展示（悬浮在最上层） -->
       <div class="mt-6 mb-8" style="margin-top: 105px">
-        <h3 class="text-lg font-semibold text-gray-900 mb-3" style="margin-bottom: 30px">
+        <h3 class="text-lg font-semibold text-accent-text mb-3" style="margin-bottom: 30px">
           {{ t('profile.recentPosts') }}
         </h3>
-        <div v-if="recentPostsLoading" class="py-6 flex justify-center text-gray-500">
+        <div v-if="recentPostsLoading" class="py-6 flex justify-center text-primary-text">
           <RefreshCw class="h-5 w-5 animate-spin mr-2" /> {{ t('profile.loading') }}
         </div>
         <div v-else-if="recentPostsError" class="py-6 flex flex-col items-center text-red-500">
@@ -107,7 +107,7 @@
                 <div class="flex items-center gap-1">
                   <!-- 分类 -->
                   <div class="flex items-center gap-1" style="margin-right: 10px">
-                    <span class="text-xs font-bold text-gray-900">{{
+                    <span class="text-xs font-bold text-accent-text">{{
                       post.category_name || t('profile.uncategorized')
                     }}</span>
                   </div>
@@ -116,28 +116,32 @@
                     <span
                       v-for="(tag, idx) in getTagList(post.tags)"
                       :key="idx"
-                      class="px-2 py-0.5 text-gray-700 rounded text-xs hover:bg-gray-50"
+                      class="px-2 py-0.5 text-primary-text rounded text-xs hover:bg-muted"
                     >
                       #{{ tag }}
                     </span>
-                    <span v-if="getTagList(post.tags).length === 0" class="text-xs text-gray-500">{{
-                      t('profile.noTags')
-                    }}</span>
+                    <span
+                      v-if="getTagList(post.tags).length === 0"
+                      class="text-xs text-primary-text"
+                      >{{ t('profile.noTags') }}</span
+                    >
                   </div>
                 </div>
                 <!-- 发布时间 -->
                 <div class="flex items-center gap-1">
-                  <span class="text-xs text-gray-500">{{ formatDate(post.created_at) }}</span>
+                  <span class="text-xs text-primary-text">{{ formatDate(post.created_at) }}</span>
                 </div>
               </div>
               <!-- 摘要 -->
-              <div class="text-sm text-gray-600 summary-ellipsis">
+              <div class="text-sm text-primary-text summary-ellipsis">
                 {{ t('profile.summary', { text: getSummary(post.collection_details?.summary) }) }}
               </div>
             </div>
           </div>
         </div>
-        <div v-else class="py-6 text-gray-400 text-sm text-center">{{ t('profile.noPosts') }}</div>
+        <div v-else class="py-6 text-primary-text text-sm text-center">
+          {{ t('profile.noPosts') }}
+        </div>
       </div>
     </div>
 
@@ -160,22 +164,22 @@
     <!-- 编辑用户信息模态框 -->
     <div
       v-if="showEditModal"
-      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      class="fixed inset-0 bg-primary bg-opacity-50 overflow-y-auto h-full w-full z-50"
     >
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-primary">
         <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">{{ t('profile.editProfile') }}</h3>
+          <h3 class="text-lg font-medium text-accent-text mb-4">{{ t('profile.editProfile') }}</h3>
 
           <form class="space-y-4" @submit.prevent="updateProfile">
             <div>
-              <label for="edit-email" class="block text-sm font-medium text-gray-700">{{
+              <label for="edit-email" class="block text-sm font-medium text-primary-text">{{
                 t('profile.email')
               }}</label>
               <input
                 id="edit-email"
                 v-model="editForm.email"
                 type="email"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="mt-1 block w-full px-3 py-2 border border-muted-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>
 
@@ -193,7 +197,7 @@
               <button
                 type="submit"
                 :disabled="editLoading"
-                class="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                class="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-muted-text bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
                 <span v-if="editLoading">{{ t('profile.saving') }}</span>
                 <span v-else>{{ t('profile.save') }}</span>
@@ -201,7 +205,7 @@
 
               <button
                 type="button"
-                class="flex-1 inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                class="flex-1 inline-flex justify-center py-2 px-4 border border-muted-border shadow-sm text-sm font-medium rounded-md text-primary-text bg-primary hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 @click="cancelEdit"
               >
                 {{ t('profile.cancel') }}
@@ -211,7 +215,7 @@
 
           <button
             style="margin-top: 16px"
-            class="w-full flex items-center justify-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            class="w-full flex items-center justify-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-primary hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             @click="handleLogout"
           >
             <LogOut class="h-4 w-4 mr-2" />
@@ -482,7 +486,7 @@ onMounted(() => {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--color-accent);
   border-radius: 50%;
   animation: float linear infinite;
 }
@@ -520,17 +524,16 @@ onMounted(() => {
 .shape-circle {
   width: 200px;
   height: 200px;
-  border: 2px solid #222; /* 颜色加深：#000 -> #222 */
+  border: 2px solid var(--color-vibrant-border); /* 颜色加深：#000 -> #222 */
   border-radius: 50%;
   top: 20%;
   right: 10%;
-  animation: rotate 20s linear infinite;
 }
 
 .shape-square {
   width: 150px;
   height: 150px;
-  border: 2px solid #222; /* 颜色加深：#000 -> #222 */
+  border: 2px solid var(--color-vibrant-border); /* 颜色加深：#000 -> #222 */
   top: 60%;
   left: 5%;
   animation: rotate 25s linear infinite reverse;
@@ -541,10 +544,11 @@ onMounted(() => {
   height: 0;
   border-left: 75px solid transparent;
   border-right: 75px solid transparent;
-  border-bottom: 130px solid rgba(34, 34, 34, 0.08); /* 颜色加深：rgba(0,0,0,0.03) -> rgba(34,34,34,0.08) */
-  top: 40%;
-  right: 20%;
+  border-bottom: 130px solid var(--color-vibrant-border); /* 颜色加深：rgba(0,0,0,0.03) -> rgba(34,34,34,0.08) */
+  top: 56%;
+  right: 28%;
   animation: float-shape 15s ease-in-out infinite;
+  animation: rotate 90s linear infinite;
 }
 
 @keyframes rotate {

@@ -1,11 +1,11 @@
 <template>
-  <div class="h-screen bg-white flex flex-col">
+  <div class="h-screen bg-primary flex flex-col">
     <!-- Header -->
-    <header class="border-b border-gray-200 flex-shrink-0">
+    <header class="border-b border-muted-border flex-shrink-0">
       <div class="max-w-6xl mx-auto px-6 py-5">
         <div class="flex justify-between items-start mb-2">
           <button
-            class="px-2 py-1 bgconst createKnowledgeBase = async () => { if (!categoryId || creatingKnowledgeBase.value) return try { creatingKnowledgeBase.value = true const result = await apiCreateKnowledgeBase(categoryId) if (result.code === ) { // 知识库创建已启动，后台处理 alert('知识库创建已启动，请稍后刷新页面查看状态。') // 由于是后台任务，不立即重新获取数据 } } catch (error) { console.error('创建知识库失败:', error) alert('创建知识库失败: ' + (error.detail || error.message || '未知错误')) } finally { creatingKnowledgeBase.value = false } }-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
+            class="px-2 py-1 bgconst createKnowledgeBase = async () => { if (!categoryId || creatingKnowledgeBase.value) return try { creatingKnowledgeBase.value = true const result = await apiCreateKnowledgeBase(categoryId) if (result.code === ) { // 知识库创建已启动，后台处理 alert('知识库创建已启动，请稍后刷新页面查看状态。') // 由于是后台任务，不立即重新获取数据 } } catch (error) { console.error('创建知识库失败:', error) alert('创建知识库失败: ' + (error.detail || error.message || '未知错误')) } finally { creatingKnowledgeBase.value = false } }-gray-200 rounded text-primary-text font-medium flex items-center gap-2"
             style="font-size: 12px"
             @click="$router.back()"
           >
@@ -24,8 +24,8 @@
 
         <div class="flex items-center gap-3 mb-2" style="justify-content: space-between">
           <div>
-            <BookmarkIcon class="w-6 h-6 text-black" />
-            <h1 class="text-2xl font-bold text-black">
+            <BookmarkIcon class="w-6 h-6 text-accent-text" />
+            <h1 class="text-2xl font-bold text-accent-text">
               {{ category?.emoji }} {{ category?.name }}
             </h1>
           </div>
@@ -34,7 +34,7 @@
             <button
               v-if="!category?.knowledge_base_id"
               :disabled="creatingKnowledgeBase"
-              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-300 rounded text-gray-700 font-medium flex items-center gap-2"
+              class="px-4 py-2 bg-muted hover:bg-muted disabled:bg-muted rounded text-primary-text font-medium flex items-center gap-2"
               @click="createKnowledgeBase"
             >
               <svg
@@ -79,7 +79,7 @@
             <!-- Ask AI Button -->
             <button
               v-else
-              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-medium flex items-center gap-2"
+              class="px-4 py-2 bg-muted hover:bg-muted rounded text-primary-text font-medium flex items-center gap-2"
               @click="showAskAIPanel = true"
             >
               <svg
@@ -102,7 +102,7 @@
                 v-model="searchQuery"
                 type="text"
                 :placeholder="t('collection.searchCollections')"
-                class="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-64"
+                class="pl-4 pr-4 py-2 border border-muted-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-64"
                 @input="handleSearch"
                 @keydown.enter="handleSearch"
               />
@@ -112,7 +112,7 @@
                 @click="clearSearch"
               >
                 <svg
-                  class="h-4 w-4 text-gray-400 hover:text-gray-600"
+                  class="h-4 w-4 text-primary-text hover:text-primary-text"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -128,7 +128,7 @@
             </div>
           </div>
         </div>
-        <p class="text-gray-500 text-sm">
+        <p class="text-primary-text text-sm">
           {{ t('collection.totalCollections', { count: filteredCollections.length }) }}
           <span v-if="searchQuery"
             >({{
@@ -141,18 +141,18 @@
 
     <!-- Main Content -->
     <main class="max-w-6xl px-6 py-6 flex-1 min-h-0">
-      <div v-if="loading" class="text-center py-16 text-gray-500">
+      <div v-if="loading" class="text-center py-16 text-primary-text">
         {{ t('collection.loading') }}
       </div>
       <div v-else class="h-full">
         <div v-if="filteredCollections.length === 0" class="text-center py-16">
-          <BookmarkIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 mb-2">
+          <BookmarkIcon class="w-16 h-16 text-muted-text mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-accent-text mb-2">
             {{
               searchQuery ? t('collection.noMatchingCollections') : t('collection.noCollections')
             }}
           </h3>
-          <p class="text-gray-500">
+          <p class="text-primary-text">
             {{
               searchQuery
                 ? t('collection.tryDifferentSearch')
@@ -166,12 +166,12 @@
               <div
                 v-for="item in filteredCollections"
                 :key="item.id"
-                class="border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow cursor-pointer group mb-4"
+                class="border border-muted-border rounded-lg bg-primary hover:shadow-md transition-shadow cursor-pointer group mb-4"
                 @click="onCollectionClick(item)"
               >
                 <div class="p-6">
                   <h3
-                    class="text-lg font-semibold text-black mb-2 line-clamp-2 group-hover:text-gray-700 transition-colors"
+                    class="text-lg font-semibold text-accent-text mb-2 line-clamp-2 group-hover:text-primary-text transition-colors"
                   >
                     <!-- Collection #{{ item.id }} -->
                     {{ decodeHtmlEntities(item.details.title) }}
@@ -181,31 +181,31 @@
                       v-for="(tag, index) in item.tags"
                       :key="tag.id"
                       :index="index"
-                      class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium"
+                      class="px-2 py-1 bg-muted text-accent-text rounded text-xs font-medium"
                     >
                       {{ tag }}
                     </span>
                   </div>
 
-                  <div class="flex items-center justify-between text-xs text-gray-500 mt-2">
+                  <div class="flex items-center justify-between text-xs text-primary-text mt-2">
                     <div>
                       <div>
                         {{ t('collection.createdAt', { date: formatDate(item.created_at) }) }}
                       </div>
                     </div>
                     <button
-                      class="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 flex items-center justify-center"
+                      class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
                       @click.stop="showPublishModal(item.id)"
                     >
-                      <MessageSquareShare class="w-4 h-4 text-gray-600" />
+                      <MessageSquareShare class="w-4 h-4 text-primary-text" />
                     </button>
                   </div>
                   <div
                     v-if="item.details && item.details.attachment"
-                    class="mt-4 pt-4 border-t border-gray-100"
+                    class="mt-4 pt-4 border-t border-muted-border"
                   >
                     <div class="flex items-center gap-2">
-                      <span class="text-xs text-gray-500 truncate">{{
+                      <span class="text-xs text-primary-text truncate">{{
                         t('collection.attachmentId', { id: item.details.attachment })
                       }}</span>
                     </div>
@@ -216,24 +216,21 @@
             <transition name="slide-panel" mode="out-in">
               <div
                 v-if="selectedCollection || showAskAIPanel"
-                class="w-2/5 border border-gray-200 rounded-lg bg-white flex flex-col h-full"
+                class="w-2/5 border border-muted-border rounded-lg bg-primary flex flex-col h-full"
               >
                 <div class="flex items-center justify-between p-4 flex-shrink-0">
                   <div class="flex items-center gap-2">
                     <Sparkles class="w-6 h-6" fill="#4577e5" style="color: #4577e5" />
-                    <h1 class="text-2xl font-semibold text-black">
+                    <h1 class="text-2xl font-semibold text-accent-text">
                       {{ showAskAIPanel ? t('collection.askAI') : t('collection.aiOverview') }}
                     </h1>
                   </div>
 
                   <!-- 关闭 -->
                   <button
-                    class="text-gray-500 hover:text-gray-700 focus:outline-none"
+                    class="text-primary-text hover:text-primary-text focus:outline-none"
                     :title="t('collection.close')"
-                    @click="
-                      selectedCollection = null
-                      showAskAIPanel = false
-                    "
+                    @click="((selectedCollection = null), (showAskAIPanel = false))"
                   >
                     <svg
                       class="w-6 h-6"
@@ -265,14 +262,17 @@
                     style="height: 100%"
                   >
                     <div v-if="aiResponse" class="flex-1 p-4 m-4 rounded-lg overflow-y-auto">
-                      <div class="text-gray-700 prose" v-html="renderedAiResponse"></div>
+                      <div class="text-primary-text prose" v-html="renderedAiResponse"></div>
                     </div>
-                    <div v-else class="flex-1 p-4 flex items-center justify-center text-gray-500">
+                    <div
+                      v-else
+                      class="flex-1 p-4 flex items-center justify-center text-primary-text"
+                    >
                       {{ t('collection.askAnything') }}
                     </div>
 
                     <div class="p-4 flex-shrink-0">
-                      <div class="border border-gray-300 rounded-2xl">
+                      <div class="border border-muted-border rounded-2xl">
                         <textarea
                           id="input-field"
                           v-model="aiQuery"
@@ -286,7 +286,7 @@
                           <button
                             :disabled="!aiQuery.trim() || aiLoading"
                             :class="['send-button', { disabled: !aiQuery.trim() || aiLoading }]"
-                            class="flex justify-center items-center bg-black rounded-full p-2 border-none cursor-pointer transition-all duration-200"
+                            class="flex justify-center items-center bg-inverse rounded-full p-2 border-none cursor-pointer transition-all duration-200"
                             @click="askAI"
                           >
                             <ArrowUp v-if="!aiLoading" :size="16" style="color: #fff" />

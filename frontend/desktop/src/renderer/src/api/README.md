@@ -1,7 +1,8 @@
 ---
 title: api 层规范
 description: 简单描述一下前端 api 层的处理规范
-date: 2025-9-7
+create_date: 2025-9-7
+update_date: 2025-9-15
 tags:
   - 规范
 ---
@@ -57,7 +58,11 @@ tags:
 
 ## api 层和 services 层规范
 
-- api 层直接调用后端接口，返回 `response` 对象，也就是 `Response[T]`。
+<!-- - api 层直接调用后端接口，返回 `response` 对象，也就是 `Response[T]`。
 - services 层通过调用 api 层获取后端数据，处理数据后返回给 UI 层。
 
-> [x] 当前 api 层和 services 层权值没有完全分离，之后整改。——2025-9-8
+> [x] 当前 api 层和 services 层权值没有完全分离，之后整改。——2025-9-8 -->
+
+> update: 2025-9-15
+
+当前项目的设计，暂不考虑 api 层和 services 层的分离，api 层直接对外提供服务。

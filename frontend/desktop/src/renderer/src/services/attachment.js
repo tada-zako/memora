@@ -100,7 +100,7 @@ export const deleteAttachment = async (attachmentId) => {
 //     const formData = new FormData()
 //     formData.append('file', file)
 //     formData.append('description', 'avatar')
-    
+
 //     const attachment = await uploadAttachmentApi(formData)
 
 //     if (attachment.code !== 200) {

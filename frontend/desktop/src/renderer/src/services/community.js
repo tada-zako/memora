@@ -145,7 +145,7 @@ export const getPostCollectionDetails = async (postId) => {
     const response = await getPostCollectionDetailsApi(postId)
 
     if (response.code !== 200) {
-      throw new Error(response.message || "获取推文收藏详情失败")
+      throw new Error(response.message || '获取推文收藏详情失败')
     }
 
     return response.data
