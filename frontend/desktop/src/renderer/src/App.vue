@@ -1,11 +1,9 @@
 <template>
-  <div class="flex h-full bg-gray-50/80 overflow-hidden">
+  <div class="flex h-full bg-primary overflow-hidden">
     <!-- 侧边栏 -->
     <div
-      :class="[
-        'bg-white/90 glass-effect border-r border-gray-100 flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out',
-        sidebarExpanded ? 'w-56' : 'w-24'
-      ]"
+      class="bg-primary glass-effect border-r border-muted-border flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out"
+      :class="[sidebarExpanded ? 'w-56' : 'w-24']"
       @mouseenter="handleSidebarEnter"
       @mouseleave="handleSidebarLeave"
     >
@@ -15,22 +13,16 @@
         :class="['transition-all duration-300 ease-in-out', sidebarExpanded ? 'p-6' : 'p-4']"
       >
         <div :class="['flex items-center']" style="gap: 8px">
-          <img
-            src="./assets/icon.png"
-            alt="Memora Logo"
-            :class="[
-              'transition-all duration-300 ease-in-out',
-              sidebarExpanded ? 'w-8 h-8' : 'w-12 h-12'
-            ]"
-          />
-
+          <logo :class="[sidebarExpanded ? 'w-8 h-8' : 'w-12 h-12']" />
           <div
             :class="[
               'transition-all duration-300 ease-in-out overflow-hidden',
               sidebarExpanded ? 'opacity-100 max-w-none' : 'opacity-0 max-w-0'
             ]"
           >
-            <h1 class="text-xl font-bold text-gray-900 whitespace-nowrap">{{ t('app.title') }}</h1>
+            <h1 class="text-xl font-bold text-accent-text whitespace-nowrap">
+              {{ t('app.title') }}
+            </h1>
           </div>
         </div>
       </div>
@@ -46,12 +38,10 @@
             :class="[!sidebarExpanded ? 'flex justify-center' : '']"
           >
             <button
+              class="text-primary-text hover:text-accent-text flex items-center rounded-lg text-left transition-all duration-0 ease-in-out btn-hover"
               :class="[
-                'flex items-center rounded-lg text-left transition-all duration-0 ease-in-out btn-hover',
                 sidebarExpanded ? 'w-full space-x-3 px-3 py-2.5' : 'w-12 h-12 justify-center',
-                isActiveMenu(item)
-                  ? 'sidebar-acive-btn'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                isActiveMenu(item) ? 'bg-vibrant/60' : ' hover:bg-accent'
               ]"
               :title="!sidebarExpanded ? item.name : ''"
               @click="goMenu(item)"
@@ -80,14 +70,25 @@
     <div class="flex-1 flex flex-col min-w-0">
       <router-view style="overflow-y: scroll" />
     </div>
+
+    <!-- 黑夜模式切换按钮 -->
+    <div
+      class="fixed bottom-6 left-6 z-50"
+      :class="[sidebarExpanded ? 'translate-x-0' : 'translate-x-12']"
+      style="transition: transform 0.3s ease-in-out"
+    >
+      <DarkModeButton :is-dark="isDark" @toggle="toggleDarkMode" />
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { onMounted, ref, watch, provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Star, Earth, User, Settings } from 'lucide-vue-next'
+import DarkModeButton from './components/DarkModeButton.vue'
+import Logo from './components/Logo.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -146,6 +147,69 @@ const isActiveMenu = (item) => {
   }
   return false
 }
+
+// 全局 isDark 状态
+const isDark = ref(false)
+
+provide('isDark', isDark)
+
+// 监听系统主题变化
+const watchSysPref = () => {
+  if (window.matchMedia) {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    mediaQuery.addEventListener('change', (e) => {
+      // 只有在用户没有手动设置主题时才跟随系统
+      if (!localStorage.getItem('theme')) {
+        isDark.value = e.matches
+      }
+    })
+  }
+}
+
+// 获取主题设置
+const getTheme = () => {
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme) {
+    return savedTheme === 'dark'
+  }
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
+// 改变主题
+const toggleDarkMode = () => {
+  isDark.value = !isDark.value
+}
+
+// 应用主题
+const applyTheme = (dark) => {
+  const html = document.documentElement
+  if (dark) {
+    html.classList.add('dark')
+  } else {
+    html.classList.remove('dark')
+  }
+}
+
+// 保存主题设置
+const saveTheme = (dark) => {
+  localStorage.setItem('theme', dark ? 'dark' : 'light')
+}
+
+// 监听主题变化
+watch(
+  isDark,
+  (newVal) => {
+    applyTheme(newVal)
+    saveTheme(newVal)
+  },
+  { immediate: true }
+)
+
+// 挂载后执行
+onMounted(() => {
+  isDark.value = getTheme()
+  watchSysPref()
+})
 </script>
 
 <style scoped>
@@ -153,15 +217,12 @@ const isActiveMenu = (item) => {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
-.sidebar-acive-btn {
-  background-color: #e9eaea;
-}
 .btn-hover {
   transition: background-color 0s ease-in-out;
   border-radius: 28px;
 }
 .btn-hover:hover {
-  background-color: #e9eaea;
+  background-color: var(--color-accent);
   transform: none;
 }
 .custom-scrollbar::-webkit-scrollbar {

@@ -3,7 +3,7 @@
     <!-- Header -->
     <header class="page-header">
       <div class="header-content">
-        <button @click="$router.back()" class="back-btn">
+        <button class="back-btn" @click="$router.back()">
           <svg
             class="back-icon"
             fill="none"
@@ -134,7 +134,7 @@
       class="image-modal"
       @click="showImageModal = false"
     >
-      <button @click.stop="showImageModal = false" class="modal-close">
+      <button class="modal-close" @click.stop="showImageModal = false">
         <svg
           class="close-icon"
           fill="none"
@@ -242,12 +242,12 @@ const fetchCollectionAndAttachment = async () => {
   try {
     // 使用服务函数获取完整数据
     const result = await getCollectionWithAttachment(collectionId)
-    
+
     collection.value = result.collection
     attachment.value = result.attachment
   } catch (e) {
     error.value = e.message
-    
+
     // 如果是认证错误，重定向到登录页面
     if (e.code === 'AUTH_REQUIRED') {
       console.log('认证失败，跳转到登录页面')
@@ -340,11 +340,11 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .detail-page {
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: var(--color-primary);
 
   .page-header {
-    background-color: white;
-    border-bottom: 1px solid #e5e7eb;
+    background-color: var(--color-primary);
+    border-bottom: 1px solid var(--color-muted-border);
     margin-top: 40px;
 
     .header-content {
@@ -357,8 +357,8 @@ onUnmounted(() => {
         align-items: center;
         gap: 8px;
         padding: 6px 12px;
-        background-color: #f3f4f6;
-        color: #374151;
+        background-color: var(--color-primary);
+        color: var(--color-accent-text);
         border: none;
         border-radius: 8px;
         font-weight: 500;
@@ -368,7 +368,7 @@ onUnmounted(() => {
         margin-bottom: 8px;
 
         &:hover {
-          background-color: #e5e7eb;
+          background-color: var(--color-accent);
         }
 
         .back-icon {
@@ -380,7 +380,7 @@ onUnmounted(() => {
       .page-title {
         font-size: 20px;
         font-weight: bold;
-        color: black;
+        color: var(--color-accent-text);
         margin: 0;
       }
     }
@@ -403,22 +403,22 @@ onUnmounted(() => {
   }
 
   .attachment-preview {
-    background-color: white;
-    border: 1px solid #e5e7eb;
+    background-color: var(--color-primary);
+    border: 1px solid var(--color-muted-border);
     border-radius: 12px;
     overflow: hidden;
 
     .image-container {
       position: relative;
       aspect-ratio: 16 / 9;
-      background-color: #f3f4f6;
+      background-color: var(--color-primary);
 
       .preview-image {
         width: 100%;
         height: 100%;
         object-fit: contain;
         display: block;
-        background-color: white;
+        background-color: var(--color-primary);
       }
       /* 删除.overlay和.zoom-icon相关样式 */
     }
@@ -430,14 +430,14 @@ onUnmounted(() => {
       .file-icon {
         width: 96px;
         height: 96px;
-        color: #d1d5db;
+        color: var(--color-muted-text);
         margin: 0 auto 16px;
       }
 
       .file-type {
         font-size: 18px;
         font-weight: 500;
-        color: #1f2937;
+        color: var(--color-primary-text);
         margin-bottom: 8px;
       }
 

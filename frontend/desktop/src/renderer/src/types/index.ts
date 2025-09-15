@@ -7,48 +7,52 @@ export interface ApiResponse<T = any> {
 
 // Auth Types
 export interface LoginCredentials {
-  email: string
+  username: string
   password: string
 }
 
 export interface RegisterData {
+  username: string
   email: string
   password: string
-  username?: string
 }
 
 export interface UserProfile {
   id: number
-  email: string
   username: string
-  avatar_attachment_id?: number | null
+  email: string
+  avatar_attachment_id: number | null
   created_at: string
   updated_at: string
+}
+
+export interface Token {
+  access_token: string
+  token_type: string
 }
 
 // Collection Types
 export interface Collection {
   id: number
-  category_id: string | number
+  category_id: number
   tags: string
-  details: CollectionDetails
+  details: CollectionDetail[]
   created_at: string
   updated_at: string
 }
 
-export interface CollectionDetails {
+export interface CollectionDetail {
   id: number
-  attachment?: number
-  url?: string
-  summary?: string
-  title?: string
-  content?: string
+  key: string
+  value: any
+  created_at: string
+  updated_at: string
 }
 
-export interface CreateUrlCollectionData {
-  url: string
-  category: string
-}
+// export interface CreateUrlCollectionData {
+//   url: string
+//   category: string
+// }
 
 export interface CreatePictureCollectionData {
   attachment_id: number
@@ -57,11 +61,11 @@ export interface CreatePictureCollectionData {
 
 // Attachment Types
 export interface Attachment {
-    attachment_id: string
-    user_id: number
-    url: string
-    description: string | null
-    created_at: string
+  attachment_id: string
+  user_id: number
+  url: string
+  description: string | null
+  created_at: string
 }
 
 // Category Types
