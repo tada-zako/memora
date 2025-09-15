@@ -93,7 +93,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { login, register } from '../services/auth'
+import { login, register } from '@/api'
 import Logo from '@/components/Logo.vue'
 
 const { t } = useI18n()
@@ -127,28 +127,32 @@ const handleSubmit = async () => {
   try {
     if (isLogin.value) {
       // 登录
-      await login({
+      const response = await login({
         username: form.username,
         password: form.password
       })
-
-      successMessage.value = t('login.loginSuccess')
-      setTimeout(() => {
-        router.push({ name: 'Profile' })
-      }, 1000)
+      
+      if (response) {
+        successMessage.value = t('login.loginSuccess')
+        setTimeout(() => {
+          router.push({ name: 'Profile' })
+        }, 1000)
+      }
     } else {
       // 注册
-      await register({
+      const response = await register({
         username: form.username,
         email: form.email,
         password: form.password
       })
-
-      successMessage.value = t('login.registerSuccess')
-      setTimeout(() => {
-        isLogin.value = true
-        form.password = ''
-      }, 1000)
+      
+      if (response) {
+        successMessage.value = t('login.registerSuccess')
+        setTimeout(() => {
+          isLogin.value = true
+          form.password = ''
+        }, 1000)
+      }
     }
   } catch (error) {
     errorMessage.value = error.detail || error.message || t('login.operationFailed')

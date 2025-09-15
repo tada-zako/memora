@@ -5,7 +5,7 @@
     :class="{ 'mac-style': platform === 'darwin', 'win-style': platform === 'win32' }"
   >
     <!-- 退出按钮 -->
-    <button class="exit-button" :title="t('quick.exit')" @click="closeQuickWindow">
+    <button @click="closeQuickWindow" class="exit-button" :title="t('quick.exit')">
       <svg class="exit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           stroke-linecap="round"
@@ -76,18 +76,18 @@
             <div class="capture-text">
               <div class="text-line">
                 <span
+                  class="text-char"
                   v-for="(char, index) in '正在抓取'"
                   :key="index"
-                  class="text-char"
                   :style="{ '--delay': `${0.3 + index * 0.1}s` }"
                   >{{ char }}</span
                 >
               </div>
               <div class="text-line">
                 <span
+                  class="text-char"
                   v-for="(char, index) in '请稍候'"
                   :key="index"
-                  class="text-char"
                   :style="{ '--delay': `${0.7 + index * 0.1}s` }"
                   >{{ char }}</span
                 >
@@ -165,7 +165,7 @@
                   <div class="url-display">
                     {{ capturedUrl }}
                   </div>
-                  <button class="edit-btn" title="编辑URL" @click="startEditingUrl">
+                  <button @click="startEditingUrl" class="edit-btn" title="编辑URL">
                     <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
@@ -187,7 +187,7 @@
                     @keydown.esc="cancelEditing"
                   />
                   <div class="edit-actions">
-                    <button class="cancel-btn" title="取消" @click="cancelEditing">
+                    <button @click="cancelEditing" class="cancel-btn" title="取消">
                       <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           stroke-linecap="round"
@@ -218,9 +218,9 @@
                   </div>
                   <button
                     v-if="!isEditingTags"
+                    @click="startEditingTags"
                     class="edit-btn small"
                     title="编辑标签"
-                    @click="startEditingTags"
                   >
                     <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -242,8 +242,8 @@
                       >暂无标签</span
                     >
                     <span
-                      v-for="tag in processedData.tags"
                       v-else-if="processedData.tags && processedData.tags.length"
+                      v-for="tag in processedData.tags"
                       :key="tag"
                       class="tag"
                       >{{ tag }}</span
@@ -254,7 +254,7 @@
                       <div class="editing-tags">
                         <span v-for="(tag, index) in editingTags" :key="index" class="editing-tag">
                           {{ tag }}
-                          <button class="remove-tag-btn" title="删除标签" @click="removeTag(index)">
+                          <button @click="removeTag(index)" class="remove-tag-btn" title="删除标签">
                             <svg
                               class="remove-icon"
                               fill="none"
@@ -275,13 +275,13 @@
                           type="text"
                           class="tag-input"
                           placeholder="输入标签并按回车..."
-                          maxlength="20"
                           @keydown="handleTagKeydown($event)"
+                          maxlength="20"
                         />
                       </div>
                     </div>
                     <div class="edit-actions">
-                      <button class="cancel-btn" title="取消" @click="cancelEditing">
+                      <button @click="cancelEditing" class="cancel-btn" title="取消">
                         <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             stroke-linecap="round"
@@ -311,9 +311,9 @@
                   </div>
                   <button
                     v-if="!isEditingSummary"
+                    @click="startEditingSummary"
                     class="edit-btn small"
                     title="编辑摘要"
-                    @click="startEditingSummary"
                   >
                     <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -334,11 +334,11 @@
                     v-model="editingSummary"
                     class="summary-edit-textarea"
                     placeholder="输入摘要..."
-                    rows="4"
                     @keydown.esc="cancelEditing"
+                    rows="4"
                   ></textarea>
                   <div class="edit-actions">
-                    <button class="cancel-btn" title="取消" @click="cancelEditing">
+                    <button @click="cancelEditing" class="cancel-btn" title="取消">
                       <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           stroke-linecap="round"
@@ -360,9 +360,9 @@
               </div>
               <button
                 v-else
+                @click="startNewCollection"
                 class="action-btn primary-btn"
                 :disabled="isUpdating"
-                @click="startNewCollection"
               >
                 <svg
                   v-if="!isUpdating"
@@ -425,10 +425,10 @@
           <!-- Has Browser State -->
           <div v-else-if="hasBrowser" class="button-group">
             <button
+              @click="captureEdgeUrl"
               :disabled="isCapturing"
               class="capture-btn"
               :class="{ disabled: isCapturing }"
-              @click="captureEdgeUrl"
             >
               <Zap class="capture-icon" />
               <span>抓取浏览器网址</span>

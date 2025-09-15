@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch, provide } from 'vue'
+import { onMounted, ref, watch, provide, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Star, Earth, User, Settings } from 'lucide-vue-next'

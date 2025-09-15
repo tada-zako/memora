@@ -1,5 +1,4 @@
 import api from './api'
-<<<<<<< HEAD
 import type { ApiResponse } from '@/types'
 import { uploadAttachmentApi, getAttachmentApi } from './attachment.api'
 import { baseURL } from './api'
@@ -88,13 +87,8 @@ export const updateUserProfile = async (userData: any): Promise<any> => {
   }
 }
 
-<<<<<<<< HEAD:frontend/desktop/src/renderer/src/api/auth.api.ts
 // 上传头像 (服务层)
 export const uploadUserAvatar = async (file: File): Promise<any> => {
-========
-// 上传头像
-export const uploadUserAvatar = async (file) => {
->>>>>>>> feature/css-refactor-dark-mode:frontend/desktop/src/renderer/src/services/auth.js
   try {
     // 验证文件类型
     const allowedTypes = [
@@ -105,7 +99,6 @@ export const uploadUserAvatar = async (file) => {
       'image/webp',
       'image/bmp'
     ]
-
     if (!allowedTypes.includes(file.type)) {
       throw new Error('不支持的文件类型，请上传 JPG、PNG、GIF、WebP 或 BMP 格式的图片')
     }
@@ -128,12 +121,14 @@ export const uploadUserAvatar = async (file) => {
       throw new Error(uploadResponse.message || '上传头像失败')
     }
 
-    const attachmentData = uploadResponse.data
+    const attachment = uploadResponse.data
 
     // 更新用户头像信息
-    const response = await updateUserProfileApi({
-      avatar_attachment_id: attachmentData.attachment_id
-    })
+    const updateData = {
+      avatar_attachment_id: attachment.attachment_id
+    }
+
+    const response = await updateUserProfileApi(updateData)
 
     if (response.code !== 200) {
       throw new Error(response.message || '更新用户信息失败')
@@ -218,30 +213,4 @@ export const refreshAuthStatus = (): boolean => {
     hasUserInfo: !!userInfo
   })
   return !!token
-=======
-import type { ApiResponse, LoginCredentials, RegisterData, UserProfile, Token } from '@/types'
-
-// 用户注册
-export const registerApi = async (userData: RegisterData) => {
-  const response: ApiResponse<UserProfile> = await api.post('/api/v1/auth/register', userData)
-  return response
-}
-
-// 用户登录
-export const loginApi = async (credentials: LoginCredentials) => {
-  const response: ApiResponse<Token> = await api.post('/api/v1/auth/login', credentials)
-  return response
-}
-
-// 获取用户信息
-export const getUserProfileApi = async () => {
-  const response: ApiResponse<UserProfile> = await api.get('/api/v1/auth/profile')
-  return response
-}
-
-// 更新用户信息
-export const updateUserProfileApi = async (userData: Partial<UserProfile>) => {
-  const response: ApiResponse<UserProfile> = await api.put('/api/v1/auth/profile', userData)
-  return response
->>>>>>> feature/css-refactor-dark-mode
 }
