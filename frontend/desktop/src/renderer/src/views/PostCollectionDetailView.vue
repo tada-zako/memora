@@ -269,8 +269,8 @@ const fetchCollectionDetails = async () => {
       result = await getPostCollectionDetails(postId)
       console.log('推文收藏详情API返回结果:', result)
 
-      if (result && result.collection) {
-        collection.value = result.collection
+      if (result && result.data && result.data.collection) {
+        collection.value = result.data.collection
       } else {
         throw new Error('无法获取收藏详情')
       }
@@ -280,8 +280,8 @@ const fetchCollectionDetails = async () => {
       result = await getPublicCollectionDetails(collectionId)
       console.log('公共收藏详情API返回结果:', result)
 
-      if (result && result.collection) {
-        collection.value = result.collection
+      if (result && result.data && result.data.collection) {
+        collection.value = result.data.collection
       } else {
         throw new Error('无法获取收藏详情')
       }
