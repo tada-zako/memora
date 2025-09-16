@@ -75,9 +75,10 @@ async def root():
 
 
 # Add health check endpoint
-@app.get("/api/v1/health", response_model=Response[dict])
-async def health_check():
-    """
-    Simple health check endpoint
-    """
-    return Response(data={"status": "healthy", "message": "Memora API is running"})
+# @app.get("/api/v1/health", response_model=Response[dict])
+# async def health_check():
+#     """
+#     Simple health check endpoint
+#     """
+#     return Response(data={"status": "healthy", "message": "Memora API is running"})
+# 注销多余的健康检查接口

@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full bg-gray-50 overflow-y-auto relative">
+  <div class="h-full bg-muted overflow-y-auto relative">
     <!-- 背景动画 -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
       <div class="particles-container">
@@ -36,7 +36,7 @@
               :value="'en'"
               v-model="selectedLanguage"
               @change="changeLanguage"
-              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-muted-border"
             />
             <label for="en" class="ml-3 block text-sm font-medium text-gray-700"> English </label>
           </div>
@@ -47,9 +47,11 @@
               :value="'zh'"
               v-model="selectedLanguage"
               @change="changeLanguage"
-              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-muted-border"
             />
-            <label for="zh" class="ml-3 block text-sm font-medium text-gray-700"> 中文 </label>
+            <label for="zh" class="ml-3 block text-sm font-medium text-primary-text">
+              中文
+            </label>
           </div>
         </div>
       </div>
@@ -90,7 +92,7 @@ onMounted(() => {
   position: absolute;
   width: 4px;
   height: 4px;
-  background: rgba(59, 130, 246, 0.3);
+  background: var(--color-accent);
   border-radius: 50%;
   animation: float 10s infinite linear;
 }
