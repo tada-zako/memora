@@ -341,14 +341,14 @@ import {
   Trash2 as TrashIcon,
   User
 } from 'lucide-vue-next'
-import { 
-  getPosts, 
-  likeAsset, 
-  unlikeAsset, 
-  createComment, 
-  getPostComments, 
-  deletePost, 
-  deleteComment 
+import {
+  getPosts,
+  likeAsset,
+  unlikeAsset,
+  createComment,
+  getPostComments,
+  deletePost,
+  deleteComment
 } from '@/api'
 import { isAuthenticated, buildAvatarUrl } from '@/api'
 

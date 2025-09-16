@@ -54,6 +54,7 @@ body {
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+
   /* ========== 主题色彩 ========== */
 
   /* 系统背景色 */
@@ -130,6 +131,7 @@ body {
   --color-error: #ef4444;
   --color-error-text: #fecaca;
   --color-error-border: #991b1b;
+
 }
 
 /* 心情滑块样式 */

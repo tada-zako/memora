@@ -233,13 +233,13 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { User, Edit3, Star, Upload, Clock, RefreshCw, LogOut } from 'lucide-vue-next'
 import {
-    isAuthenticated,
-    getLocalUserInfo,
-    getUserProfile,
-    updateUserProfile,
-    logout,
-    uploadUserAvatar,
-    getUserAvatarUrl
+  isAuthenticated,
+  getLocalUserInfo,
+  getUserProfile,
+  updateUserProfile,
+  logout,
+  uploadUserAvatar,
+  getUserAvatarUrl
 } from '@/api'
 import { getUserPosts } from '@/api' // 新增：引入获取用户推文API
 

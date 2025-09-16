@@ -38,9 +38,7 @@
               @change="changeLanguage"
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-muted-border"
             />
-            <label for="en" class="ml-3 block text-sm font-medium text-gray-700">
-              English
-            </label>
+            <label for="en" class="ml-3 block text-sm font-medium text-gray-700"> English </label>
           </div>
           <div class="flex items-center">
             <input

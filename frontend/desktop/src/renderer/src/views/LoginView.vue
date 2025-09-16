@@ -131,7 +131,7 @@ const handleSubmit = async () => {
         username: form.username,
         password: form.password
       })
-      
+
       if (response) {
         successMessage.value = t('login.loginSuccess')
         setTimeout(() => {
@@ -145,7 +145,7 @@ const handleSubmit = async () => {
         email: form.email,
         password: form.password
       })
-      
+
       if (response) {
         successMessage.value = t('login.registerSuccess')
         setTimeout(() => {

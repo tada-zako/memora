@@ -1,12 +1,15 @@
 <template>
   <div
     v-if="show"
+
     class="fixed inset-0 bg-inverse bg-opacity-50 flex items-center justify-center"
+
     style="z-index: 9999"
     @click.self="closeModal"
   >
     <div class="bg-primary rounded-lg shadow-lg max-w-md w-full mx-4">
       <!-- 模态框头部 -->
+
       <div class="flex items-center justify-between p-6 border-b border-muted-border">
         <h3 class="text-lg font-semibold text-accent-text">
           {{ t('community.publishToCommunity') }}
@@ -15,6 +18,7 @@
           class="text-primary-text hover:text-primary-text transition-colors"
           @click="closeModal"
         >
+
           <XIcon class="w-5 h-5" />
         </button>
       </div>
@@ -37,7 +41,9 @@
             rows="4"
             maxlength="500"
           ></textarea>
+
           <div class="text-xs text-primary-text mt-1 text-right">{{ description.length }}/500</div>
+
         </div>
       </div>
 

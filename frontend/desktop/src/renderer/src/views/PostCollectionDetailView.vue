@@ -267,6 +267,8 @@ const fetchCollectionDetails = async () => {
     // 如果有postId，使用推文收藏详情接口
     if (postId) {
       result = await getPostCollectionDetails(postId)
+      console.log('推文收藏详情API返回结果:', result)
+
       if (result && result.collection) {
         collection.value = result.collection
       } else {
@@ -276,6 +278,8 @@ const fetchCollectionDetails = async () => {
     // 如果有collectionId，使用公共收藏详情接口
     else if (collectionId) {
       result = await getPublicCollectionDetails(collectionId)
+      console.log('公共收藏详情API返回结果:', result)
+
       if (result && result.collection) {
         collection.value = result.collection
       } else {

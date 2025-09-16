@@ -141,18 +141,24 @@
 
     <!-- Main Content -->
     <main class="max-w-6xl px-6 py-6 flex-1 min-h-0">
+
       <div v-if="loading" class="text-center py-16 text-primary-text">
+
         {{ t('collection.loading') }}
       </div>
       <div v-else class="h-full">
         <div v-if="filteredCollections.length === 0" class="text-center py-16">
+
           <BookmarkIcon class="w-16 h-16 text-muted-text mx-auto mb-4" />
           <h3 class="text-lg font-medium text-accent-text mb-2">
+
             {{
               searchQuery ? t('collection.noMatchingCollections') : t('collection.noCollections')
             }}
           </h3>
+
           <p class="text-primary-text">
+
             {{
               searchQuery
                 ? t('collection.tryDifferentSearch')
@@ -205,7 +211,9 @@
                     class="mt-4 pt-4 border-t border-muted-border"
                   >
                     <div class="flex items-center gap-2">
+
                       <span class="text-xs text-primary-text truncate">{{
+
                         t('collection.attachmentId', { id: item.details.attachment })
                       }}</span>
                     </div>
@@ -342,10 +350,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getCollectionsByCategory } from '@/api'
-import {
-  createKnowledgeBase as apiCreateKnowledgeBase,
-  queryKnowledgeBase
-} from '@/api'
+import { createKnowledgeBase as apiCreateKnowledgeBase, queryKnowledgeBase } from '@/api'
 import { isAuthenticated } from '@/api'
 import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
 import { Sparkle } from 'lucide-vue-next'
