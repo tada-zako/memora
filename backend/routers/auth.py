@@ -82,7 +82,10 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
     if not user or not verify_password(user_data.password, str(user.password_hash)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="用户名或密码错误",
+            detail={
+                "code": "AUTH_INVALID_CREDENTIALS",
+                "message": "用户名或密码错误",
+            },
             headers={"WWW-Authenticate": "Bearer"},
         )
 

@@ -54,7 +54,6 @@ body {
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-
   /* ========== 主题色彩 ========== */
 
   /* 系统背景色 */
@@ -75,6 +74,28 @@ body {
   --color-accent-border: rgb(97, 97, 97);
   --color-vibrant-border: rgb(40, 39, 39);
 
+  /* 按钮颜色 */
+  /* 主要按钮 - 黑色系 (类似ChatGPT主按钮) */
+  --color-button-primary: #000000;
+  --color-button-primary-hover: #1f1f1f;
+  --color-button-primary-text: #ffffff;
+  --color-button-primary-border: #000000;
+
+  /* 次要按钮 - 灰色系 (类似小红书次要按钮) */
+  --color-button-secondary: #f5f5f5;
+  --color-button-secondary-hover: #e8e8e8;
+  --color-button-secondary-text: #333333;
+  --color-button-secondary-border: #e0e0e0;
+
+  /* 轮廓按钮 - 透明系 (类似ChatGPT边框按钮) */
+  --color-button-outline: transparent;
+  --color-button-outline-hover: #f9f9f9;
+  --color-button-outline-text: #666666;
+  --color-button-outline-border: #d0d0d0;
+
+  /* 阴影颜色 */
+  --shadow-primary: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+
   /* ========== 辅助色 ========== */
 
   /* 成功色 - 绿色系 */
@@ -88,9 +109,12 @@ body {
   --color-warning-border: #fef3c7;
 
   /* 错误色 - 红色系 */
-  --color-error: #ef4444;
-  --color-error-text: #991b1b;
-  --color-error-border: #fecaca;
+  --color-error: #ffffff;
+  --color-error-accent: #dc2626;
+  --color-error-text: #dc2626;
+  --color-error-text-hover: #ffffff;
+  --color-error-border: #dc2626;
+  --color-error-border-hover: #b91c1c;
 }
 
 /* dark mode 配色 */
@@ -99,7 +123,7 @@ body {
 
   /* 系统背景色 */
   --color-primary: #1f2937;
-  --color-muted: #111827;
+  --color-muted: #141b2c;
   --color-accent: #374151;
   --color-vibrant: #4b5563;
   --color-inverse: #f9fafb;
@@ -115,6 +139,28 @@ body {
   --color-accent-border: rgb(156, 163, 175);
   --color-vibrant-border: rgb(212, 212, 212);
 
+  /* 按钮颜色 */
+  /* 主要按钮 - 浅灰系 (深色模式下的主按钮，更柔和) */
+  --color-button-primary: #e5e5e5;
+  --color-button-primary-hover: #d4d4d4;
+  --color-button-primary-text: #1a1a1a;
+  --color-button-primary-border: #e5e5e5;
+
+  /* 次要按钮 - 中灰系 (深色模式下的次要按钮) */
+  --color-button-secondary: #3f3f3f;
+  --color-button-secondary-hover: #4a4a4a;
+  --color-button-secondary-text: #d1d5db;
+  --color-button-secondary-border: #525252;
+
+  /* 轮廓按钮 - 透明系 (深色模式下的边框按钮) */
+  --color-button-outline: transparent;
+  --color-button-outline-hover: #2a2a2a;
+  --color-button-outline-text: #b0b0b0;
+  --color-button-outline-border: #505050;
+
+  /* 阴影颜色 */
+  --shadow-primary: 0 4px 6px rgba(0, 0, 0, 0.6), 0 0 10px rgba(255, 255, 255, 0.08);
+
   /* ========== 辅助色 ========== */
 
   /* 成功色 - 绿色系 */
@@ -128,48 +174,19 @@ body {
   --color-warning-border: #854d0e;
 
   /* 错误色 - 红色系 */
-  --color-error: #ef4444;
-  --color-error-text: #fecaca;
-  --color-error-border: #991b1b;
-
+  --color-error: #1f2937;
+  --color-error-accent: #ef4444;
+  --color-error-text: #ef4444;
+  --color-error-text-hover: #ffffff;
+  --color-error-border: #ef4444;
+  --color-error-border-hover: #dc2626;
 }
 
-/* 心情滑块样式 */
-.mood-slider::-webkit-slider-thumb {
-  appearance: none;
-  height: 18px;
-  width: 18px;
-  border-radius: 50%;
-  background: #1f2937;
-  cursor: pointer;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-.mood-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.15);
-}
-
-.mood-slider::-moz-range-thumb {
-  height: 18px;
-  width: 18px;
-  border-radius: 50%;
-  background: #1f2937;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-.mood-slider::-moz-range-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.15);
-}
+/* ========== 全局样式处理 ========== */
 
 /* 选择状态优化 */
 ::selection {
-  background-color: rgba(31, 41, 55, 0.1);
+  background-color: var(--color-accent);
   color: inherit;
 }
 
@@ -203,39 +220,6 @@ body {
   .grid-cols-4 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
-}
-
-/* 毛玻璃效果 */
-.glass-effect {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-/* 平滑过渡 */
-.transition-smooth {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* 悬停效果 */
-.btn-hover:hover {
-  transform: translateY(-1px);
-}
-
-.btn-hover:active {
-  transform: translateY(0);
-}
-
-/* 卡片悬停效果 */
-.card-hover:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* 阴影样式 */
-.shadow-minimal {
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.1),
-    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 /* 焦点样式 */
@@ -295,17 +279,6 @@ button:disabled {
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
-}
-
-/* 确保flex容器在小屏幕上正常工作 */
-.min-w-0 {
-  min-width: 0;
-}
-
-/* 文本换行 */
-.break-words {
-  word-wrap: break-word;
-  word-break: break-word;
 }
 
 /* 优化小屏幕间距 */

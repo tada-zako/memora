@@ -23,35 +23,35 @@
 
     <!-- 设置内容 -->
     <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-20">
-      <h1 class="text-3xl font-bold text-gray-900 mb-8">{{ t('settings.title') }}</h1>
+      <h1 class="text-3xl font-bold text-accent-text mb-8">{{ t('settings.title') }}</h1>
 
       <!-- 语言设置 -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ t('settings.language') }}</h2>
+      <div class="bg-primary rounded-lg shadow-primary p-6 mb-6">
+        <h2 class="text-xl font-semibold text-accent-text mb-4">{{ t('settings.language') }}</h2>
         <div class="space-y-3">
           <div class="flex items-center">
             <input
               id="en"
+              v-model="selectedLanguage"
               type="radio"
               :value="'en'"
-              v-model="selectedLanguage"
-              @change="changeLanguage"
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-muted-border"
+              @change="changeLanguage"
             />
-            <label for="en" class="ml-3 block text-sm font-medium text-gray-700"> English </label>
+            <label for="en" class="ml-3 block text-sm font-medium text-primary-text">
+              English
+            </label>
           </div>
           <div class="flex items-center">
             <input
               id="zh"
+              v-model="selectedLanguage"
               type="radio"
               :value="'zh'"
-              v-model="selectedLanguage"
-              @change="changeLanguage"
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-muted-border"
+              @change="changeLanguage"
             />
-            <label for="zh" class="ml-3 block text-sm font-medium text-primary-text">
-              中文
-            </label>
+            <label for="zh" class="ml-3 block text-sm font-medium text-primary-text"> 中文 </label>
           </div>
         </div>
       </div>

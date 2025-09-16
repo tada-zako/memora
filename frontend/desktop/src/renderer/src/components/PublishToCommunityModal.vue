@@ -1,9 +1,7 @@
 <template>
   <div
     v-if="show"
-
     class="fixed inset-0 bg-inverse bg-opacity-50 flex items-center justify-center"
-
     style="z-index: 9999"
     @click.self="closeModal"
   >
@@ -18,7 +16,6 @@
           class="text-primary-text hover:text-primary-text transition-colors"
           @click="closeModal"
         >
-
           <XIcon class="w-5 h-5" />
         </button>
       </div>
@@ -43,14 +40,13 @@
           ></textarea>
 
           <div class="text-xs text-primary-text mt-1 text-right">{{ description.length }}/500</div>
-
         </div>
       </div>
 
       <!-- 模态框底部 -->
       <div class="flex items-center justify-end gap-3 p-6 border-t border-muted-border">
         <button
-          class="px-4 py-2 bg-primary text-accent-text border border-black rounded-lg hover:bg-muted transition-colors font-medium"
+          class="px-4 py-2 bg-primary text-accent-text border border-accent-border rounded-lg hover:bg-muted transition-colors font-medium"
           :disabled="loading"
           @click="closeModal"
         >

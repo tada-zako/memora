@@ -38,7 +38,7 @@
             <User v-else class="h-10 w-10 text-primary-text" />
             <div
               v-if="avatarUploading"
-              class="absolute inset-0 bg-inverse bg-opacity-50 flex items-center justify-center"
+              class="absolute inset-0 bg-inverse flex items-center justify-center"
             >
               <RefreshCw class="h-6 w-6 text-muted-text animate-spin" />
             </div>
@@ -61,7 +61,7 @@
           </div>
           <div style="display: flex; justify-content: center; align-items: center">
             <button
-              class="inline-flex items-center px-3 py-2 border border-muted-border shadow-sm text-sm leading-4 font-medium rounded-md text-primary-text bg-primary hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="inline-flex items-center px-3 py-2 border border-muted-border shadow-primary text-sm leading-4 font-medium rounded-md text-primary-text bg-primary hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               @click="showEdit"
             >
               <Edit3 class="h-4 w-4 mr-1" />
@@ -164,9 +164,9 @@
     <!-- 编辑用户信息模态框 -->
     <div
       v-if="showEditModal"
-      class="fixed inset-0 bg-primary bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      class="fixed inset-0 backdrop-blur-3xl overflow-y-auto h-full w-full z-50"
     >
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-primary">
+      <div class="relative top-1/4 mx-auto p-5 border w-96 shadow-lg rounded-md bg-primary">
         <div class="mt-3">
           <h3 class="text-lg font-medium text-accent-text mb-4">{{ t('profile.editProfile') }}</h3>
 
@@ -179,7 +179,7 @@
                 id="edit-email"
                 v-model="editForm.email"
                 type="email"
-                class="mt-1 block w-full px-3 py-2 border border-muted-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="mt-1 block w-full px-3 py-2 text-accent-text border border-muted-border rounded-md shadow-primary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>
 
@@ -197,7 +197,7 @@
               <button
                 type="submit"
                 :disabled="editLoading"
-                class="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-muted-text bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                class="flex-1 inline-flex justify-center py-2 px-4 border border-button-primary-border shadow-primary text-sm font-medium rounded-md text-button-primary-text bg-button-primary hover:bg-button-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 transition-all duration-200"
               >
                 <span v-if="editLoading">{{ t('profile.saving') }}</span>
                 <span v-else>{{ t('profile.save') }}</span>
@@ -205,7 +205,7 @@
 
               <button
                 type="button"
-                class="flex-1 inline-flex justify-center py-2 px-4 border border-muted-border shadow-sm text-sm font-medium rounded-md text-primary-text bg-primary hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                class="flex-1 inline-flex justify-center py-2 px-4 border border-button-secondary-border shadow-primary text-sm font-medium rounded-md text-button-secondary-text bg-button-secondary hover:bg-button-secondary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-200"
                 @click="cancelEdit"
               >
                 {{ t('profile.cancel') }}
@@ -215,7 +215,7 @@
 
           <button
             style="margin-top: 16px"
-            class="w-full flex items-center justify-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-primary hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            class="w-full flex items-center justify-center px-4 py-2 border border-error-border shadow-primary text-sm font-medium rounded-md text-error-text bg-error hover:bg-error-accent hover:text-white hover:border-error-border-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-error-accent transition-all duration-200"
             @click="handleLogout"
           >
             <LogOut class="h-4 w-4 mr-2" />

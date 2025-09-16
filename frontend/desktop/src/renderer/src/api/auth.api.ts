@@ -50,8 +50,7 @@ export const login = async (credentials: any): Promise<any> => {
 
     return response.data
   } catch (error) {
-    const err = error as any
-    throw err.response?.data || err.message
+    throw error
   }
 }
 

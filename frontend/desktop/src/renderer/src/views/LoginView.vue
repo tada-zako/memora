@@ -133,6 +133,11 @@ const handleSubmit = async () => {
       })
 
       if (response) {
+        // 添加本地存储 token
+        localStorage.setItem('access_token', response.access_token)
+        console.log('登录成功，token已保存:', response.access_token.substring(0, 20) + '...')
+
+        successMessage.value = '登录成功！'
         successMessage.value = t('login.loginSuccess')
         setTimeout(() => {
           router.push({ name: 'Profile' })
@@ -155,7 +160,11 @@ const handleSubmit = async () => {
       }
     }
   } catch (error) {
-    errorMessage.value = error.detail || error.message || t('login.operationFailed')
+    console.error('操作失败:', error)
+    const errorCode = error.detail?.code || error.detail?.message || 'operationFailed'
+    const errorKey = `login.${errorCode}`
+    errorMessage.value = t(errorKey)
+    console.log('操作失败:', errorMessage.value)
   } finally {
     loading.value = false
   }

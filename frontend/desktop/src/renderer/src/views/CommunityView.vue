@@ -2,12 +2,12 @@
   <div class="flex-1 flex flex-col bg-primary">
     <!-- 主内容区 -->
     <div
-      class="bg-primary/90 glass-effect border border-muted-border h-full min-h-0"
+      class="bg-muted glass-effect border border-muted-border h-full min-h-0"
       style="padding: 16px"
     >
       <!-- 标题区域 -->
       <div
-        class="flex items-center justify-between sticky top-0 z-10 bg-primary/90 glass-effect w-full px-4 py-4"
+        class="flex items-center justify-between sticky top-0 z-10 bg-muted glass-effect w-full px-4 py-4"
       >
         <div class="flex items-center">
           <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
@@ -298,7 +298,7 @@
           {{ t('community.beFirst') }}
         </p>
         <button
-          class="px-6 py-3 bg-blue-600 text-muted-text rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+          class="px-6 py-3 bg-[#52d1dc] text-accent-text rounded-lg hover:bg-[#80DDE5] transition-colors flex items-center gap-2 mx-auto"
           @click="goToCollections"
         >
           <BookmarkIcon class="w-5 h-5" />

@@ -1,0 +1,78 @@
+/* ========== 组件样式管理 ========== */
+
+/* 心情滑块样式 */
+.mood-slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #1f2937;
+  cursor: pointer;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.mood-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.15);
+}
+
+.mood-slider::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #1f2937;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.mood-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* 毛玻璃效果 */
+.glass-effect {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* 平滑过渡 */
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 悬停效果 */
+.btn-hover:hover {
+  transform: translateY(-1px);
+}
+
+.btn-hover:active {
+  transform: translateY(0);
+}
+
+/* 卡片悬停效果 */
+.card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 阴影样式 */
+.shadow-minimal {
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* 确保flex容器在小屏幕上正常工作 */
+.min-w-0 {
+  min-width: 0;
+}
+
+/* 文本换行 */
+.break-words {
+  word-wrap: break-word;
+  word-break: break-word;
+}
