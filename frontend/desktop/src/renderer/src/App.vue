@@ -41,7 +41,7 @@
               class="text-primary-text hover:text-accent-text flex items-center rounded-lg text-left transition-all duration-0 ease-in-out btn-hover"
               :class="[
                 sidebarExpanded ? 'w-full space-x-3 px-3 py-2.5' : 'w-12 h-12 justify-center',
-                isActiveMenu(item) ? 'bg-vibrant/60' : ' hover:bg-accent'
+                isActiveMenu(item) ? 'bg-vibrant/60 shadow-sm' : ' hover:bg-accent'
               ]"
               :title="!sidebarExpanded ? item.name : ''"
               @click="goMenu(item)"

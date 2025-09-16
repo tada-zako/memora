@@ -45,6 +45,7 @@
     "register": "Register",
     "loginSuccess": "Login successful!",
     "registerSuccess": "Registration successful! Please log in",
+    "AUTH_INVALID_CREDENTIALS": "Invalid username or password",
     "operationFailed": "Operation failed, please try again"
   },
   "quick": {

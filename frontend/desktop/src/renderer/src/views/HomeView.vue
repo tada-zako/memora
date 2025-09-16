@@ -6,12 +6,12 @@
       <div v-if="currentPage === 'collections'" class="h-full">
         <!-- 主要内容区域 -->
         <div
-          class="bg-primary/90 glass-effect border border-muted-border h-full min-h-0"
+          class="bg-muted glass-effect border border-muted-border h-full min-h-0"
           style="padding: 16px"
         >
           <!-- 标题区域 -->
           <div
-            class="flex items-center justify-between sticky top-0 z-10 bg-primary/90 glass-effect w-full px-4 py-4"
+            class="flex items-center justify-between sticky top-0 z-10 bg-muted glass-effect w-full px-4 py-4"
             style="margin-bottom: 40px"
           >
             <div class="flex items-center">
