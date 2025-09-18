@@ -24,7 +24,6 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@tailwindcss/vite": "^4.1.13",
     "axios": "^1.11.0",
-    "electron": "^38.0.0",
     "lucide-vue-next": "^0.469.0",
     "marked": "^16.1.1",
     "sass-embedded": "^1.89.2",
