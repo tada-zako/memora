@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: desktop
+productName: Memora
 directories:
   buildResources: build
 files:
@@ -11,7 +11,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: desktop
+  executableName: Memora
   icon: ./resources/icon-L.png
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
