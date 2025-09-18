@@ -24,7 +24,7 @@
 
         <div class="flex items-center gap-3 mb-2" style="justify-content: space-between">
           <div>
-            <BookmarkIcon class="w-6 h-6 text-accent-text" />
+            <!-- <BookmarkIcon class="w-6 h-6 text-accent-text" /> -->
             <h1 class="text-2xl font-bold text-accent-text">
               {{ category?.emoji }} {{ category?.name }}
             </h1>
