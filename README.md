@@ -44,5 +44,5 @@ make init_be && make run_be
 
 ```bash
 pip install -r backend/requirements.txt
-uv run backend.main.py
+uv run -m backend.main
 ```
