@@ -19,6 +19,41 @@ try {
 
 const execAsync = promisify(exec)
 
+// 停止后台的backend进程
+async function stopBackendProcess(): Promise<void> {
+  try {
+    console.log('Checking for running backend processes...')
+
+    // 检查端口8000是否有进程在监听
+    const checkCommand = 'netstat -ano | findstr :8000'
+    const { stdout } = await execAsync(checkCommand)
+
+    if (stdout.trim()) {
+      // 找到进程ID
+      const lines = stdout.trim().split('\n')
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/)
+        if (parts.length >= 5) {
+          const pid = parts[4]
+          console.log(`Found process ${pid} listening on port 8000`)
+
+          // 杀死进程
+          try {
+            await execAsync(`taskkill /PID ${pid} /T /F`)
+            console.log(`Successfully killed backend process ${pid}`)
+          } catch (killError) {
+            console.warn(`Failed to kill process ${pid}:`, killError)
+          }
+        }
+      }
+    } else {
+      console.log('No backend process found on port 8000')
+    }
+  } catch (error) {
+    console.warn('Error while checking/stopping backend process:', error)
+  }
+}
+
 let mainWindow: BrowserWindow | null = null
 let quickWindow: BrowserWindow | null = null
 let isCapturingUrl = false // Add a flag to track capture state
@@ -63,6 +98,19 @@ function createWindow(): void {
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
     console.log('Main window shown')
+  })
+
+  mainWindow.on('closed', () => {
+    console.log('Main window closed')
+    // 关闭小窗进程
+    if (quickWindow && !quickWindow.isDestroyed()) {
+      quickWindow.destroy()
+      quickWindow = null
+    }
+    // 在非macOS平台上，强制退出应用以避免残留进程
+    if (process.platform !== 'darwin') {
+      app.quit()
+    }
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -215,13 +263,13 @@ async function toggleQuickWindow(): Promise<void> {
     setTimeout(() => {
       // Notify renderer that detection is starting
       if (quickWindow && !quickWindow.isDestroyed()) {
-        quickWindow.webContents.send('browser-detection-started')
+        quickWindow.webContents.send('browser-detection-start')
       }
 
       // Set a fallback timeout to ensure detection doesn't hang indefinitely
       const detectionTimeout = setTimeout(() => {
         if (quickWindow && !quickWindow.isDestroyed()) {
-          quickWindow.webContents.send('browser-detection-result', {
+          quickWindow.webContents.send('browser-detected', {
             success: false,
             browser: 'TIMEOUT',
             hasBrowser: false,
@@ -235,14 +283,14 @@ async function toggleQuickWindow(): Promise<void> {
         .then((browserInfo) => {
           clearTimeout(detectionTimeout)
           if (quickWindow && !quickWindow.isDestroyed()) {
-            quickWindow.webContents.send('browser-detection-result', browserInfo)
+            quickWindow.webContents.send('browser-detected', browserInfo)
           }
         })
         .catch((error) => {
           clearTimeout(detectionTimeout)
           console.error('Browser detection failed:', error)
           if (quickWindow && !quickWindow.isDestroyed()) {
-            quickWindow.webContents.send('browser-detection-result', {
+            quickWindow.webContents.send('browser-detected', {
               success: false,
               browser: 'ERROR',
               hasBrowser: false,
@@ -260,7 +308,7 @@ async function toggleQuickWindow(): Promise<void> {
 // 检测前台是否有浏览器窗口的函数
 async function detectActiveBrowser(): Promise<BrowserInfo> {
   try {
-    console.log('Detecting active browser...')
+    console.log('=== BROWSER DETECTION START ===')
 
     // Try PowerShell method first
     try {
@@ -269,75 +317,114 @@ async function detectActiveBrowser(): Promise<BrowserInfo> {
       const scriptPath = join(userDataDir, 'detect_browser.ps1')
 
       const psScript = `
-# Browser Detection Script
-Add-Type -TypeDefinition @'
-using System;
-using System.Runtime.InteropServices;
-using System.Text;
+# Simplified Browser Detection Script
+$ErrorActionPreference = 'SilentlyContinue'
 
-public class WindowHelper {
-    [DllImport("user32.dll")]
-    public static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll")]
-    public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
-
-    [DllImport("user32.dll")]
-    public static extern int GetWindowTextLength(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-}
-'@
+Write-Host 'Starting browser detection...' -ForegroundColor Yellow
 
 try {
-    $foregroundWindow = [WindowHelper]::GetForegroundWindow()
-    $processId = 0
-    [WindowHelper]::GetWindowThreadProcessId($foregroundWindow, [ref]$processId)
+    # Get all browser processes with main window titles
+    $browserNames = @('msedge', 'chrome', 'firefox', 'opera', 'brave', 'vivaldi', 'iexplore')
+    Write-Host 'Looking for browser processes...' -ForegroundColor Green
+    
+    $browsers = Get-Process | Where-Object { 
+        $_.ProcessName.ToLower() -in $browserNames -and 
+        $_.MainWindowTitle -and 
+        $_.MainWindowTitle.Trim() -ne ''
+    }
 
-    $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
+    Write-Host "Found $($browsers.Count) browser processes with windows" -ForegroundColor Green
 
-    if ($process) {
-        $processName = $process.ProcessName.ToLower()
-        $browserNames = @("msedge", "chrome", "firefox", "opera", "brave", "vivaldi", "iexplore")
+    if ($browsers) {
+        # Get the first browser with a window title (simplify selection)
+        $activeBrowser = $browsers | Select-Object -First 1
+        Write-Host "Selected browser: $($activeBrowser.ProcessName)" -ForegroundColor Green
 
-        if ($processName -in $browserNames) {
-            $titleLength = [WindowHelper]::GetWindowTextLength($foregroundWindow)
-            if ($titleLength -gt 0) {
-                $title = New-Object System.Text.StringBuilder($titleLength + 1)
-                [WindowHelper]::GetWindowText($foregroundWindow, $title, $title.Capacity)
-
-                Write-Output "SUCCESS:$processName:$($title.ToString())"
-            } else {
-                Write-Output "SUCCESS:$processName:"
-            }
+        if ($activeBrowser.MainWindowTitle) {
+            $output = 'SUCCESS:' + $activeBrowser.ProcessName.ToLower() + ':' + $activeBrowser.MainWindowTitle
+            Write-Host "Returning: $output" -ForegroundColor Green
+            Write-Output $output
         } else {
-            Write-Output "NO_BROWSER:$processName:"
+            $output = 'SUCCESS:' + $activeBrowser.ProcessName.ToLower() + ':'
+            Write-Host "Returning: $output" -ForegroundColor Green
+            Write-Output $output
         }
     } else {
-        Write-Output "ERROR:No process found"
+        Write-Host 'No browser windows found' -ForegroundColor Yellow
+        Write-Output 'NO_BROWSER:unknown:'
     }
 } catch {
-    Write-Output "ERROR:$($_.Exception.Message)"
+    $errorMsg = 'ERROR:' + $_.Exception.Message
+    Write-Host "Error occurred: $errorMsg" -ForegroundColor Red
+    Write-Output $errorMsg
 }
-`
 
-      fs.writeFileSync(scriptPath, psScript, 'utf8')
+Write-Host 'Browser detection completed.' -ForegroundColor Yellow`
 
-      const { stdout, stderr } = await execAsync(
-        `powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`,
-        {
-          encoding: 'utf8',
-          timeout: 5000,
-          windowsHide: true
-        }
-      )
-
-      // Clean up temporary file
+      // Try to write and execute the script, but handle file locking gracefully
+      let scriptExecuted = false
+      let scriptPathUsed = ''
       try {
-        fs.unlinkSync(scriptPath)
-      } catch (e) {
-        console.warn('Failed to clean up script file:', e)
+        // Ensure directory exists
+        const userDataDir = app.getPath('userData')
+        if (!fs.existsSync(userDataDir)) {
+          fs.mkdirSync(userDataDir, { recursive: true })
+        }
+        
+        const scriptPath = join(userDataDir, 'detect_browser.ps1')
+        scriptPathUsed = scriptPath
+        
+        fs.writeFileSync(scriptPath, psScript, 'utf8')
+        scriptExecuted = true
+        console.log('PowerShell script written successfully')
+      } catch (writeError) {
+        console.warn('Failed to write PowerShell script file, trying inline execution:', writeError)
+        // Fall back to inline execution if file write fails
+      }
+
+      let stdout: string, stderr: string
+      if (scriptExecuted && scriptPathUsed) {
+        console.log('Executing PowerShell script from file...')
+        console.log('Script path:', scriptPathUsed)
+        
+        // Use double quotes around the path to handle spaces
+        const command = `powershell.exe -ExecutionPolicy Bypass -File "${scriptPathUsed}"`
+        console.log('Executing command:', command)
+        
+        const result = await execAsync(command, {
+          encoding: 'utf8',
+          timeout: 10000,
+          windowsHide: true
+        })
+        stdout = result.stdout
+        stderr = result.stderr
+        console.log('PowerShell file execution completed')
+
+        // Clean up temporary file after a short delay to ensure execution is complete
+        setTimeout(() => {
+          try {
+            if (fs.existsSync(scriptPathUsed)) {
+              fs.unlinkSync(scriptPathUsed)
+              console.log('Cleaned up script file:', scriptPathUsed)
+            }
+          } catch (e) {
+            console.warn('Failed to clean up script file:', e)
+          }
+        }, 1000)
+      } else {
+        // Execute PowerShell script inline
+        console.log('Executing PowerShell script inline...')
+        const result = await execAsync(
+          `powershell.exe -ExecutionPolicy Bypass -Command "${psScript.replace(/"/g, '""')}"`,
+          {
+            encoding: 'utf8',
+            timeout: 10000,
+            windowsHide: true
+          }
+        )
+        stdout = result.stdout
+        stderr = result.stderr
+        console.log('PowerShell inline execution completed')
       }
 
       if (stderr) {
@@ -345,12 +432,31 @@ try {
       }
 
       const output = stdout.trim()
-      console.log('Browser detection output:', output)
+      console.log('=== PowerShell RAW OUTPUT ===')
+      console.log('STDOUT:', JSON.stringify(stdout))
+      console.log('STDERR:', JSON.stringify(stderr))
+      console.log('TRIMMED OUTPUT:', JSON.stringify(output))
+      console.log('=== END RAW OUTPUT ===')
 
-      if (output.startsWith('SUCCESS:')) {
-        const parts = output.split(':')
+      // Handle multi-line output by looking for our expected patterns
+      const lines = output.split('\n').map(line => line.trim()).filter(line => line.length > 0)
+      const lastLine = lines[lines.length - 1] || ''
+      
+      console.log('=== OUTPUT PARSING ===')
+      console.log('Lines:', lines)
+      console.log('Last line:', JSON.stringify(lastLine))
+      console.log('=== END PARSING ===')
+
+      // Look for SUCCESS line in the output
+      const successLine = lines.find(line => line.startsWith('SUCCESS:'))
+      
+      if (successLine) {
+        const parts = successLine.split(':')
         const browser = parts[1] || 'UNKNOWN'
         const windowTitle = parts.slice(2).join(':') || ''
+        
+        console.log('SUCCESS detected - Browser:', browser, 'Title:', windowTitle)
+        console.log('Full success line:', JSON.stringify(successLine))
 
         return {
           success: true,
@@ -358,21 +464,55 @@ try {
           hasBrowser: true,
           windowTitle: windowTitle
         }
-      } else if (output.startsWith('NO_BROWSER:')) {
-        const parts = output.split(':')
-        const processName = parts[1] || 'UNKNOWN'
-
-        return {
-          success: true,
-          browser: 'NONE',
-          hasBrowser: false,
-          windowTitle: `Active: ${processName}`
-        }
       } else {
-        throw new Error(`Unexpected output: ${output}`)
+        console.log('No SUCCESS line found in output')
+        console.log('Looking for other patterns...')
+        
+        if (lastLine === 'ERROR:AddType failed') {
+          return {
+            success: true,
+            browser: 'NONE',
+            hasBrowser: false,
+            windowTitle: 'Browser detection unavailable'
+          }
+        } else if (lastLine.startsWith('ERROR:')) {
+          return {
+            success: true,
+            browser: 'NONE',
+            hasBrowser: false,
+            windowTitle: 'Detection error: ' + lastLine.substring(6)
+          }
+        } else if (lastLine.startsWith('NO_BROWSER:')) {
+          console.log('NO_BROWSER detected')
+          return {
+            success: true,
+            browser: 'NONE',
+            hasBrowser: false,
+            windowTitle: 'No browser windows found'
+          }
+        } else if (lastLine === 'ELECTRON_WINDOW') {
+          console.log('ELECTRON_WINDOW detected')
+          return {
+            success: true,
+            browser: 'NONE',
+            hasBrowser: false,
+            windowTitle: 'Only Electron app running'
+          }
+        } else {
+          console.error('Unexpected PowerShell output:', JSON.stringify(output))
+          return {
+            success: true,
+            browser: 'NONE',
+            hasBrowser: false,
+            windowTitle: 'Unexpected detection result'
+          }
+        }
       }
     } catch (psError) {
-      console.warn('PowerShell method failed:', psError)
+      console.error('=== PowerShell method failed ===')
+      console.error('Error:', psError)
+      console.error('Error message:', psError instanceof Error ? psError.message : String(psError))
+      console.error('=== End PowerShell error ===')
 
       // Fallback: Check if any browser processes are running
       try {
@@ -591,25 +731,49 @@ try {
 `
 
     // 写入临时脚本文件
-    fs.writeFileSync(scriptPath, psScript, 'utf8')
+    let scriptExecuted = false
+    try {
+      fs.writeFileSync(scriptPath, psScript, 'utf8')
+      scriptExecuted = true
+    } catch (writeError) {
+      console.warn('Failed to write PowerShell script file, trying inline execution:', writeError)
+      // Fall back to inline execution if file write fails
+    }
 
     console.log('Executing browser URL capture script...')
 
     // 执行脚本
-    const { stdout, stderr } = await execAsync(
-      `powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`,
-      {
-        encoding: 'utf8',
-        timeout: 12000,
-        windowsHide: true
-      }
-    )
+    let stdout: string, stderr: string
+    if (scriptExecuted) {
+      const result = await execAsync(
+        `powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`,
+        {
+          encoding: 'utf8',
+          timeout: 12000,
+          windowsHide: true
+        }
+      )
+      stdout = result.stdout
+      stderr = result.stderr
 
-    // 清理临时文件
-    try {
-      fs.unlinkSync(scriptPath)
-    } catch (e) {
-      console.warn('Failed to clean up script file:', e)
+      // 清理临时文件
+      try {
+        fs.unlinkSync(scriptPath)
+      } catch (e) {
+        console.warn('Failed to clean up script file:', e)
+      }
+    } else {
+      // Execute PowerShell script inline
+      const result = await execAsync(
+        `powershell.exe -ExecutionPolicy Bypass -Command "${psScript.replace(/"/g, '""')}"`,
+        {
+          encoding: 'utf8',
+          timeout: 12000,
+          windowsHide: true
+        }
+      )
+      stdout = result.stdout
+      stderr = result.stderr
     }
 
     console.log('Browser capture output:', JSON.stringify(stdout))
@@ -797,6 +961,16 @@ app.on('will-quit', () => {
   // 注销所有全局快捷键
   console.log('Unregistering all global shortcuts')
   globalShortcut.unregisterAll()
+
+  // 关闭小窗进程
+  if (quickWindow && !quickWindow.isDestroyed()) {
+    console.log('Closing quick window')
+    quickWindow.destroy()
+    quickWindow = null
+  }
+
+  // 停止后台的backend进程
+  stopBackendProcess()
 })
 
 // In this file you can include the rest of your app's specific main process

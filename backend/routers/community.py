@@ -438,7 +438,7 @@ async def unlike_asset(
     )
 
 
-@router.post("/posts/{post_id}/comment", response_model=Response)
+@router.post("/posts/{post_id}/comments", response_model=Response)
 async def create_comment(
     post_id: str,  # 使用UUID字符串
     request: CreateCommentRequest,

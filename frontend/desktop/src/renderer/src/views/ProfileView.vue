@@ -95,7 +95,7 @@
             class="p-4 rounded shadow transition cursor-pointer backdrop-blur-sm"
             style="
               margin-bottom: 20px;
-              background-color: rgba(255, 255, 255, 0.9);
+              background-color: var(--color-primary);
               border-radius: 15px;
             "
             @click="goToPost(post.id)"

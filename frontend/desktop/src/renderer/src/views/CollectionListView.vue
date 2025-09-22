@@ -24,7 +24,7 @@
 
         <div class="flex items-center gap-3 mb-2" style="justify-content: space-between">
           <div>
-            <BookmarkIcon class="w-6 h-6 text-accent-text" />
+            <!-- <BookmarkIcon class="w-6 h-6 text-accent-text" /> -->
             <h1 class="text-2xl font-bold text-accent-text">
               {{ category?.emoji }} {{ category?.name }}
             </h1>
@@ -496,13 +496,25 @@ const askAI = async () => {
       return
     }
 
-    // 检查后端返回的数据结构：result.data.response
-    if (result.response) {
+    // 检查后端返回的数据结构：result.data.response 或 result.data
+    if (result.data && result.data.response) {
+      aiResponse.value = result.data.response
+    } else if (result.data && typeof result.data === 'string') {
+      aiResponse.value = result.data
+    } else if (result.data && result.data.content) {
+      aiResponse.value = result.data.content
+    } else if (result.data && result.data.answer) {
+      aiResponse.value = result.data.answer
+    } else if (result.data) {
+      // 如果data是对象，尝试转换为字符串
+      aiResponse.value = JSON.stringify(result.data)
+    } else if (result.response) {
+      // 兼容旧格式
       aiResponse.value = result.response
-    } else if (result.length > 0) {
-      // 如果返回的是数组，尝试提取第一个元素
-      aiResponse.value = result[0] || '抱歉，没有找到相关信息。'
+    } else if (typeof result === 'string') {
+      aiResponse.value = result
     } else {
+      console.warn('AI响应数据结构未知:', result)
       aiResponse.value = 'AI返回了空响应，请重试。'
     }
   } catch (error) {
