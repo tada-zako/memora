@@ -16,14 +16,16 @@ elif ENV == "prod":
     logger.info("Loading PROD environment variables")
     load_dotenv(os.path.join(PROJ_DIR, ".env.prod"), override=True)
 
-from router import app  # noqa: E402
+from backend import router  # noqa: E402
+
+app = router.app
 
 if __name__ == "__main__":
     import uvicorn
 
     # Run the application
     uvicorn.run(
-        "main:app",
+        "backend.main:app",
         host="0.0.0.0",
         port=8000,
         log_level="info",

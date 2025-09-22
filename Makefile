@@ -5,4 +5,4 @@ init_be:
 	cd backend && uv sync
 # Run the backend server
 run_be:
-	cd backend && uv run main.py
+	uv run backend.main.py

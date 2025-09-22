@@ -1,17 +1,17 @@
 from contextlib import asynccontextmanager
-from db import create_tables
 from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from routers.collection import router as collection_router, collections_router
-from routers.attachment import router as attachment_router
-from routers.category import router as category_router
-from routers.auth import router as auth_router
-from routers.community import router as community_router
-from routers.static import mount_static_files
-from entity.response import Response
+from backend.db import create_tables
+from backend.routers.collection import router as collection_router, collections_router
+from backend.routers.attachment import router as attachment_router
+from backend.routers.category import router as category_router
+from backend.routers.auth import router as auth_router
+from backend.routers.community import router as community_router
+from backend.routers.static import mount_static_files
+from backend.entity.response import Response
 
 
 @asynccontextmanager

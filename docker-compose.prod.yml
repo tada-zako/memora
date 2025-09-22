@@ -1,0 +1,17 @@
+services:
+  backend:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    # 生产环境使用的环境变量文件
+    env_file:
+      - .env.prod
+    # 生产环境不挂载代码
+    # volumes:
+    #   - ./backend:/app/backend
+    restart: unless-stopped
+
+# 挂载数据卷
+volumes:
+  db_data:

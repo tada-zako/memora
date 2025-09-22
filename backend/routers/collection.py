@@ -3,27 +3,28 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, select
 from sqlalchemy.orm import selectinload
-from entity.response import Response
 from pydantic import BaseModel
 from loguru import logger
-from utils.web_parser import get_web_title
 
-from model import (
+from backend.entity.response import Response
+from backend.model import (
     User,
     Collection,
     Category,
     CollectionDetail,
 )
-from db import get_db
-from routers.auth import get_current_user
-from ai.PROMPTS import (
+from backend.db import get_db
+from backend.routers.auth import get_current_user
+from backend.ai.PROMPTS import (
     PROMPT_PARSE_CATEGORY_AND_TAGS,
     PROMPT_SUMMARIZE_CONTENT,
     ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE,
     parse_json,
 )
-from ai.openai_provider import provider_openai
-from utils.markdownit_content import markdownit_helper
+
+from backend.utils.web_parser import get_web_title
+from backend.ai.openai_provider import provider_openai
+from backend.utils.markdownit_content import markdownit_helper
 
 from typing import Optional
 
@@ -352,9 +353,8 @@ async def get_current_user_collections(
     )
 
     if category_id:
-      
-        collections_query = collections_query.where(Collection.category_id == category_id)
 
+        collections_query = collections_query.where(Collection.category_id == category_id)
 
     collections_result = await db.execute(collections_query)
     collections = collections_result.scalars().unique().all()
@@ -368,9 +368,7 @@ async def get_current_user_collections(
                     "id": collection.id,
                     "category_id": collection.category_id,
                     "tags": collection.tags,
-
                     "details": {detail.key: detail.value for detail in collection.details},
-
                     "created_at": collection.created_at.isoformat(),
                     "updated_at": collection.updated_at.isoformat(),
                 }
@@ -392,9 +390,7 @@ async def get_collections_by_category(
     """
     collections_query = (
         select(Collection)
-        .where(
-            Collection.category_id == category_id, Collection.user_id == current_user.id
-        )
+        .where(Collection.category_id == category_id, Collection.user_id == current_user.id)
         .options(selectinload(Collection.details))
         .order_by(desc(Collection.created_at))
     )
@@ -427,9 +423,7 @@ async def get_collections_by_category(
                     "id": collection.id,
                     "category_id": collection.category_id,
                     "tags": collection.tags,
-
                     "details": {detail.key: detail.value for detail in collection.details},
-
                     "created_at": collection.created_at.isoformat(),
                     "updated_at": collection.updated_at.isoformat(),
                 }
@@ -464,9 +458,7 @@ async def search_collections(query: str, db: AsyncSession = Depends(get_db)):
                     "id": collection.id,
                     "category_id": collection.category_id,
                     "tags": collection.tags,
-
                     "details": {detail.key: detail.value for detail in collection.details},
-
                     "created_at": collection.created_at.isoformat(),
                     "updated_at": collection.updated_at.isoformat(),
                 }
@@ -491,7 +483,6 @@ async def get_collection_details(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-
             status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
         )
 
@@ -536,9 +527,7 @@ async def get_collection_detail(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-
             status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
-
         )
 
     detail_query = select(CollectionDetail).where(
@@ -579,9 +568,7 @@ async def update_collection_detail(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-
             status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
-
         )
 
     detail_query = select(CollectionDetail).where(
@@ -605,7 +592,6 @@ async def update_collection_detail(
     return Response(code=200, message=msg, data={"key": detail.key, "value": detail.value})
 
 
-
 @router.delete("/{collection_id}/details/{key}", response_model=Response)
 async def delete_collection_detail(
     collection_id: int,
@@ -621,9 +607,7 @@ async def delete_collection_detail(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-
             status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
-
         )
 
     detail_query = select(CollectionDetail).where(
@@ -651,7 +635,6 @@ async def get_collection_tags(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-
             status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
         )
     tags = collection.tags.split(",") if collection.tags else []  # type: ignore
@@ -660,7 +643,6 @@ async def get_collection_tags(
 
 @router.get("/public/{collection_id}/details", response_model=Response)
 async def get_public_collection_details(collection_id: int, db: AsyncSession = Depends(get_db)):
-
     """
     获取收藏详情（公共接口，无需登录）
     用于推文中的收藏详情展示
@@ -673,7 +655,6 @@ async def get_public_collection_details(collection_id: int, db: AsyncSession = D
     if not collection:
 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found")
-
 
     # 获取收藏详情
     details_query = select(CollectionDetail).where(CollectionDetail.collection_id == collection_id)
@@ -733,18 +714,14 @@ async def update_collection_tags(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-
             status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
-
         )
     collection.tags = ",".join(update.tags)  # type: ignore
     db.add(collection)
     await db.commit()
     await db.refresh(collection)
     return Response(
-
         code=200, message="Collection tags updated successfully", data={"tags": update.tags}
-
     )
 
 
@@ -764,16 +741,12 @@ async def delete_collection(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-
             status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
-
         )
 
     await db.delete(collection)
     await db.commit()
 
     return Response(
-
         code=200, message="Collection deleted successfully", data={"collection_id": collection_id}
-
     )

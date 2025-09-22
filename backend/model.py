@@ -14,7 +14,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import enum
 
-from db import Base
+from backend.db import Base
 
 
 class AssetType(enum.Enum):

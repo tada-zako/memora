@@ -9,10 +9,10 @@ import uuid
 import shutil
 from pathlib import Path
 
-from model import User, Attachment
-from db import get_db
-from routers.auth import get_current_user
-from entity.response import Response
+from backend.model import User, Attachment
+from backend.db import get_db
+from backend.routers.auth import get_current_user
+from backend.entity.response import Response
 
 # Create router instance
 router = APIRouter(
