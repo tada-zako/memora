@@ -100,6 +100,19 @@ function createWindow(): void {
     console.log('Main window shown')
   })
 
+  mainWindow.on('closed', () => {
+    console.log('Main window closed')
+    // 关闭小窗进程
+    if (quickWindow && !quickWindow.isDestroyed()) {
+      quickWindow.destroy()
+      quickWindow = null
+    }
+    // 在非macOS平台上，强制退出应用以避免残留进程
+    if (process.platform !== 'darwin') {
+      app.quit()
+    }
+  })
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
@@ -948,6 +961,13 @@ app.on('will-quit', () => {
   // 注销所有全局快捷键
   console.log('Unregistering all global shortcuts')
   globalShortcut.unregisterAll()
+
+  // 关闭小窗进程
+  if (quickWindow && !quickWindow.isDestroyed()) {
+    console.log('Closing quick window')
+    quickWindow.destroy()
+    quickWindow = null
+  }
 
   // 停止后台的backend进程
   stopBackendProcess()
