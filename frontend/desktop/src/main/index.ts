@@ -19,6 +19,41 @@ try {
 
 const execAsync = promisify(exec)
 
+// 停止后台的backend进程
+async function stopBackendProcess(): Promise<void> {
+  try {
+    console.log('Checking for running backend processes...')
+
+    // 检查端口8000是否有进程在监听
+    const checkCommand = 'netstat -ano | findstr :8000'
+    const { stdout } = await execAsync(checkCommand)
+
+    if (stdout.trim()) {
+      // 找到进程ID
+      const lines = stdout.trim().split('\n')
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/)
+        if (parts.length >= 5) {
+          const pid = parts[4]
+          console.log(`Found process ${pid} listening on port 8000`)
+
+          // 杀死进程
+          try {
+            await execAsync(`taskkill /PID ${pid} /T /F`)
+            console.log(`Successfully killed backend process ${pid}`)
+          } catch (killError) {
+            console.warn(`Failed to kill process ${pid}:`, killError)
+          }
+        }
+      }
+    } else {
+      console.log('No backend process found on port 8000')
+    }
+  } catch (error) {
+    console.warn('Error while checking/stopping backend process:', error)
+  }
+}
+
 let mainWindow: BrowserWindow | null = null
 let quickWindow: BrowserWindow | null = null
 let isCapturingUrl = false // Add a flag to track capture state
@@ -913,6 +948,9 @@ app.on('will-quit', () => {
   // 注销所有全局快捷键
   console.log('Unregistering all global shortcuts')
   globalShortcut.unregisterAll()
+
+  // 停止后台的backend进程
+  stopBackendProcess()
 })
 
 // In this file you can include the rest of your app's specific main process
