@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 from typing_extensions import override
-from .markdownit_content import MarkdownitContent
+from backend.utils.markdownit_content import MarkdownitContent
 
 
 class WebParser(MarkdownitContent):

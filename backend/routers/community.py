@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, select, and_, func
-from entity.response import Response
 from pydantic import BaseModel
 from typing import Optional
 from datetime import timezone
 
-from model import (
+from backend.entity.response import Response
+from backend.model import (
     User,
     Collection,
     Category,
@@ -16,8 +16,8 @@ from model import (
     Like,
     AssetType,
 )
-from db import get_db
-from routers.auth import get_current_user
+from backend.db import get_db
+from backend.routers.auth import get_current_user
 
 # Create router instance
 router = APIRouter(

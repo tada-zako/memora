@@ -3,11 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from db import get_db
-from model import User
-from entity.user import UserRegister, UserLogin, UserProfile, UserUpdate
-from entity.response import Response
-from utils.auth import (
+
+from backend.db import get_db
+from backend.model import User
+from backend.entity.user import UserRegister, UserLogin, UserProfile, UserUpdate
+from backend.entity.response import Response
+from backend.utils.auth import (
     verify_password,
     get_password_hash,
     create_access_token,

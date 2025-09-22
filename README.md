@@ -25,7 +25,6 @@ Memora，为此而生。
 - 产品人 / 开发者：跨平台收集技术资料，构建文档库
 - 生活记录者：保存生活中每一个值得被记住的画面和思考
 
-
 ## 部署方式
 
 ### 前端
@@ -41,3 +40,9 @@ npm run dev
 make init_be && make run_be
 ```
 
+或者
+
+```bash
+pip install -r backend/requirements.txt
+uv run backend.main.py
+```

@@ -6,15 +6,15 @@ from sqlalchemy import select, func
 from typing import Optional
 from pydantic import BaseModel
 from loguru import logger
-from entity.response import Response
 
-from model import Category, User, CollectionDetail, Collection
-from db import get_db, AsyncSessionLocal
-from routers.auth import get_current_user
-from knowledge_base.chromadb_mgr import chroma_db_manager
-from ai.openai_provider import provider_openai
-from ai.PROMPTS import KNOWLEDGE_BASE_QUERY_PROMPT
-from utils.text_splitter import recursive_text_splitter
+from backend.entity.response import Response
+from backend.model import Category, User, CollectionDetail, Collection
+from backend.db import get_db, AsyncSessionLocal
+from backend.routers.auth import get_current_user
+from backend.knowledge_base.chromadb_mgr import chroma_db_manager
+from backend.ai.openai_provider import provider_openai
+from backend.ai.PROMPTS import KNOWLEDGE_BASE_QUERY_PROMPT
+from backend.utils.text_splitter import recursive_text_splitter
 
 # Create router instance
 router = APIRouter(

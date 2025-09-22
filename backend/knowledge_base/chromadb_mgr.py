@@ -1,5 +1,6 @@
 import os
 import chromadb
+from pathlib import Path
 from loguru import logger
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 
@@ -7,7 +8,7 @@ from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 class ChromaDBManager:
     def __init__(self, emb_api_key: str, emb_base_url: str, emb_model_name: str) -> None:
         self.chroma_client = chromadb.PersistentClient(
-            path="./chroma_db",
+            path=Path(__file__).parent.parent / "chroma_db",
         )
 
         # 检查API配置是否完整

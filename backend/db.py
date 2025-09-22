@@ -2,9 +2,11 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.ext.declarative import declarative_base
 import os
 from typing import AsyncGenerator
+from pathlib import Path
 
 # Database configuration
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./memora.db")
+default_db_path = Path(__file__).parent / "memora.db"
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite+aiosqlite:///{default_db_path}")
 
 # Create async SQLAlchemy engine
 engine = create_async_engine(DATABASE_URL, echo=False)  # Set to True for SQL query logging
@@ -34,7 +36,7 @@ async def create_tables():
     Create all tables in the database.
     This should be called when the application starts.
     """
-    from model import Base  # Import here to avoid circular imports
+    from backend.model import Base  # Import here to avoid circular imports
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -45,7 +47,7 @@ async def drop_tables():
     Drop all tables in the database.
     Use with caution - this will delete all data!
     """
-    from model import Base  # Import here to avoid circular imports
+    from backend.model import Base  # Import here to avoid circular imports
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
