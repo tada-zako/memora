@@ -87,10 +87,15 @@ async def streaming_create_collection_url(
     user_id = current_user.id
 
     # step 1.5: first check if the url already exists for this user
-    url_check_query = select(CollectionDetail).where(
-        CollectionDetail.key == "url",
-        CollectionDetail.value == collection.url,
-        Collection.user_id == user_id,
+    import json
+    url_check_query = (
+        select(CollectionDetail)
+        .join(Collection, Collection.id == CollectionDetail.collection_id)
+        .where(
+            CollectionDetail.key == "url",
+            CollectionDetail.value == json.dumps(collection.url),
+            Collection.user_id == user_id,
+        )
     )
 
     url_check_result = await db.execute(url_check_query)
@@ -100,6 +105,9 @@ async def streaming_create_collection_url(
             data={"message": "This URL has already been collected."},
         )
         # 提前结束
+        logger.debug(
+            f"URL {collection.url} already collected for user {user_id}, skipping.\n\n"
+        )
         return
 
     db_collection = Collection(user_id=user_id)
@@ -107,7 +115,9 @@ async def streaming_create_collection_url(
     await db.commit()
     await db.refresh(db_collection)
 
-    url_detail = CollectionDetail(collection_id=db_collection.id, key="url", value=collection.url)
+    url_detail = CollectionDetail(
+        collection_id=db_collection.id, key="url", value=collection.url
+    )
     db.add(url_detail)
 
     yield CollectionUrlResponseDelta(
@@ -126,12 +136,18 @@ async def streaming_create_collection_url(
     # step 2.1: get url title
     title = await get_web_title(collection.url)
 
-    content_detail = CollectionDetail(collection_id=db_collection.id, key="content", value=content)
+    content_detail = CollectionDetail(
+        collection_id=db_collection.id, key="content", value=content
+    )
     db.add(content_detail)
-    content_title = CollectionDetail(collection_id=db_collection.id, key="title", value=title)
+    content_title = CollectionDetail(
+        collection_id=db_collection.id, key="title", value=title
+    )
     db.add(content_title)
 
-    logger.info(f"Fetched content from {collection.url}, length: {len(content)}: {content[:50]}...")
+    logger.info(
+        f"Fetched content from {collection.url}, length: {len(content)}: {content[:50]}..."
+    )
 
     yield CollectionUrlResponseDelta(
         type="content_fetched",
@@ -283,14 +299,14 @@ async def create_collection_manual(
         if not category:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Category not found or access denied"
+                detail="Category not found or access denied",
             )
 
     # 创建collection
     db_collection = Collection(
         user_id=user_id,
         category_id=collection.category_id,
-        tags=",".join(collection.tags) if collection.tags else None
+        tags=",".join(collection.tags) if collection.tags else None,
     )
     db.add(db_collection)
     await db.commit()
@@ -299,33 +315,33 @@ async def create_collection_manual(
     # 添加详情
     details_to_add = []
     if collection.title:
-        details_to_add.append(CollectionDetail(
-            collection_id=db_collection.id,
-            key="title",
-            value=collection.title
-        ))
+        details_to_add.append(
+            CollectionDetail(
+                collection_id=db_collection.id, key="title", value=collection.title
+            )
+        )
     if collection.content:
-        details_to_add.append(CollectionDetail(
-            collection_id=db_collection.id,
-            key="content",
-            value=collection.content
-        ))
+        details_to_add.append(
+            CollectionDetail(
+                collection_id=db_collection.id, key="content", value=collection.content
+            )
+        )
     if collection.url:
-        details_to_add.append(CollectionDetail(
-            collection_id=db_collection.id,
-            key="url",
-            value=collection.url
-        ))
+        details_to_add.append(
+            CollectionDetail(
+                collection_id=db_collection.id, key="url", value=collection.url
+            )
+        )
     if collection.summary:
-        details_to_add.append(CollectionDetail(
-            collection_id=db_collection.id,
-            key="summary",
-            value=collection.summary
-        ))
+        details_to_add.append(
+            CollectionDetail(
+                collection_id=db_collection.id, key="summary", value=collection.summary
+            )
+        )
 
     for detail in details_to_add:
         db.add(detail)
-    
+
     await db.commit()
 
     return Response(
@@ -361,7 +377,7 @@ async def update_collection(
     if not collection:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Collection not found or access denied"
+            detail="Collection not found or access denied",
         )
 
     # 验证category_id是否属于当前用户
@@ -372,22 +388,23 @@ async def update_collection(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Category ID cannot be 0",
             )
-        
+
         category_query = select(Category).where(
-            Category.id == collection_update.category_id, Category.user_id == current_user.id
+            Category.id == collection_update.category_id,
+            Category.user_id == current_user.id,
         )
         category_result = await db.execute(category_query)
         category = category_result.scalar_one_or_none()
         if not category:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Category not found or access denied"
+                detail="Category not found or access denied",
             )
         collection.category_id = collection_update.category_id  # type: ignore
 
     # 更新tags
     if collection_update.tags is not None:
-        collection.tags = ",".join(collection_update.tags) if collection_update.tags else None   # type: ignore
+        collection.tags = ",".join(collection_update.tags) if collection_update.tags else None  # type: ignore
 
     # 更新details
     details_to_update = {}
@@ -403,21 +420,18 @@ async def update_collection(
     for key, value in details_to_update.items():
         # 查找现有detail
         detail_query = select(CollectionDetail).where(
-            CollectionDetail.collection_id == collection_id,
-            CollectionDetail.key == key
+            CollectionDetail.collection_id == collection_id, CollectionDetail.key == key
         )
         detail_result = await db.execute(detail_query)
         detail = detail_result.scalar_one_or_none()
-        
+
         if detail:
             detail.value = value
             db.add(detail)
         else:
             # 创建新的detail
             new_detail = CollectionDetail(
-                collection_id=collection_id,
-                key=key,
-                value=value
+                collection_id=collection_id, key=key, value=value
             )
             db.add(new_detail)
 
@@ -432,7 +446,11 @@ async def update_collection(
             "id": collection.id,
             "user_id": collection.user_id,
             "category_id": collection.category_id,
-            "tags": getattr(collection, 'tags', '').split(",") if getattr(collection, 'tags', '') else [],
+            "tags": (
+                getattr(collection, "tags", "").split(",")
+                if getattr(collection, "tags", "")
+                else []
+            ),
             "updated_at": collection.updated_at.isoformat(),
         },
     )
@@ -454,16 +472,16 @@ async def get_collection_by_id(
     )
     collection_result = await db.execute(collection_query)
     collection = collection_result.scalar_one_or_none()
-    
+
     if not collection:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Collection not found or access denied"
+            detail="Collection not found or access denied",
         )
 
     # 获取分类信息
     category = None
-    category_id = getattr(collection, 'category_id', None)
+    category_id = getattr(collection, "category_id", None)
     if category_id:
         category_query = select(Category).where(Category.id == category_id)
         category_result = await db.execute(category_query)
@@ -475,13 +493,21 @@ async def get_collection_by_id(
         data={
             "id": collection.id,
             "user_id": collection.user_id,
-            "category_id": getattr(collection, 'category_id', None),
-            "category": {
-                "id": category.id,
-                "name": category.name,
-                "emoji": category.emoji,
-            } if category else None,
-            "tags": getattr(collection, 'tags', '').split(",") if getattr(collection, 'tags', '') else [],
+            "category_id": getattr(collection, "category_id", None),
+            "category": (
+                {
+                    "id": category.id,
+                    "name": category.name,
+                    "emoji": category.emoji,
+                }
+                if category
+                else None
+            ),
+            "tags": (
+                getattr(collection, "tags", "").split(",")
+                if getattr(collection, "tags", "")
+                else []
+            ),
             "details": {detail.key: detail.value for detail in collection.details},
             "created_at": collection.created_at.isoformat(),
             "updated_at": collection.updated_at.isoformat(),
@@ -615,7 +641,9 @@ async def get_current_user_collections(
 
     if category_id:
 
-        collections_query = collections_query.where(Collection.category_id == category_id)
+        collections_query = collections_query.where(
+            Collection.category_id == category_id
+        )
 
     collections_result = await db.execute(collections_query)
     collections = collections_result.scalars().unique().all()
@@ -629,7 +657,9 @@ async def get_current_user_collections(
                     "id": collection.id,
                     "category_id": collection.category_id,
                     "tags": collection.tags,
-                    "details": {detail.key: detail.value for detail in collection.details},
+                    "details": {
+                        detail.key: detail.value for detail in collection.details
+                    },
                     "created_at": collection.created_at.isoformat(),
                     "updated_at": collection.updated_at.isoformat(),
                 }
@@ -651,7 +681,9 @@ async def get_collections_by_category(
     """
     collections_query = (
         select(Collection)
-        .where(Collection.category_id == category_id, Collection.user_id == current_user.id)
+        .where(
+            Collection.category_id == category_id, Collection.user_id == current_user.id
+        )
         .options(selectinload(Collection.details))
         .order_by(desc(Collection.created_at))
     )
@@ -684,7 +716,9 @@ async def get_collections_by_category(
                     "id": collection.id,
                     "category_id": collection.category_id,
                     "tags": collection.tags,
-                    "details": {detail.key: detail.value for detail in collection.details},
+                    "details": {
+                        detail.key: detail.value for detail in collection.details
+                    },
                     "created_at": collection.created_at.isoformat(),
                     "updated_at": collection.updated_at.isoformat(),
                 }
@@ -719,7 +753,9 @@ async def search_collections(query: str, db: AsyncSession = Depends(get_db)):
                     "id": collection.id,
                     "category_id": collection.category_id,
                     "tags": collection.tags,
-                    "details": {detail.key: detail.value for detail in collection.details},
+                    "details": {
+                        detail.key: detail.value for detail in collection.details
+                    },
                     "created_at": collection.created_at.isoformat(),
                     "updated_at": collection.updated_at.isoformat(),
                 }
@@ -744,10 +780,13 @@ async def get_collection_details(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found or access denied",
         )
 
-    details_query = select(CollectionDetail).where(CollectionDetail.collection_id == collection_id)
+    details_query = select(CollectionDetail).where(
+        CollectionDetail.collection_id == collection_id
+    )
 
     details_result = await db.execute(details_query)
     details = details_result.scalars().all()
@@ -788,7 +827,8 @@ async def get_collection_detail(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found or access denied",
         )
 
     detail_query = select(CollectionDetail).where(
@@ -829,7 +869,8 @@ async def update_collection_detail(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found or access denied",
         )
 
     detail_query = select(CollectionDetail).where(
@@ -844,13 +885,17 @@ async def update_collection_detail(
         await db.refresh(detail)
         msg = "Detail updated successfully"
     else:
-        detail = CollectionDetail(collection_id=collection_id, key=key, value=update.value)
+        detail = CollectionDetail(
+            collection_id=collection_id, key=key, value=update.value
+        )
         db.add(detail)
         await db.commit()
         await db.refresh(detail)
         msg = "Detail created successfully"
 
-    return Response(code=200, message=msg, data={"key": detail.key, "value": detail.value})
+    return Response(
+        code=200, message=msg, data={"key": detail.key, "value": detail.value}
+    )
 
 
 @router.delete("/{collection_id}/details/{key}", response_model=Response)
@@ -868,7 +913,8 @@ async def delete_collection_detail(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found or access denied",
         )
 
     detail_query = select(CollectionDetail).where(
@@ -896,14 +942,19 @@ async def get_collection_tags(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found or access denied",
         )
     tags = collection.tags.split(",") if collection.tags else []  # type: ignore
-    return Response(code=200, message="Collection tags fetched successfully", data={"tags": tags})
+    return Response(
+        code=200, message="Collection tags fetched successfully", data={"tags": tags}
+    )
 
 
 @router.get("/public/{collection_id}/details", response_model=Response)
-async def get_public_collection_details(collection_id: int, db: AsyncSession = Depends(get_db)):
+async def get_public_collection_details(
+    collection_id: int, db: AsyncSession = Depends(get_db)
+):
     """
     获取收藏详情（公共接口，无需登录）
     用于推文中的收藏详情展示
@@ -915,10 +966,14 @@ async def get_public_collection_details(collection_id: int, db: AsyncSession = D
 
     if not collection:
 
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found"
+        )
 
     # 获取收藏详情
-    details_query = select(CollectionDetail).where(CollectionDetail.collection_id == collection_id)
+    details_query = select(CollectionDetail).where(
+        CollectionDetail.collection_id == collection_id
+    )
     details_result = await db.execute(details_query)
     details = details_result.scalars().all()
 
@@ -975,14 +1030,17 @@ async def update_collection_tags(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found or access denied",
         )
     collection.tags = ",".join(update.tags)  # type: ignore
     db.add(collection)
     await db.commit()
     await db.refresh(collection)
     return Response(
-        code=200, message="Collection tags updated successfully", data={"tags": update.tags}
+        code=200,
+        message="Collection tags updated successfully",
+        data={"tags": update.tags},
     )
 
 
@@ -1002,12 +1060,15 @@ async def delete_collection(
     collection = collection_result.scalar_one_or_none()
     if not collection:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found or access denied"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found or access denied",
         )
 
     await db.delete(collection)
     await db.commit()
 
     return Response(
-        code=200, message="Collection deleted successfully", data={"collection_id": collection_id}
+        code=200,
+        message="Collection deleted successfully",
+        data={"collection_id": collection_id},
     )
