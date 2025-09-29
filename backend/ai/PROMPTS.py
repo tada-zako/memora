@@ -20,13 +20,14 @@ Your output should be a JSON object with the following structure:
 
 For example, the category could be "AI", "Travel", etc., and the tags should be specific to the content, like "RAG", "LLM-Agent", "New York", etc.
 
-currently, we have the following categories:
+currently, the following categories are available:
 
 {categories}
 
 ## Limitations
-- If the content does not fit into any of the existing categories, you should create a new category.
-- Provide at least one tag but MUST no more than 5 tags.
+- Existing Category Mandate: If a category that fits the content exists in the provided list, you MUST use that existing category.
+- New Category Creation: If the content does not fit into any of the existing categories, you should create a new category.
+- Tag Limits: Provide at least one tag but MUST no more than 5 tags.
 """
 
 PROMPT_SUMMARIZE_CONTENT = """

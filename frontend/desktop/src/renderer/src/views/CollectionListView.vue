@@ -102,7 +102,7 @@
                 v-model="searchQuery"
                 type="text"
                 :placeholder="t('collection.searchCollections')"
-                class="pl-4 pr-4 py-2 border border-muted-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-64"
+                class="pl-4 pr-4 py-2 text-accent-text border border-muted-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-64"
                 @input="handleSearch"
                 @keydown.enter="handleSearch"
               />
@@ -164,55 +164,121 @@
         <div v-else class="h-full">
           <div class="flex h-full gap-2">
             <div class="flex-1 overflow-y-auto pr-2">
-              <div
-                v-for="item in filteredCollections"
-                :key="item.id"
-                class="border border-muted-border rounded-lg bg-primary hover:shadow-md transition-shadow cursor-pointer group mb-4"
-                @click="onCollectionClick(item)"
-              >
-                <div class="p-6">
-                  <h3
-                    class="text-lg font-semibold text-accent-text mb-2 line-clamp-2 group-hover:text-primary-text transition-colors"
-                  >
-                    <!-- Collection #{{ item.id }} -->
-                    {{ decodeHtmlEntities(item.details.title) }}
-                  </h3>
-                  <div style="display: flex; flex-wrap: wrap; gap: 4px">
-                    <span
-                      v-for="(tag, index) in item.tags"
-                      :key="tag.id"
-                      :index="index"
-                      class="px-2 py-1 bg-muted text-accent-text rounded text-xs font-medium"
-                    >
-                      {{ tag }}
-                    </span>
-                  </div>
+              <div v-for="item in filteredCollections" :key="item.id" class="mb-4">
+                <!-- 编辑表单 -->
+                <CollectionForm
+                  v-if="editingCollectionId === item.id"
+                  v-model="createForm"
+                  :loading="updatingCollection"
+                  :is-editing="true"
+                  @submit="handleUpdateCollection"
+                  @cancel="cancelEditCollection"
+                />
 
-                  <div class="flex items-center justify-between text-xs text-primary-text mt-2">
-                    <div>
+                <!-- 常规卡片 -->
+                <div
+                  v-else
+                  class="border border-muted-border rounded-lg bg-primary hover:shadow-md transition-shadow cursor-pointer group"
+                  @click="onCollectionClick(item)"
+                >
+                  <div class="p-6">
+                    <h3
+                      class="text-lg font-semibold text-accent-text mb-2 line-clamp-2 group-hover:text-primary-text transition-colors"
+                    >
+                      <!-- Collection #{{ item.id }} -->
+                      {{ decodeHtmlEntities(item.details.title) }}
+                    </h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px">
+                      <span
+                        v-for="(tag, index) in item.tags"
+                        :key="tag.id"
+                        :index="index"
+                        class="px-2 py-1 bg-muted text-accent-text rounded text-xs font-medium"
+                      >
+                        {{ tag }}
+                      </span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs text-primary-text mt-2">
                       <div>
-                        {{ t('collection.createdAt', { date: formatDate(item.created_at) }) }}
+                        <div>
+                          {{ t('collection.createdAt', { date: formatDate(item.created_at) }) }}
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button
+                          :title="t('collection.edit')"
+                          class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
+                          @click.stop="startEditCollection(item)"
+                        >
+                          <svg
+                            class="w-4 h-4 text-primary-text"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                        <button
+                          class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
+                          @click.stop="showPublishModal(item.id)"
+                        >
+                          <MessageSquareShare class="w-4 h-4 text-primary-text" />
+                        </button>
                       </div>
                     </div>
-                    <button
-                      class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
-                      @click.stop="showPublishModal(item.id)"
+                    <div
+                      v-if="item.details && item.details.attachment"
+                      class="mt-4 pt-4 border-t border-muted-border"
                     >
-                      <MessageSquareShare class="w-4 h-4 text-primary-text" />
-                    </button>
-                  </div>
-                  <div
-                    v-if="item.details && item.details.attachment"
-                    class="mt-4 pt-4 border-t border-muted-border"
-                  >
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs text-primary-text truncate">{{
-                        t('collection.attachmentId', { id: item.details.attachment })
-                      }}</span>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-primary-text truncate">{{
+                          t('collection.attachmentId', { id: item.details.attachment })
+                        }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+
+              <!-- Add new collection button -->
+              <div
+                v-if="!showCreateForm"
+                class="border border-muted-border rounded-lg bg-primary hover:shadow-md transition-shadow cursor-pointer group mb-4 border-dashed"
+                @click="showCreateForm = true"
+              >
+                <div class="p-6 flex items-center justify-center">
+                  <div
+                    class="flex items-center gap-3 text-primary-text group-hover:text-accent-text transition-colors"
+                  >
+                    <svg
+                      class="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 5v14m-7-7h14" />
+                    </svg>
+                    <span class="text-lg font-medium">{{
+                      t('collection.createNewCollection')
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Create/Edit collection form -->
+              <CollectionForm
+                v-if="showCreateForm"
+                v-model="createForm"
+                :loading="creatingCollection"
+                :is-editing="false"
+                @submit="handleCreateCollection"
+                @cancel="cancelCreateForm"
+              />
             </div>
             <transition name="slide-panel" mode="out-in">
               <div
@@ -250,7 +316,7 @@
                   <div
                     v-if="selectedCollection && !showAskAIPanel"
                     key="overview"
-                    class="p-4 flex-1 overflow-y-auto"
+                    class="p-4 flex-1 overflow-y-auto text-accent-text"
                   >
                     <p>{{ decodeHtmlEntities(selectedCollection?.details?.summary) }}</p>
                   </div>
@@ -263,7 +329,7 @@
                     style="height: 100%"
                   >
                     <div v-if="aiResponse" class="flex-1 p-4 m-4 rounded-lg overflow-y-auto">
-                      <div class="text-primary-text prose" v-html="renderedAiResponse"></div>
+                      <div class="text-primary-text prose">{{ aiResponse }}</div>
                     </div>
                     <div
                       v-else
@@ -339,26 +405,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getCollectionsByCategory } from '@/api'
 import { createKnowledgeBase as apiCreateKnowledgeBase, queryKnowledgeBase } from '@/api'
+import { createManualCollection, updateCollection } from '@/api'
 import { isAuthenticated } from '@/api'
 import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
-import { Sparkle } from 'lucide-vue-next'
+import CollectionForm from '../components/CollectionForm.vue'
 import { Sparkles } from 'lucide-vue-next'
 import { ArrowUp } from 'lucide-vue-next'
 import { MessageSquareShare } from 'lucide-vue-next'
-import { marked } from 'marked'
 
 const { t } = useI18n()
 const BookmarkIcon = {
   template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`
-}
-
-const SearchIcon = {
-  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`
 }
 
 // 解码HTML实体
@@ -388,6 +450,18 @@ const selectedCollection = ref(null)
 const searchQuery = ref('')
 const filteredCollections = ref([])
 const creatingKnowledgeBase = ref(false)
+const showCreateForm = ref(false)
+const creatingCollection = ref(false)
+const editingCollection = ref(null)
+const editingCollectionId = ref(null) // 跟踪正在编辑的卡片ID
+const updatingCollection = ref(false)
+const createForm = ref({
+  title: '',
+  content: '',
+  url: '',
+  tagsInput: '',
+  summary: ''
+})
 
 const fetchCollectionsByCategory = async () => {
   // 检查用户是否已登录
@@ -609,10 +683,99 @@ const clearSearch = () => {
   filteredCollections.value = collections.value
 }
 
-// 计算属性：渲染AI响应的Markdown
-const renderedAiResponse = computed(() => {
-  return aiResponse.value ? marked(aiResponse.value) : ''
-})
+// 取消编辑Collection卡片
+const cancelEditCollection = () => {
+  editingCollectionId.value = null
+  editingCollection.value = null
+  createForm.value = {
+    title: '',
+    content: '',
+    url: '',
+    tagsInput: '',
+    summary: ''
+  }
+}
+
+// 取消创建/编辑表单
+const cancelCreateForm = () => {
+  showCreateForm.value = false
+  editingCollection.value = null
+  createForm.value = {
+    title: '',
+    content: '',
+    url: '',
+    tagsInput: '',
+    summary: ''
+  }
+}
+
+// 处理创建Collection
+const handleCreateCollection = async (collectionData) => {
+  try {
+    creatingCollection.value = true
+
+    const submitData = {
+      ...collectionData,
+      category_id: parseInt(categoryId)
+    }
+
+    await createManualCollection(submitData)
+
+    // 创建成功后重新获取数据
+    await fetchCollectionsByCategory()
+
+    // 重置表单
+    cancelCreateForm()
+
+    // 显示成功消息
+    alert(t('collection.createSuccess'))
+  } catch (error) {
+    console.error('创建Collection失败:', error)
+    alert(t('collection.createFailed') + ': ' + (error.detail || error.message || '未知错误'))
+  } finally {
+    creatingCollection.value = false
+  }
+}
+
+// 开始编辑Collection
+const startEditCollection = (collection) => {
+  editingCollection.value = collection
+  editingCollectionId.value = collection.id
+  createForm.value = {
+    title: collection.details?.title || '',
+    content: collection.details?.content || '',
+    url: collection.details?.url || '',
+    tagsInput: collection.tags ? collection.tags.join(', ') : '',
+    summary: collection.details?.summary || ''
+  }
+  // 不需要显示创建表单，因为我们直接在卡片位置显示编辑表单
+  showCreateForm.value = false
+}
+
+// 处理更新Collection
+const handleUpdateCollection = async (collectionData) => {
+  if (!editingCollection.value) return
+
+  try {
+    updatingCollection.value = true
+
+    await updateCollection(editingCollection.value.id, collectionData)
+
+    // 更新成功后重新获取数据
+    await fetchCollectionsByCategory()
+
+    // 重置编辑状态
+    cancelEditCollection()
+
+    // 显示成功消息
+    alert(t('collection.updateSuccess'))
+  } catch (error) {
+    console.error('更新Collection失败:', error)
+    alert(t('collection.updateFailed') + ': ' + (error.detail || error.message || '未知错误'))
+  } finally {
+    updatingCollection.value = false
+  }
+}
 </script>
 
 <style scoped>

@@ -53,6 +53,24 @@ class CollectionPictureCreate(BaseModel):
     category: str
 
 
+class CollectionManualCreate(BaseModel):
+    category_id: Optional[int] = None
+    url: Optional[str] = None
+    tags: Optional[list[str]] = None
+    title: str
+    content: Optional[str] = None
+    summary: Optional[str] = None
+
+
+class CollectionUpdate(BaseModel):
+    category_id: Optional[int] = None
+    tags: Optional[list[str]] = None
+    url: Optional[str] = None
+    title: Optional[str] = None
+    content: Optional[str] = None
+    summary: Optional[str] = None
+
+
 class CollectionUrlResponseDelta(BaseModel):
     type: str
     data: dict
@@ -67,6 +85,22 @@ async def streaming_create_collection_url(
     # 不是哥们，这样手搓流式函数是吧...
     # step 1: created to collection table
     user_id = current_user.id
+
+    # step 1.5: first check if the url already exists for this user
+    url_check_query = select(CollectionDetail).where(
+        CollectionDetail.key == "url",
+        CollectionDetail.value == collection.url,
+        Collection.user_id == user_id,
+    )
+
+    url_check_result = await db.execute(url_check_query)
+    if url_check_result.scalar_one_or_none():
+        yield CollectionUrlResponseDelta(
+            type="collection_exists",
+            data={"message": "This URL has already been collected."},
+        )
+        # 提前结束
+        return
 
     db_collection = Collection(user_id=user_id)
     db.add(db_collection)
@@ -226,6 +260,233 @@ async def create_collection_url(
             yield f"data: {data}\n\n"
 
     return StreamingResponse(steaming(), media_type="text/event-stream")
+
+
+@router.post("/create", response_model=Response, status_code=status.HTTP_201_CREATED)
+async def create_collection_manual(
+    collection: CollectionManualCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    手动创建一个collection
+    """
+    user_id = current_user.id
+
+    # 验证category_id是否属于当前用户
+    if collection.category_id:
+        category_query = select(Category).where(
+            Category.id == collection.category_id, Category.user_id == user_id
+        )
+        category_result = await db.execute(category_query)
+        category = category_result.scalar_one_or_none()
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Category not found or access denied"
+            )
+
+    # 创建collection
+    db_collection = Collection(
+        user_id=user_id,
+        category_id=collection.category_id,
+        tags=",".join(collection.tags) if collection.tags else None
+    )
+    db.add(db_collection)
+    await db.commit()
+    await db.refresh(db_collection)
+
+    # 添加详情
+    details_to_add = []
+    if collection.title:
+        details_to_add.append(CollectionDetail(
+            collection_id=db_collection.id,
+            key="title",
+            value=collection.title
+        ))
+    if collection.content:
+        details_to_add.append(CollectionDetail(
+            collection_id=db_collection.id,
+            key="content",
+            value=collection.content
+        ))
+    if collection.url:
+        details_to_add.append(CollectionDetail(
+            collection_id=db_collection.id,
+            key="url",
+            value=collection.url
+        ))
+    if collection.summary:
+        details_to_add.append(CollectionDetail(
+            collection_id=db_collection.id,
+            key="summary",
+            value=collection.summary
+        ))
+
+    for detail in details_to_add:
+        db.add(detail)
+    
+    await db.commit()
+
+    return Response(
+        code=200,
+        message="Collection created successfully",
+        data={
+            "id": db_collection.id,
+            "user_id": db_collection.user_id,
+            "category_id": db_collection.category_id,
+            "tags": collection.tags,
+            "created_at": db_collection.created_at.isoformat(),
+            "updated_at": db_collection.updated_at.isoformat(),
+        },
+    )
+
+
+@router.put("/{collection_id}", response_model=Response)
+async def update_collection(
+    collection_id: int,
+    collection_update: CollectionUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    更新collection的基本信息
+    """
+    # 验证collection是否属于当前用户
+    collection_query = select(Collection).where(
+        Collection.id == collection_id, Collection.user_id == current_user.id
+    )
+    collection_result = await db.execute(collection_query)
+    collection = collection_result.scalar_one_or_none()
+    if not collection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found or access denied"
+        )
+
+    # 验证category_id是否属于当前用户
+    if collection_update.category_id is not None:
+        if collection_update.category_id == 0:
+            # 不允许分类为空
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Category ID cannot be 0",
+            )
+        
+        category_query = select(Category).where(
+            Category.id == collection_update.category_id, Category.user_id == current_user.id
+        )
+        category_result = await db.execute(category_query)
+        category = category_result.scalar_one_or_none()
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Category not found or access denied"
+            )
+        collection.category_id = collection_update.category_id  # type: ignore
+
+    # 更新tags
+    if collection_update.tags is not None:
+        collection.tags = ",".join(collection_update.tags) if collection_update.tags else None   # type: ignore
+
+    # 更新details
+    details_to_update = {}
+    if collection_update.title is not None:
+        details_to_update["title"] = collection_update.title
+    if collection_update.content is not None:
+        details_to_update["content"] = collection_update.content
+    if collection_update.url is not None:
+        details_to_update["url"] = collection_update.url
+    if collection_update.summary is not None:
+        details_to_update["summary"] = collection_update.summary
+
+    for key, value in details_to_update.items():
+        # 查找现有detail
+        detail_query = select(CollectionDetail).where(
+            CollectionDetail.collection_id == collection_id,
+            CollectionDetail.key == key
+        )
+        detail_result = await db.execute(detail_query)
+        detail = detail_result.scalar_one_or_none()
+        
+        if detail:
+            detail.value = value
+            db.add(detail)
+        else:
+            # 创建新的detail
+            new_detail = CollectionDetail(
+                collection_id=collection_id,
+                key=key,
+                value=value
+            )
+            db.add(new_detail)
+
+    db.add(collection)
+    await db.commit()
+    await db.refresh(collection)
+
+    return Response(
+        code=200,
+        message="Collection updated successfully",
+        data={
+            "id": collection.id,
+            "user_id": collection.user_id,
+            "category_id": collection.category_id,
+            "tags": getattr(collection, 'tags', '').split(",") if getattr(collection, 'tags', '') else [],
+            "updated_at": collection.updated_at.isoformat(),
+        },
+    )
+
+
+@router.get("/{collection_id}", response_model=Response)
+async def get_collection_by_id(
+    collection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    获取单个collection的详细信息
+    """
+    collection_query = (
+        select(Collection)
+        .where(Collection.id == collection_id, Collection.user_id == current_user.id)
+        .options(selectinload(Collection.details))
+    )
+    collection_result = await db.execute(collection_query)
+    collection = collection_result.scalar_one_or_none()
+    
+    if not collection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found or access denied"
+        )
+
+    # 获取分类信息
+    category = None
+    category_id = getattr(collection, 'category_id', None)
+    if category_id:
+        category_query = select(Category).where(Category.id == category_id)
+        category_result = await db.execute(category_query)
+        category = category_result.scalar_one_or_none()
+
+    return Response(
+        code=200,
+        message="Collection retrieved successfully",
+        data={
+            "id": collection.id,
+            "user_id": collection.user_id,
+            "category_id": getattr(collection, 'category_id', None),
+            "category": {
+                "id": category.id,
+                "name": category.name,
+                "emoji": category.emoji,
+            } if category else None,
+            "tags": getattr(collection, 'tags', '').split(",") if getattr(collection, 'tags', '') else [],
+            "details": {detail.key: detail.value for detail in collection.details},
+            "created_at": collection.created_at.isoformat(),
+            "updated_at": collection.updated_at.isoformat(),
+        },
+    )
 
 
 # @router.post(

@@ -93,11 +93,7 @@
             v-for="post in recentPosts.slice(0, 2)"
             :key="post.id"
             class="p-4 rounded shadow transition cursor-pointer backdrop-blur-sm"
-            style="
-              margin-bottom: 20px;
-              background-color: var(--color-primary);
-              border-radius: 15px;
-            "
+            style="margin-bottom: 20px; background-color: var(--color-primary); border-radius: 15px"
             @click="goToPost(post.id)"
           >
             <div class="flex flex-col gap-2">

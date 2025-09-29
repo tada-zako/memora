@@ -9,10 +9,13 @@ PROJ_DIR = os.path.dirname(os.path.dirname(__file__))
 # os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
 
 ENV = os.getenv("ENV", "dev")
+reload = True
 if ENV == "dev":
+    reload = True
     logger.info("Loading DEV environment variables")
     load_dotenv(os.path.join(PROJ_DIR, ".env.dev"), override=True)
 elif ENV == "prod":
+    reload = False
     logger.info("Loading PROD environment variables")
     load_dotenv(os.path.join(PROJ_DIR, ".env.prod"), override=True)
 
@@ -29,4 +32,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         log_level="info",
+        reload=reload,
     )
