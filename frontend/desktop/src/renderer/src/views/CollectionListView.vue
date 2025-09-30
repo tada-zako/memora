@@ -2,7 +2,7 @@
   <div class="max-h-screen bg-muted flex flex-col overflow-hidden">
     <!-- Header -->
     <header class="border-b border-muted-border flex-shrink-0">
-      <div class="max-w-6xl mx-auto px-6 py-5">
+      <div class="max-w-6xl mx-auto px-4 py-3">
         <div class="flex justify-between items-start mb-2">
           <button
             class="px-2 py-1 bgconst createKnowledgeBase = async () => { if (!categoryId || creatingKnowledgeBase.value) return try { creatingKnowledgeBase.value = true const result = await apiCreateKnowledgeBase(categoryId) if (result.code === ) { // 知识库创建已启动，后台处理 alert('知识库创建已启动，请稍后刷新页面查看状态。') // 由于是后台任务，不立即重新获取数据 } } catch (error) { console.error('创建知识库失败:', error) alert('创建知识库失败: ' + (error.detail || error.message || '未知错误')) } finally { creatingKnowledgeBase.value = false } }-gray-200 rounded text-primary-text font-medium flex items-center gap-2"
@@ -140,7 +140,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-6xl px-6 py-6 pb-0 flex-1 min-h-0">
+    <main class="max-w-6xl px-4 py-4 pb-0 flex-1 min-h-0">
       <div v-if="loading" class="text-center py-16 text-primary-text">
         {{ t('collection.loading') }}
       </div>
@@ -182,12 +182,23 @@
                   @click="onCollectionClick(item)"
                 >
                   <div class="p-6">
-                    <h3
-                      class="text-lg font-semibold text-accent-text mb-2 line-clamp-2 group-hover:text-primary-text transition-colors"
-                    >
-                      <!-- Collection #{{ item.id }} -->
-                      {{ decodeHtmlEntities(item.details.title) }}
-                    </h3>
+                    <div class="flex justify-between items-start">
+                      <!-- 标题 -->
+                      <h3
+                        class="text-lg font-semibold text-accent-text mb-2 line-clamp-2 group-hover:text-primary-text transition-colors"
+                      >
+                        <!-- Collection #{{ item.id }} -->
+                        {{ decodeHtmlEntities(item.details.title) }}
+                      </h3>
+                      <!-- 删除按钮 -->
+                      <button
+                        :title="t('collection.delete')"
+                        class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center float-right"
+                        @click.stop="startDeleteCollection(item.id)"
+                      >
+                        <Trash2 class="w-4 h-4 text-primary-text" />
+                      </button>
+                    </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 4px">
                       <span
                         v-for="(tag, index) in item.tags"
@@ -206,6 +217,15 @@
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
+                        <!-- 链接按钮 -->
+                        <button
+                          :title="t('collection.openLink')"
+                          class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
+                          @click.stop="handleJumpToLink(item.details.url)"
+                        >
+                          <Link class="w-4 h-4 text-primary-text" />
+                        </button>
+                        <!-- 编辑按钮 -->
                         <button
                           :title="t('collection.edit')"
                           class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
@@ -222,6 +242,7 @@
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                           </svg>
                         </button>
+                        <!-- 发布按钮 -->
                         <button
                           class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
                           @click.stop="showPublishModal(item.id)"
@@ -399,6 +420,16 @@
     />
 
     <!-- Ask AI 模态框 - 已移除，现在使用卡片显示 -->
+
+    <!-- 通知模态框 -->
+    <ConfirmModal
+      :title="confirmModalTitle"
+      :message="confirmModalMessage"
+      :show="showConfirmModal"
+      :loading="confirmModalLoading"
+      @confirm="handleConfirmModal"
+      @cancel="handleCancelModal"
+    />
   </div>
 </template>
 
@@ -408,13 +439,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getCollectionsByCategory } from '@/api'
 import { createKnowledgeBase as apiCreateKnowledgeBase, queryKnowledgeBase } from '@/api'
-import { createManualCollection, updateCollection } from '@/api'
+import { createManualCollection, updateCollection, deleteCollection } from '@/api'
 import { isAuthenticated } from '@/api'
 import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
 import CollectionForm from '../components/CollectionForm.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import { Sparkles } from 'lucide-vue-next'
 import { ArrowUp } from 'lucide-vue-next'
-import { MessageSquareShare } from 'lucide-vue-next'
+import { MessageSquareShare, Link, Trash2 } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const BookmarkIcon = {
@@ -460,6 +492,11 @@ const createForm = ref({
   tagsInput: '',
   summary: ''
 })
+const showConfirmModal = ref(false) // 控制确认模态框显示
+const confirmModalTitle = ref('') // 确认模态框标题
+const confirmModalMessage = ref('') // 确认模态框消息
+const confirmModalAction = ref(null) // 存储要执行的操作函数
+const confirmModalLoading = ref(false) // 模态框加载状态
 
 const fetchCollectionsByCategory = async () => {
   // 检查用户是否已登录
@@ -748,6 +785,81 @@ const startEditCollection = (collection) => {
   }
   // 不需要显示创建表单，因为我们直接在卡片位置显示编辑表单
   showCreateForm.value = false
+}
+
+// 开始删除Collection
+const startDeleteCollection = (id) => {
+  if (!id) return
+
+  // 设置要执行的删除操作
+  confirmModalAction.value = async () => {
+    await handleDeleteCollection(id)
+  }
+
+  // 打开模态框
+  confirmModalTitle.value = t('collection.confirmDeleteTitle')
+  confirmModalMessage.value = t('collection.confirmDeleteMessage')
+  showConfirmModal.value = true
+}
+
+// 实际删除Collection的函数
+const handleDeleteCollection = async (id) => {
+  try {
+    confirmModalLoading.value = true
+
+    await deleteCollection(id)
+
+    // 删除成功后重新获取数据
+    await fetchCollectionsByCategory()
+
+    // 关闭模态框
+    showConfirmModal.value = false
+  } catch (error) {
+    console.error('删除Collection失败:', error)
+    alert(t('collection.deleteFailed') + ': ' + (error.detail || error.message || '未知错误'))
+  } finally {
+    confirmModalLoading.value = false
+  }
+}
+
+// 模态框确认函数
+const handleConfirmModal = async () => {
+  if (confirmModalAction.value) {
+    await confirmModalAction.value()
+  }
+}
+
+// 模态框取消函数
+const handleCancelModal = () => {
+  showConfirmModal.value = false
+  confirmModalAction.value = null
+  confirmModalLoading.value = false
+}
+
+// 跳转到链接
+const handleJumpToLink = async (url) => {
+  if (!url) {
+    alert(t('collection.noUrl'))
+    return
+  }
+
+  try {
+    // 检查是否在 Electron 环境中
+    if (window.electronAPI && window.electronAPI.invoke) {
+      // 在 Electron 中使用主进程打开链接
+      const result = await window.electronAPI.invoke('open-external-url', url)
+      if (!result.success) {
+        console.error('Failed to open URL:', result.error)
+        alert('打开链接失败: ' + result.error)
+      }
+    } else {
+      // 在浏览器中使用 window.open
+      window.open(url, '_blank')
+    }
+  } catch (error) {
+    console.error('Error opening URL:', error)
+    alert('打开链接失败: ' + (error.message || '未知错误'))
+  }
 }
 
 // 处理更新Collection

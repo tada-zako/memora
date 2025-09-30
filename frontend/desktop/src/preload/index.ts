@@ -25,6 +25,12 @@ interface CustomAPI {
     error?: string
   }>
 
+  // 打开外部链接
+  openExternalUrl: (url: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
   // 获取操作系统信息
   getPlatform: () => NodeJS.Platform
 
@@ -52,6 +58,9 @@ const api: CustomAPI = {
 
   // 检测活跃浏览器
   detectActiveBrowser: () => ipcRenderer.invoke('detect-active-browser'),
+
+  // 打开外部链接
+  openExternalUrl: (url: string) => ipcRenderer.invoke('open-external-url', url),
 
   // 获取操作系统信息
   getPlatform: () => process.platform,

@@ -326,10 +326,10 @@ try {
     # Get all browser processes with main window titles
     $browserNames = @('msedge', 'chrome', 'firefox', 'opera', 'brave', 'vivaldi', 'iexplore')
     Write-Host 'Looking for browser processes...' -ForegroundColor Green
-    
-    $browsers = Get-Process | Where-Object { 
-        $_.ProcessName.ToLower() -in $browserNames -and 
-        $_.MainWindowTitle -and 
+
+    $browsers = Get-Process | Where-Object {
+        $_.ProcessName.ToLower() -in $browserNames -and
+        $_.MainWindowTitle -and
         $_.MainWindowTitle.Trim() -ne ''
     }
 
@@ -940,6 +940,18 @@ app.whenReady().then(() => {
   ipcMain.handle('detect-active-browser', async () => {
     console.log('IPC: detect-active-browser called')
     return await detectActiveBrowser()
+  })
+
+  // 添加打开外部链接的 IPC 处理器
+  ipcMain.handle('open-external-url', async (_event, url: string) => {
+    console.log('IPC: open-external-url called with URL:', url)
+    try {
+      await shell.openExternal(url)
+      return { success: true }
+    } catch (error) {
+      console.error('Error opening external URL:', error)
+      return { success: false, error: error instanceof Error ? error.message : String(error) }
+    }
   })
 
   createWindow()

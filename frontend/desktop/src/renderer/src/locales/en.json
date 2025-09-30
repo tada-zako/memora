@@ -148,11 +148,20 @@
     "create": "Create",
     "createSuccess": "Collection created successfully!",
     "createFailed": "Failed to create collection",
+    "delete": "delete",
+    "openLink": "Open Link",
     "edit": "Edit",
     "update": "Update",
     "updating": "Updating...",
     "updateSuccess": "Collection updated successfully!",
-    "updateFailed": "Failed to update collection"
+    "updateFailed": "Failed to update collection",
+    "confirmDeleteTitle": "Delete the collection",
+    "confirmDeleteMessage": "Are you sure you want to delete this?"
+  },
+  "modal": {
+    "confirmText": "Confirm",
+    "loadingText": "Processing",
+    "cancelText": "Cancel"
   },
   "settings": {
     "title": "Settings",
