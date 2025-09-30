@@ -76,3 +76,13 @@
   word-wrap: break-word;
   word-break: break-word;
 }
+
+
+/* 关闭滚动栏 */
+@utility scrollbar-hide {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

@@ -325,7 +325,7 @@
 
                   <!-- Ask AI Panel -->
                   <div v-else-if="showAskAIPanel" key="askAI" class="flex flex-col flex-1 min-h-0">
-                    <div class="flex-1 p-4 overflow-y-auto min-h-0">
+                    <div class="flex-1 p-4 overflow-y-auto min-h-0 scrollbar-hide">
                       <div
                         v-if="aiResponse"
                         class="rounded-lg text-primary-text whitespace-pre-wrap break-words"
@@ -342,7 +342,7 @@
                           id="input-field"
                           v-model="aiQuery"
                           :placeholder="t('collection.askAIPlaceholder')"
-                          class="w-full resize-none text-primary-text outline-none border-none rounded-t-2xl p-4 min-h-[60px] font-inherit text-base bg-transparent"
+                          class="w-full resize-none text-primary-text outline-none border-none rounded-t-2xl p-4 min-h-[60px] font-inherit text-base bg-transparent scrollbar-hide"
                           @keydown="handleInputKeyDown"
                           @click:clear="clearMessage"
                         ></textarea>

@@ -1,3 +1,6 @@
+import asyncio
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,7 +29,6 @@ from backend.utils.web_parser import get_web_title
 from backend.ai.openai_provider import provider_openai
 from backend.utils.markdownit_content import markdownit_helper
 
-from typing import Optional
 
 # Create router instance
 router = APIRouter(
@@ -88,6 +90,7 @@ async def streaming_create_collection_url(
 
     # step 1.5: first check if the url already exists for this user
     import json
+
     url_check_query = (
         select(CollectionDetail)
         .join(Collection, Collection.id == CollectionDetail.collection_id)
@@ -189,12 +192,45 @@ async def streaming_create_collection_url(
     db_category = await db.execute(
         select(Category).where(Category.name == category, Category.user_id == user_id)
     )
-    if category and not db_category.scalar_one_or_none():
+    
+    raw_category = db_category.scalar_one_or_none()
+    if category and not raw_category:
         new_category = Category(name=category, emoji=category_emoji, user_id=user_id)
         db.add(new_category)
         await db.commit()
         await db.refresh(new_category)
         logger.info(f"New category created: {new_category.name}")
+
+    # step 3.2: 添加后台任务，异步更新 chromadb 向量数据库
+    # 判断是否需要更新向量数据库
+    if raw_category and raw_category.knowledge_base_id is not None:
+        # 更新向量数据库
+        from backend.utils.text_splitter import recursive_text_splitter
+        from backend.knowledge_base.chromadb_mgr import chroma_db_manager
+        import uuid
+
+        # 异步分割文本
+        def splits_text():
+            return recursive_text_splitter.split_text(content)
+
+        chunked_content_list = await asyncio.to_thread(splits_text)
+
+        # 获取需要的值，避免闭包问题
+        knowledge_base_id = str(raw_category.knowledge_base_id)
+
+        # 更新向量数据库
+        async def upsert_chunks():
+            def sync_upsert():
+                return chroma_db_manager.upsert(
+                    collection_name=knowledge_base_id,
+                    documents=chunked_content_list,
+                    ids=[str(uuid.uuid4()) for _ in chunked_content_list],
+                )
+            await asyncio.to_thread(sync_upsert)
+            logger.info(f"Upserted {len(chunked_content_list)} chunks to ChromaDB collection {knowledge_base_id}")
+
+        # 后台任务更新
+        asyncio.create_task(upsert_chunks())
 
     yield CollectionUrlResponseDelta(
         type="category_analyzed",
