@@ -6,8 +6,7 @@
       <div v-if="currentPage === 'collections'" class="h-full">
         <!-- 主要内容区域 -->
         <div
-          class="bg-muted glass-effect border border-muted-border h-full min-h-0"
-          style="padding: 16px"
+          class="bg-muted glass-effect h-full min-h-0"
         >
           <!-- 标题区域 -->
           <div

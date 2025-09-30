@@ -1,327 +1,318 @@
 <template>
-  <div class="flex-1 flex flex-col bg-primary">
-    <!-- 主内容区 -->
+  <!-- 主内容区 -->
+  <div class="flex-1 flex flex-col bg-muted glass-effect overflow-y-auto">
+    <!-- 标题区域 -->
     <div
-      class="bg-muted glass-effect border border-muted-border h-full min-h-0"
-      style="padding: 16px"
+      class="flex items-center justify-between sticky top-0 z-10 bg-muted glass-effect w-full px-4 py-4"
     >
-      <!-- 标题区域 -->
-      <div
-        class="flex items-center justify-between sticky top-0 z-10 bg-muted glass-effect w-full px-4 py-4"
+      <div class="flex items-center">
+        <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
+          <Earth class="text-accent-text w-8 h-8" />
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-accent-text">{{ t('community.title') }}</h1>
+        </div>
+      </div>
+      <!-- 刷新按钮 -->
+      <button
+        :disabled="loading"
+        class="bg-muted hover:bg-accent border-2 border-muted-border hover:border-primary-border text-primary-text px-4 py-2 rounded-lg transition-smooth font-medium text-sm btn-hover flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        title="刷新"
+        @click="refreshPosts"
       >
-        <div class="flex items-center">
-          <div class="bg-gradient-to-br rounded-lg flex items-center justify-center w-8 h-8 mr-3">
-            <Earth class="text-accent-text w-8 h-8" />
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-accent-text">{{ t('community.title') }}</h1>
-          </div>
-        </div>
-        <!-- 刷新按钮 -->
-        <button
-          :disabled="loading"
-          class="bg-muted hover:bg-accent border-2 border-muted-border hover:border-primary-border text-primary-text px-4 py-2 rounded-lg transition-smooth font-medium text-sm btn-hover flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          title="刷新"
-          @click="refreshPosts"
-        >
-          <RefreshIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-          <span>{{ loading ? t('community.refreshing') : t('community.refresh') }}</span>
-        </button>
-      </div>
+        <RefreshIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+        <span>{{ loading ? t('community.refreshing') : t('community.refresh') }}</span>
+      </button>
+    </div>
 
-      <!-- 加载状态 -->
-      <div v-if="loading && posts.length === 0" class="flex justify-center py-12">
-        <div class="flex items-center gap-2 text-primary-text">
-          <div
-            class="w-5 h-5 border-2 border-muted-border border-t-blue-600 rounded-full animate-spin"
-          ></div>
-          {{ t('community.loading') }}
-        </div>
-      </div>
-
-      <!-- 推文列表 -->
-      <div v-else-if="posts.length > 0" class="space-y-6">
+    <!-- 加载状态 -->
+    <div v-if="loading && posts.length === 0" class="flex justify-center py-12">
+      <div class="flex items-center gap-2 text-primary-text">
         <div
-          v-for="post in posts"
-          :key="post.id"
-          class="bg-primary rounded-lg overflow-hidden transition-all duration-200"
-        >
-          <!-- 推文头部 -->
-          <div class="p-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden"
-                >
-                  <img
-                    v-if="post.avatar_url"
-                    :src="post.avatar_url"
-                    :alt="t('profile.avatar')"
-                    class="w-full h-full object-cover"
-                  />
-                  <User v-else class="w-6 h-6 text-primary-text" />
-                </div>
-                <div>
-                  <div class="font-medium text-accent-text">{{ post.username }}</div>
-                  <div class="text-xs text-primary-text">{{ formatDate(post.created_at) }}</div>
-                </div>
-              </div>
-              <button
-                v-if="isMyPost(post)"
-                class="text-primary-text hover:text-red-500 transition-colors"
-                @click="deletePostById(post.post_id)"
-              >
-                <TrashIcon class="w-4 h-4" />
-              </button>
-            </div>
+          class="w-5 h-5 border-2 border-muted-border border-t-blue-600 rounded-full animate-spin"
+        ></div>
+        {{ t('community.loading') }}
+      </div>
+    </div>
 
-            <!-- 推文描述 -->
-            <div v-if="post.description" class="mt-3 text-primary-text">
+    <!-- 推文列表 -->
+    <div v-else-if="posts.length > 0" class="space-y-6">
+      <div
+        v-for="post in posts"
+        :key="post.id"
+        class="bg-primary rounded-lg overflow-hidden transition-all duration-200"
+      >
+        <!-- 推文头部 -->
+        <div class="p-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
               <div
-                :class="[
-                  'transition-all duration-200',
-                  post.showFullDescription || post.description.length <= 150 ? '' : 'line-clamp-3'
-                ]"
+                class="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden"
               >
-                {{ decodeHtmlEntities(post.description) }}
+                <img
+                  v-if="post.avatar_url"
+                  :src="post.avatar_url"
+                  :alt="t('profile.avatar')"
+                  class="w-full h-full object-cover"
+                />
+                <User v-else class="w-6 h-6 text-primary-text" />
               </div>
-              <button
-                v-if="post.description.length > 150"
-                class="text-blue-600 hover:text-blue-700 text-sm mt-1"
-                @click="post.showFullDescription = !post.showFullDescription"
-              >
-                {{ post.showFullDescription ? t('community.collapse') : t('community.expand') }}
-              </button>
+              <div>
+                <div class="font-medium text-accent-text">{{ post.username }}</div>
+                <div class="text-xs text-primary-text">{{ formatDate(post.created_at) }}</div>
+              </div>
             </div>
-          </div>
-
-          <!-- 收藏内容 -->
-          <div class="p-4" style="padding-top: 2px">
-            <div
-              class="bg-muted rounded-lg p-4 cursor-pointer hover:bg-muted transition-colors"
-              @click="viewCollectionDetail(post.refer_collection_id, post.post_id)"
+            <button
+              v-if="isMyPost(post)"
+              class="text-primary-text hover:text-red-500 transition-colors"
+              @click="deletePostById(post.post_id)"
             >
-              <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <BookmarkIcon class="w-4 h-4 text-primary-text" />
-                  <span
-                    v-if="post.category_name"
-                    class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded"
-                  >
-                    {{ post.category_name }}
-                  </span>
-                  <!-- 标签 -->
-                  <span
-                    v-for="tag in post.tags?.split(',') || []"
-                    :key="tag"
-                    class="px-2 py-0.5 bg-muted text-primary-text text-xs rounded"
-                  >
-                    #{{ tag.trim() }}
-                  </span>
-                </div>
-                <!-- 删除“点击查看详情”按钮及图标 -->
-              </div>
+              <TrashIcon class="w-4 h-4" />
+            </button>
+          </div>
 
-              <!-- 收藏详情 -->
-              <div v-if="post.collection_details" class="mt-2">
-                <h4
-                  v-if="post.collection_details.title"
-                  class="font-medium text-accent-text mb-1 hover:text-blue-700 transition-colors"
+          <!-- 推文描述 -->
+          <div v-if="post.description" class="mt-3 text-primary-text">
+            <div
+              :class="[
+                'transition-all duration-200',
+                post.showFullDescription || post.description.length <= 150 ? '' : 'line-clamp-3'
+              ]"
+            >
+              {{ decodeHtmlEntities(post.description) }}
+            </div>
+            <button
+              v-if="post.description.length > 150"
+              class="text-blue-600 hover:text-blue-700 text-sm mt-1"
+              @click="post.showFullDescription = !post.showFullDescription"
+            >
+              {{ post.showFullDescription ? t('community.collapse') : t('community.expand') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 收藏内容 -->
+        <div class="p-4" style="padding-top: 2px">
+          <div
+            class="bg-muted rounded-lg p-4 cursor-pointer hover:bg-muted transition-colors"
+            @click="viewCollectionDetail(post.refer_collection_id, post.post_id)"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2 flex-wrap">
+                <BookmarkIcon class="w-4 h-4 text-primary-text" />
+                <span
+                  v-if="post.category_name"
+                  class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded"
                 >
-                  {{ decodeHtmlEntities(post.collection_details.title) }}
-                </h4>
-                <p
-                  v-if="post.collection_details.summary"
-                  class="text-sm text-primary-text line-clamp-2"
+                  {{ post.category_name }}
+                </span>
+                <!-- 标签 -->
+                <span
+                  v-for="tag in post.tags?.split(',') || []"
+                  :key="tag"
+                  class="px-2 py-0.5 bg-muted text-primary-text text-xs rounded"
                 >
-                  {{ parseSummary(post.collection_details.summary) }}
-                </p>
+                  #{{ tag.trim() }}
+                </span>
+              </div>
+              <!-- 删除“点击查看详情”按钮及图标 -->
+            </div>
+
+            <!-- 收藏详情 -->
+            <div v-if="post.collection_details" class="mt-2">
+              <h4
+                v-if="post.collection_details.title"
+                class="font-medium text-accent-text mb-1 hover:text-blue-700 transition-colors"
+              >
+                {{ decodeHtmlEntities(post.collection_details.title) }}
+              </h4>
+              <p
+                v-if="post.collection_details.summary"
+                class="text-sm text-primary-text line-clamp-2"
+              >
+                {{ parseSummary(post.collection_details.summary) }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 操作栏 -->
+        <div class="px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <!-- 点赞 -->
+            <button
+              class="flex items-center gap-1 text-sm transition-colors"
+              :class="post.is_liked_by_me ? 'text-red-500' : 'text-primary-text hover:text-red-500'"
+              @click="toggleLike(post)"
+            >
+              <HeartIcon class="w-4 h-4" :class="post.is_liked_by_me ? 'fill-current' : ''" />
+              {{ post.likes_count }}
+            </button>
+
+            <!-- 评论 -->
+            <button
+              class="flex items-center gap-1 text-sm text-primary-text hover:text-blue-500 transition-colors"
+              @click="toggleComments(post)"
+            >
+              <MessageCircleIcon class="w-4 h-4" />
+              {{ post.comments_count }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 评论区域 -->
+        <div v-if="post.showComments">
+          <!-- 评论输入 -->
+          <div class="p-4">
+            <div class="flex gap-3 items-center">
+              <div
+                class="w-8 h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
+              >
+                <img
+                  v-if="currentUser && currentUser.avatar_attachment_id"
+                  :src="buildAvatarUrl(currentUser.avatar_attachment_id)"
+                  :alt="t('community.myAvatar')"
+                  class="w-full h-full object-cover"
+                />
+                <span v-else class="text-muted-text font-semibold text-xs">我</span>
+              </div>
+              <div class="flex-1 flex items-center bg-muted rounded-lg px-2">
+                <input
+                  v-model="post.newComment"
+                  type="text"
+                  :placeholder="t('community.writeComment')"
+                  class="flex-1 bg-transparent border-none border-radius-lg outline-none py-3 text-sm"
+                  :disabled="post.commentLoading"
+                  @keyup.enter="submitComment(post)"
+                />
+                <button
+                  :disabled="!post.newComment?.trim() || post.commentLoading"
+                  class="ml-2 text-grey-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base px-2 py-1 rounded"
+                  style="min-width: 48px"
+                  @click="submitComment(post)"
+                >
+                  <template v-if="post.commentLoading">...</template>
+                  <template v-else>➤</template>
+                </button>
               </div>
             </div>
           </div>
 
-          <!-- 操作栏 -->
-          <div class="px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-              <!-- 点赞 -->
-              <button
-                class="flex items-center gap-1 text-sm transition-colors"
-                :class="
-                  post.is_liked_by_me ? 'text-red-500' : 'text-primary-text hover:text-red-500'
-                "
-                @click="toggleLike(post)"
+          <!-- 评论列表 -->
+          <div v-if="post.comments && post.comments.length > 0" class="px-4 pb-4">
+            <div
+              v-for="comment in post.comments"
+              :key="comment.id"
+              class="flex gap-3 mb-4 last:mb-0"
+            >
+              <div
+                class="w-8 h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
               >
-                <HeartIcon class="w-4 h-4" :class="post.is_liked_by_me ? 'fill-current' : ''" />
-                {{ post.likes_count }}
-              </button>
-
-              <!-- 评论 -->
-              <button
-                class="flex items-center gap-1 text-sm text-primary-text hover:text-blue-500 transition-colors"
-                @click="toggleComments(post)"
-              >
-                <MessageCircleIcon class="w-4 h-4" />
-                {{ post.comments_count }}
-              </button>
-            </div>
-          </div>
-
-          <!-- 评论区域 -->
-          <div v-if="post.showComments">
-            <!-- 评论输入 -->
-            <div class="p-4">
-              <div class="flex gap-3 items-center">
-                <div
-                  class="w-8 h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
-                >
-                  <img
-                    v-if="currentUser && currentUser.avatar_attachment_id"
-                    :src="buildAvatarUrl(currentUser.avatar_attachment_id)"
-                    :alt="t('community.myAvatar')"
-                    class="w-full h-full object-cover"
-                  />
-                  <span v-else class="text-muted-text font-semibold text-xs">我</span>
+                <img
+                  v-if="comment.avatar_url"
+                  :src="comment.avatar_url"
+                  :alt="t('community.commentAvatar')"
+                  class="w-full h-full object-cover"
+                />
+                <User v-else class="w-6 h-6 text-primary-text" />
+              </div>
+              <div class="flex-1">
+                <div class="bg-muted rounded-lg p-3">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="font-medium text-sm text-accent-text">{{ comment.username }}</span>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs text-primary-text">{{
+                        formatDate(comment.created_at)
+                      }}</span>
+                      <button
+                        v-if="isMyComment(comment)"
+                        class="text-primary-text hover:text-red-500 transition-colors"
+                        @click="deleteCommentById(comment.id)"
+                      >
+                        <TrashIcon class="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <p class="text-sm text-primary-text">
+                    {{ decodeHtmlEntities(comment.content) }}
+                  </p>
                 </div>
-                <div class="flex-1 flex items-center bg-muted rounded-lg px-2">
-                  <input
-                    v-model="post.newComment"
-                    type="text"
-                    :placeholder="t('community.writeComment')"
-                    class="flex-1 bg-transparent border-none border-radius-lg outline-none py-3 text-sm"
-                    :disabled="post.commentLoading"
-                    @keyup.enter="submitComment(post)"
-                  />
+
+                <!-- 评论点赞 -->
+                <div class="flex items-center gap-2 mt-2">
                   <button
-                    :disabled="!post.newComment?.trim() || post.commentLoading"
-                    class="ml-2 text-grey-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base px-2 py-1 rounded"
-                    style="min-width: 48px"
-                    @click="submitComment(post)"
+                    :class="
+                      comment.is_liked_by_me
+                        ? 'text-red-500'
+                        : 'text-primary-text hover:text-red-500'
+                    "
+                    class="flex items-center gap-1 text-xs transition-colors"
+                    @click="toggleCommentLike(comment)"
                   >
-                    <template v-if="post.commentLoading">...</template>
-                    <template v-else>➤</template>
+                    <HeartIcon
+                      class="w-3 h-3"
+                      :class="comment.is_liked_by_me ? 'fill-current' : ''"
+                    />
+                    {{ comment.likes_count }}
                   </button>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- 评论列表 -->
-            <div v-if="post.comments && post.comments.length > 0" class="px-4 pb-4">
-              <div
-                v-for="comment in post.comments"
-                :key="comment.id"
-                class="flex gap-3 mb-4 last:mb-0"
-              >
-                <div
-                  class="w-8 h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
-                >
-                  <img
-                    v-if="comment.avatar_url"
-                    :src="comment.avatar_url"
-                    :alt="t('community.commentAvatar')"
-                    class="w-full h-full object-cover"
-                  />
-                  <User v-else class="w-6 h-6 text-primary-text" />
-                </div>
-                <div class="flex-1">
-                  <div class="bg-muted rounded-lg p-3">
-                    <div class="flex items-center justify-between mb-1">
-                      <span class="font-medium text-sm text-accent-text">{{
-                        comment.username
-                      }}</span>
-                      <div class="flex items-center gap-2">
-                        <span class="text-xs text-primary-text">{{
-                          formatDate(comment.created_at)
-                        }}</span>
-                        <button
-                          v-if="isMyComment(comment)"
-                          class="text-primary-text hover:text-red-500 transition-colors"
-                          @click="deleteCommentById(comment.id)"
-                        >
-                          <TrashIcon class="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                    <p class="text-sm text-primary-text">
-                      {{ decodeHtmlEntities(comment.content) }}
-                    </p>
-                  </div>
-
-                  <!-- 评论点赞 -->
-                  <div class="flex items-center gap-2 mt-2">
-                    <button
-                      :class="
-                        comment.is_liked_by_me
-                          ? 'text-red-500'
-                          : 'text-primary-text hover:text-red-500'
-                      "
-                      class="flex items-center gap-1 text-xs transition-colors"
-                      @click="toggleCommentLike(comment)"
-                    >
-                      <HeartIcon
-                        class="w-3 h-3"
-                        :class="comment.is_liked_by_me ? 'fill-current' : ''"
-                      />
-                      {{ comment.likes_count }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 加载更多评论 -->
-            <div v-if="post.hasMoreComments" class="px-4 pb-4">
-              <button
-                :disabled="post.loadingComments"
-                class="w-full py-2 text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
-                @click="loadMoreComments(post)"
-              >
-                {{
-                  post.loadingComments
-                    ? t('community.loadingComments')
-                    : t('community.loadMoreComments')
-                }}
-              </button>
-            </div>
+          <!-- 加载更多评论 -->
+          <div v-if="post.hasMoreComments" class="px-4 pb-4">
+            <button
+              :disabled="post.loadingComments"
+              class="w-full py-2 text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
+              @click="loadMoreComments(post)"
+            >
+              {{
+                post.loadingComments
+                  ? t('community.loadingComments')
+                  : t('community.loadMoreComments')
+              }}
+            </button>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- 空状态 -->
-      <div v-else class="text-center py-16">
-        <div
-          class="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6"
-        >
-          <Earth class="w-12 h-12 text-blue-600" />
-        </div>
-        <h2 class="text-xl font-semibold text-accent-text mb-4">{{ t('community.noContent') }}</h2>
-        <p class="text-primary-text mb-6">
-          {{ t('community.beFirst') }}
-        </p>
-        <button
-          class="px-6 py-3 bg-[#52d1dc] text-accent-text rounded-lg hover:bg-[#80DDE5] transition-colors flex items-center gap-2 mx-auto"
-          @click="goToCollections"
-        >
-          <BookmarkIcon class="w-5 h-5" />
-          {{ t('community.viewCollections') }}
-        </button>
+    <!-- 空状态 -->
+    <div v-else class="text-center py-16">
+      <div
+        class="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6"
+      >
+        <Earth class="w-12 h-12 text-blue-600" />
       </div>
+      <h2 class="text-xl font-semibold text-accent-text mb-4">{{ t('community.noContent') }}</h2>
+      <p class="text-primary-text mb-6">
+        {{ t('community.beFirst') }}
+      </p>
+      <button
+        class="px-6 py-3 bg-[#52d1dc] text-accent-text rounded-lg hover:bg-[#80DDE5] transition-colors flex items-center gap-2 mx-auto"
+        @click="goToCollections"
+      >
+        <BookmarkIcon class="w-5 h-5" />
+        {{ t('community.viewCollections') }}
+      </button>
+    </div>
 
-      <!-- 加载更多 -->
-      <div v-if="posts.length > 0 && hasMore" class="text-center py-6">
-        <button
-          :disabled="loadingMore"
-          class="px-6 py-2 bg-blue-600 text-muted-text rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-          @click="loadMore"
-        >
-          {{ loadingMore ? t('community.loadingComments') : t('community.loadMore') }}
-        </button>
-      </div>
+    <!-- 加载更多 -->
+    <div v-if="posts.length > 0 && hasMore" class="text-center py-6">
+      <button
+        :disabled="loadingMore"
+        class="px-6 py-2 bg-blue-600 text-muted-text rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+        @click="loadMore"
+      >
+        {{ loadingMore ? t('community.loadingComments') : t('community.loadMore') }}
+      </button>
+    </div>
 
-      <!-- 无更多内容提示 -->
-      <div v-if="posts.length > 0 && !hasMore" class="text-center py-6">
-        <div class="text-primary-text text-sm">
-          {{ t('community.noMoreContent') }}
-        </div>
+    <!-- 无更多内容提示 -->
+    <div v-if="posts.length > 0 && !hasMore" class="text-center py-6">
+      <div class="text-primary-text text-sm">
+        {{ t('community.noMoreContent') }}
       </div>
     </div>
   </div>

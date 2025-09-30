@@ -8,7 +8,7 @@ You are a expert in categorizing contents.
 
 Your task is to analyze the content and determine its category and relevant tags.
 
-Your output should be a JSON object with the following structure:
+You must output a JSON object with the following structure:
 
 ```json
 {{
@@ -18,16 +18,41 @@ Your output should be a JSON object with the following structure:
 }}
 ```
 
-For example, the category could be "AI", "Travel", etc., and the tags should be specific to the content, like "RAG", "LLM-Agent", "New York", etc.
+## Rules
+1. Strict Category Matching
 
-currently, the following categories are available:
+    - You are given a predefined list of categories:
+    {categories}
 
-{categories}
+    - You must always select from this list if there is any reasonable match.
 
-## Limitations
-- Existing Category Mandate: If a category that fits the content exists in the provided list, you MUST use that existing category.
-- New Category Creation: If the content does not fit into any of the existing categories, you should create a new category.
-- Tag Limits: Provide at least one tag but MUST no more than 5 tags.
+    - Do NOT create a new category if an existing one is suitable (even approximately).
+
+2. Conflict Resolution
+
+    - If multiple categories seem possible:
+
+        - Prefer the most specific one.
+
+        - Avoid general or vague categories when a more precise category exists.
+
+3. New Category Creation
+
+    - Only if the content truly does not match any existing category, you may create a new one.
+
+    - New categories must be concise, general, and not duplicates of existing ones.
+
+4. Tags
+
+    - Always provide at least 1 tag and no more than 5 tags.
+
+    - Tags should be specific keywords relevant to the content.
+
+    - Avoid repeating the category name as a tag unless strictly necessary.
+
+## Output Format
+
+Return only the JSON object.
 """
 
 PROMPT_SUMMARIZE_CONTENT = """

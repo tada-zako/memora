@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen bg-primary flex flex-col">
+  <div class="max-h-screen bg-muted flex flex-col overflow-hidden">
     <!-- Header -->
     <header class="border-b border-muted-border flex-shrink-0">
       <div class="max-w-6xl mx-auto px-6 py-5">
@@ -140,7 +140,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-6xl px-6 py-6 flex-1 min-h-0">
+    <main class="max-w-6xl px-6 py-6 pb-0 flex-1 min-h-0">
       <div v-if="loading" class="text-center py-16 text-primary-text">
         {{ t('collection.loading') }}
       </div>
@@ -280,10 +280,12 @@
                 @cancel="cancelCreateForm"
               />
             </div>
+
+            <!-- AI panel -->
             <transition name="slide-panel" mode="out-in">
               <div
                 v-if="selectedCollection || showAskAIPanel"
-                class="w-2/5 border border-muted-border rounded-lg bg-primary flex flex-col h-full"
+                class="w-2/5 border border-muted-border rounded-lg bg-primary flex flex-col max-h-full overflow-hidden"
               >
                 <div class="flex items-center justify-between p-4 flex-shrink-0">
                   <div class="flex items-center gap-2">
@@ -316,35 +318,31 @@
                   <div
                     v-if="selectedCollection && !showAskAIPanel"
                     key="overview"
-                    class="p-4 flex-1 overflow-y-auto text-accent-text"
+                    class="p-4 flex-1 h-full overflow-y-auto text-accent-text"
                   >
                     <p>{{ decodeHtmlEntities(selectedCollection?.details?.summary) }}</p>
                   </div>
 
                   <!-- Ask AI Panel -->
-                  <div
-                    v-else-if="showAskAIPanel"
-                    key="askAI"
-                    class="flex flex-col"
-                    style="height: 100%"
-                  >
-                    <div v-if="aiResponse" class="flex-1 p-4 m-4 rounded-lg overflow-y-auto">
-                      <div class="text-primary-text prose">{{ aiResponse }}</div>
+                  <div v-else-if="showAskAIPanel" key="askAI" class="flex flex-col flex-1 min-h-0">
+                    <div class="flex-1 p-4 overflow-y-auto min-h-0">
+                      <div
+                        v-if="aiResponse"
+                        class="rounded-lg text-primary-text whitespace-pre-wrap break-words"
+                      >
+                        {{ aiResponse }}
+                      </div>
+                      <div v-else class="text-primary-text">
+                        {{ t('collection.askAnything') }}
+                      </div>
                     </div>
-                    <div
-                      v-else
-                      class="flex-1 p-4 flex items-center justify-center text-primary-text"
-                    >
-                      {{ t('collection.askAnything') }}
-                    </div>
-
                     <div class="p-4 flex-shrink-0">
                       <div class="border border-muted-border rounded-2xl">
                         <textarea
                           id="input-field"
                           v-model="aiQuery"
                           :placeholder="t('collection.askAIPlaceholder')"
-                          class="w-full resize-none outline-none border-none rounded-t-2xl p-4 min-h-[60px] font-inherit text-base bg-transparent"
+                          class="w-full resize-none text-primary-text outline-none border-none rounded-t-2xl p-4 min-h-[60px] font-inherit text-base bg-transparent"
                           @keydown="handleInputKeyDown"
                           @click:clear="clearMessage"
                         ></textarea>
