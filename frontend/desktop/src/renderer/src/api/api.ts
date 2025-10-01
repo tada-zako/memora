@@ -1,5 +1,6 @@
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import type { ApiResponse } from '@/types'
+import { useRouter } from 'vue-router'
 
 // 从环境变量中获取 API 基础 URL
 const envBaseURL =
@@ -47,7 +48,10 @@ api.interceptors.response.use(
           // 未授权，清除本地存储的 token 并跳转到登录页
           localStorage.removeItem('access_token')
           localStorage.removeItem('user_info')
-          // 这里不直接操作路由，让组件层处理重定向
+
+          // 直接操作路由跳转
+          const router = useRouter()
+          router.push({ name: 'Login' })
           break
         case 403:
           console.error('权限不足')

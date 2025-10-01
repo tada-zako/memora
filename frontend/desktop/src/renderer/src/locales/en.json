@@ -9,6 +9,7 @@
     "settings": "Settings"
   },
   "home": {
+    "refreshTitle": "Refresh the collection list",
     "collections": "Collections",
     "refresh": "Refresh",
     "refreshing": "Refreshing...",

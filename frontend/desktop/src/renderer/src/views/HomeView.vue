@@ -5,9 +5,7 @@
       <!-- 收藏管理页面 -->
       <div v-if="currentPage === 'collections'" class="h-full">
         <!-- 主要内容区域 -->
-        <div
-          class="bg-muted glass-effect h-full min-h-0"
-        >
+        <div class="bg-muted glass-effect h-full min-h-0">
           <!-- 标题区域 -->
           <div
             class="flex items-center justify-between sticky top-0 z-10 bg-muted glass-effect w-full px-4 py-4"
@@ -27,7 +25,7 @@
             <button
               :disabled="isLoadingCollections"
               class="bg-muted hover:bg-accent border-2 border-muted-border hover:border-primary-border text-primary-text px-4 py-2 rounded-lg transition-smooth font-medium text-sm btn-hover flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              title="刷新收藏列表"
+              :title="t('home.refreshTitle')"
               @click="refreshCollections"
             >
               <RefreshIcon :class="['w-4 h-4', isLoadingCollections ? 'animate-spin' : '']" />

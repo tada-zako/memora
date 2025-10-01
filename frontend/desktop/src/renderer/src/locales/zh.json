@@ -9,6 +9,7 @@
     "settings": "设置"
   },
   "home": {
+    "refreshTitle": "刷新收藏列表",
     "collections": "收藏",
     "refresh": "刷新",
     "refreshing": "刷新中...",

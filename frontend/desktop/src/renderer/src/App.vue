@@ -96,7 +96,6 @@ const router = useRouter()
 const route = useRoute()
 
 const sidebarExpanded = ref(true)
-const sidebarToggleCount = ref(0)
 
 const menuItems = computed(() => [
   { id: 'collections', name: t('menu.collections'), icon: Star, route: { name: 'Home' } },

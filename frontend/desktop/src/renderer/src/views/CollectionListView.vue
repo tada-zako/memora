@@ -1,5 +1,5 @@
 <template>
-  <div class="max-h-screen bg-muted flex flex-col overflow-hidden">
+  <div class="max-h-screen h-full bg-muted flex flex-col overflow-hidden">
     <!-- Header -->
     <header class="border-b border-muted-border flex-shrink-0">
       <div class="max-w-6xl mx-auto px-4 py-3">
