@@ -178,7 +178,8 @@
                 <!-- 常规卡片 -->
                 <div
                   v-else
-                  class="border border-muted-border rounded-lg bg-primary hover:shadow-md transition-shadow cursor-pointer group"
+                  :ref="(el) => setRef(el, item.id)"
+                  class="'border border-muted-border rounded-lg bg-primary hover:shadow-md transition-all duration-500 cursor-pointer group',"
                   @click="onCollectionClick(item)"
                 >
                   <div class="p-6">
@@ -434,11 +435,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getCollectionsByCategory } from '@/api'
-import { createKnowledgeBase as apiCreateKnowledgeBase, queryKnowledgeBase } from '@/api'
+import {
+  createKnowledgeBase as apiCreateKnowledgeBase,
+  queryKnowledgeBase,
+  streamQueryKnowledgeBase
+} from '@/api'
 import { createManualCollection, updateCollection, deleteCollection } from '@/api'
 import { isAuthenticated } from '@/api'
 import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
@@ -468,6 +473,7 @@ const router = useRouter()
 const categoryId = route.params.category_id
 
 const collections = ref([])
+const collectionRefs = ref({}) // 用于存储每个收藏项的引用
 const category = ref(null)
 const loading = ref(false)
 const publishModalShow = ref(false)
@@ -538,8 +544,31 @@ const fetchCollectionsByCategory = async () => {
   }
 }
 
-onMounted(() => {
-  fetchCollectionsByCategory()
+const setRef = (el, id) => {
+  if (el) {
+    collectionRefs.value[id] = el
+  } else {
+    delete collectionRefs.value[id]
+  }
+}
+
+onMounted(async () => {
+  await fetchCollectionsByCategory()
+
+  // 检查是否有参数
+  const searchedCollection = route.query.searchedCollection
+  if (searchedCollection) {
+    await nextTick()
+    // 等待 DOM 更新后滚动到指定位置
+    scrollToCollection(parseInt(searchedCollection))
+    // 触发点击事件
+    const element = collectionRefs.value[parseInt(searchedCollection)]
+    console.log('点击收藏项:', element)
+    if (element) {
+      console.log('触发点击事件')
+      element.click()
+    }
+  }
 })
 
 const formatDate = (dateString) => {
@@ -587,6 +616,17 @@ const onCollectionClick = (collection) => {
   showAskAIPanel.value = false // 关闭 Ask AI 面板
 }
 
+// 滚动到指定收藏项
+const scrollToCollection = (collectionId) => {
+  const element = collectionRefs.value[collectionId]
+  if (element) {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    })
+  }
+}
+
 const askAI = async () => {
   if (!aiQuery.value.trim() || !categoryId) return
 
@@ -594,85 +634,15 @@ const askAI = async () => {
     aiLoading.value = true
     aiResponse.value = ''
 
-    const result = await queryKnowledgeBase(categoryId, aiQuery.value)
-
-    // 更详细的响应检查
-    console.log('AI查询结果:', result)
-
-    if (!result) {
-      console.warn('AI查询返回空结果')
-      aiResponse.value = 'AI查询失败: 返回结果为空'
-      return
-    }
-
-    // 检查后端返回的数据结构：result.data.response 或 result.data
-    if (result.data && result.data.response) {
-      aiResponse.value = result.data.response
-    } else if (result.data && typeof result.data === 'string') {
-      aiResponse.value = result.data
-    } else if (result.data && result.data.content) {
-      aiResponse.value = result.data.content
-    } else if (result.data && result.data.answer) {
-      aiResponse.value = result.data.answer
-    } else if (result.data) {
-      // 如果data是对象，尝试转换为字符串
-      aiResponse.value = JSON.stringify(result.data)
-    } else if (result.response) {
-      // 兼容旧格式
-      aiResponse.value = result.response
-    } else if (typeof result === 'string') {
-      aiResponse.value = result
-    } else {
-      console.warn('AI响应数据结构未知:', result)
-      aiResponse.value = 'AI返回了空响应，请重试。'
+    // const result = await queryKnowledgeBase(categoryId, aiQuery.value)
+    for await (const chunk of streamQueryKnowledgeBase(categoryId, aiQuery.value)) {
+      aiResponse.value += chunk
     }
   } catch (error) {
     console.error('AI查询失败:', error)
 
     // 更详细的错误处理
     let errorMessage = '未知错误'
-
-    if (error.response) {
-      // 服务器返回了错误状态码
-      const status = error.response.status
-      const data = error.response.data
-
-      if (status === 404) {
-        if (data?.detail?.includes('Knowledge base')) {
-          errorMessage = '知识库不存在，请先创建知识库'
-        } else if (data?.detail?.includes('Category')) {
-          errorMessage = '分类不存在'
-        } else {
-          errorMessage = '请求的资源不存在'
-        }
-      } else if (status === 500) {
-        errorMessage = '服务器内部错误，请稍后重试'
-      } else if (status === 401 || status === 403) {
-        errorMessage = '认证失败，请重新登录'
-      } else if (data && data.detail) {
-        errorMessage = data.detail
-      } else if (data && data.message) {
-        errorMessage = data.message
-      } else {
-        errorMessage = `HTTP ${status} 错误`
-      }
-    } else if (error.request) {
-      // 网络请求失败
-      if (error.customMessage) {
-        errorMessage = error.customMessage
-      } else {
-        errorMessage = '网络连接失败，请检查网络连接'
-      }
-    } else if (error.message) {
-      if (error.message.includes('timeout') || error.code === 'ECONNABORTED') {
-        errorMessage = '请求超时，请稍后重试'
-      } else {
-        errorMessage = error.message
-      }
-    } else if (error.detail) {
-      // 处理后端返回的错误信息
-      errorMessage = error.detail
-    }
 
     aiResponse.value = 'AI查询失败: ' + errorMessage
   } finally {

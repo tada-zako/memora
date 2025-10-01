@@ -1,6 +1,8 @@
 import uuid
 import asyncio
+
 from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -14,7 +16,11 @@ from backend.db import get_db, AsyncSessionLocal
 from backend.routers.auth import get_current_user
 from backend.knowledge_base.chromadb_mgr import chroma_db_manager
 from backend.ai.openai_provider import provider_openai
-from backend.ai.PROMPTS import KNOWLEDGE_BASE_QUERY_PROMPT, COLLECTION_SEARCH_PROMPT
+from backend.ai.PROMPTS import (
+    KNOWLEDGE_BASE_QUERY_PROMPT,
+    COLLECTION_SEARCH_PROMPT,
+    ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE,
+)
 from backend.utils.text_splitter import recursive_text_splitter
 
 # Create router instance
@@ -373,7 +379,7 @@ async def query_knowledge_base(
         )
 
         documents = (
-            results["documents"][0]
+            results["documents"][0]  # type: ignore
             if results.get("documents") and len(results["documents"]) > 0
             else []
         )
@@ -410,29 +416,42 @@ async def query_knowledge_base(
         system_prompt = KNOWLEDGE_BASE_QUERY_PROMPT.format(documents=documents_str)
 
         # Ask AI
-        ai_response = await provider_openai.text_chat(
-            prompt=query,
-            system_prompt=system_prompt,
-        )
+        # ai_response = await provider_openai.text_chat(
+        #     prompt=query,
+        #     system_prompt=system_prompt,
+        # )
 
-        if not ai_response or not ai_response.completion_text:
-            logger.error(f"AI response is empty for query: {query}")
-            return Response(
-                code=500,
-                message="AI response is empty",
-                data={
-                    "response": "AI暂时无法生成回答，请稍后重试。",
-                    "documents": documents,
-                },
-            )
+        # if not ai_response or not ai_response.completion_text:
+        #     logger.error(f"AI response is empty for query: {query}")
+        #     return Response(
+        #         code=500,
+        #         message="AI response is empty",
+        #         data={
+        #             "response": "AI暂时无法生成回答，请稍后重试。",
+        #             "documents": documents,
+        #         },
+        #     )
 
-        return Response(
-            code=200,
-            message="Knowledge base queried successfully",
-            data={
-                "response": ai_response.completion_text.strip(),
-                "documents": documents,
-            },
+        async def ai_response_generator():
+            async for chunk in provider_openai.text_chat_stream(
+                prompt=query,
+                system_prompt=system_prompt,
+            ):
+                yield chunk.completion_text
+
+        # return Response(
+        #     code=200,
+        #     message="Knowledge base queried successfully",
+        #     data={
+        #         "response": ai_response.completion_text.strip(),
+        #         "documents": documents,
+        #     },
+        # )
+
+        # 改成使用StreamingResponse返回
+        return StreamingResponse(
+            ai_response_generator(),
+            media_type="text/event-stream",
         )
 
     except HTTPException:
@@ -455,32 +474,6 @@ async def search_collections(
 ):
     """
     Search for collections that match the user's query using AI
-
-    返回示例：
-    {
-        "code": 200,
-        "message": "Collection found successfully",
-        "data": {
-            "collection": {
-            "id": "collection_id",
-            "user_id": "user_id",
-            "category_id": "category_id", 
-            "created_at": "timestamp",
-            "details": {"url": "...", "title": "...", ...}
-            },
-            "category": {
-            "id": "category_id",
-            "name": "category_name",
-            "emoji": "emoji",
-            "knowledge_base_id": "kb_id"
-            },
-            "search_info": {
-            "confidence": "high|medium|low",
-            "reason": "AI匹配理由",
-            "query": "用户查询"
-            }
-        }
-    }
     """
     try:
         user_id = current_user.id
@@ -497,7 +490,7 @@ async def search_collections(
 
         if not collections_data:
             return Response(
-                code=404,
+                code=200,
                 message="No collections found",
                 data={
                     "collection": None,
@@ -533,6 +526,7 @@ async def search_collections(
         system_prompt = COLLECTION_SEARCH_PROMPT.format(
             query=query, collections_context=collections_context
         )
+        system_prompt += ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE
 
         ai_response = await provider_openai.text_chat(
             prompt=f"Please find the most relevant collection for this query: {query}",
@@ -576,7 +570,7 @@ async def search_collections(
             # 查询找到的collection及其category信息
             collection = None
             for item in collections_data:
-                if item.id.scalar() == int(collection_id):
+                if item.id == int(collection_id):  # type: ignore
                     collection = item
                     break
 

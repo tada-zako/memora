@@ -31,7 +31,17 @@
     "selectFile": "Select File",
     "description": "Description (optional)",
     "addDescription": "Add description for this attachment...",
-    "uploadAttachment": "Upload Attachment"
+    "uploadAttachment": "Upload Attachment",
+    "aiSearch": {
+      "title": "AI Smart Search",
+      "inputPlaceholder": "Please enter search content...",
+      "result": "Search Results",
+      "highConfidence": "High Confidence",
+      "mediumConfidence": "Medium Confidence",
+      "lowConfidence": "Low Confidence",
+      "jumpToCollection": "Jump to Collection",
+      "fail": "Search Failed"
+    }
   },
   "login": {
     "loginTitle": "Log in to your account",

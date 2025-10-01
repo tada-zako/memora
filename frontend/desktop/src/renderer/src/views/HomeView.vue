@@ -331,6 +331,135 @@
         </div>
       </div>
     </main>
+
+    <!-- AI search zone -->
+    <div class="bg-primary/80 glass-effect rounded-xl border border-muted-border p-6 m-4">
+      <h3 class="text-lg font-semibold text-accent-text mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path
+            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z"
+          />
+        </svg>
+        {{ t('home.aiSearch.title') }}
+      </h3>
+
+      <div class="space-y-4">
+        <!-- 搜索输入框 -->
+        <div class="relative">
+          <input
+            v-model="aiSearchQuery"
+            type="text"
+            :placeholder="t('home.aiSearch.inputPlaceholder')"
+            :disabled="aiSearchLoading"
+            class="w-full pl-4 pr-12 py-3 text-accent-text border border-muted-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-primary/80"
+            @keydown.enter="handleAiSearch"
+          />
+          <button
+            class="absolute inset-y-0 right-0 pr-3 flex items-center"
+            :disabled="!aiSearchQuery.trim() || aiSearchLoading"
+            @click="handleAiSearch"
+          >
+            <svg
+              v-if="aiSearchLoading"
+              class="animate-spin w-5 h-5 text-primary-text"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+                class="opacity-25"
+              ></circle>
+              <path
+                fill="currentColor"
+                class="opacity-75"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <svg
+              v-else
+              class="w-5 h-5 text-primary-text hover:text-accent-text cursor-pointer"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="M21 21l-4.35-4.35"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 搜索结果 -->
+        <div v-if="aiSearchResult" class="space-y-3">
+          <!-- 成功结果 -->
+          <div
+            v-if="aiSearchResult.success"
+            class="bg-muted/50 rounded-lg p-4 border border-muted-border"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-sm font-medium text-accent-text">{{
+                    t('home.aiSearch.result')
+                  }}</span>
+                  <span
+                    :class="[
+                      'px-2 py-1 text-xs rounded-full',
+                      aiSearchResult.confidence === 'high'
+                        ? 'bg-green-100 text-green-800'
+                        : aiSearchResult.confidence === 'medium'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-800'
+                    ]"
+                  >
+                    {{
+                      aiSearchResult.confidence === 'high'
+                        ? t('home.aiSearch.highConfidence')
+                        : aiSearchResult.confidence === 'medium'
+                          ? t('home.aiSearch.mediumConfidence')
+                          : t('home.aiSearch.lowConfidence')
+                    }}
+                  </span>
+                </div>
+                <p class="text-primary-text text-sm mb-3">{{ aiSearchResult.reason }}</p>
+              </div>
+            </div>
+            <button
+              class="w-full bg-accent text-accent-text py-2 rounded-lg shadow-xl hover:bg-primary transition-smooth font-medium text-sm btn-hover"
+              @click="handleJumpToCollection"
+            >
+              {{ t('home.aiSearch.viewCollection') }}
+            </button>
+          </div>
+
+          <!-- 失败结果 -->
+          <div v-else class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <svg
+                class="w-5 h-5 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+              <span class="text-sm font-medium text-red-800">{{ t('home.aiSearch.fail') }}</span>
+            </div>
+            <p class="text-red-700 text-sm">{{ aiSearchResult.message }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI search zone -->
   </div>
 </template>
 
@@ -362,6 +491,7 @@ import { getCategories, deleteCategory } from '@/api'
 import { getCollectionsByCategory } from '@/api'
 import { isAuthenticated, getLocalUserInfo, refreshAuthStatus } from '@/api'
 import { uploadAttachment } from '@/api'
+import { aiSearch } from '@/api'
 import '../api/debug' // 引入调试工具
 
 const { t } = useI18n()
@@ -390,6 +520,11 @@ const isLoadingCollections = ref(false)
 
 // 上传模态窗口状态
 const showUploadModal = ref(false)
+
+// AI 搜索相关状态
+const aiSearchQuery = ref('')
+const aiSearchLoading = ref(false)
+const aiSearchResult = ref(null)
 
 // 获取收藏列表
 const fetchCollections = async () => {
@@ -463,6 +598,8 @@ const viewCollection = async (collection) => {
 // 刷新收藏
 const refreshCollections = async () => {
   isLoadingCollections.value = true
+  // 清理AI search结果
+  clearAiSearchResult()
   try {
     await fetchCollections()
   } catch (error) {
@@ -507,6 +644,60 @@ const runDebug = async () => {
   if (window.debugAuth) {
     await window.debugAuth.full()
   }
+}
+
+// AI 搜索功能
+const handleAiSearch = async () => {
+  if (!aiSearchQuery.value.trim() || aiSearchLoading.value) return
+
+  aiSearchLoading.value = true
+  aiSearchResult.value = null
+
+  try {
+    const result = await aiSearch(aiSearchQuery.value)
+
+    console.log('AI搜索结果:', result)
+
+    // 成功响应
+    aiSearchResult.value = {
+      success: true,
+      confidence: result.search_info?.confidence || 'low',
+      reason: result.search_info?.reason || '找到匹配的收藏',
+      collection: result.collection,
+      category: result.category
+    }
+  } catch (error) {
+    console.error('AI搜索失败:', error)
+
+    // 失败响应
+    aiSearchResult.value = {
+      success: false,
+      message:
+        error?.response?.data?.message || error?.detail || error?.message || '搜索失败，请重试'
+    }
+  } finally {
+    aiSearchLoading.value = false
+  }
+}
+
+// 跳转到收藏页面
+const handleJumpToCollection = async () => {
+  if (!aiSearchResult.value?.success || !aiSearchResult.value.category) return
+
+  const categoryId = aiSearchResult.value.category.id
+  const collectionId = aiSearchResult.value.collection?.id
+
+  // 先跳转到收藏列表页面
+  await router.push({
+    name: 'CollectionList',
+    params: { category_id: categoryId },
+    query: { searchedCollection: collectionId } // 传递选中的收藏ID
+  })
+}
+
+// 清理AI search结果
+const clearAiSearchResult = () => {
+  aiSearchResult.value = null
 }
 
 // 初始化

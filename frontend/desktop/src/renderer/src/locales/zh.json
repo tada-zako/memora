@@ -31,7 +31,17 @@
     "selectFile": "选择文件",
     "description": "描述（可选）",
     "addDescription": "为此附件添加描述...",
-    "uploadAttachment": "上传附件"
+    "uploadAttachment": "上传附件",
+    "aiSearch": {
+      "title": "AI 智能搜索",
+      "inputPlaceholder": "请输入搜索内容...",
+      "result": "搜索结果",
+      "highConfidence": "高置信度",
+      "mediumConfidence": "中等置信度",
+      "lowConfidence": "低置信度",
+      "jumpToCollection": "跳转到收藏",
+      "fail": "搜索失败"
+    }
   },
   "login": {
     "loginTitle": "登录到你的账户",
