@@ -156,7 +156,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, h, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getCollectionWithAttachment } from '@/api'
 import { isAuthenticated } from '@/api'
@@ -177,14 +177,6 @@ const createIcon = (paths) => ({
   }
 })
 
-const AttachmentIcon = createIcon([
-  'm21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.47 17.36a2 2 0 0 1-2.83-2.83l7.07-7.07'
-])
-const ImageIcon = createIcon([
-  'M8.5 8.5 m -1.5 0 a 1.5 1.5 0 1 0 3 0 a 1.5 1.5 0 1 0 -3 0',
-  'M21 15l-5-5L5 21',
-  'M3 3h18v18H3z'
-])
 const FileIcon = createIcon([
   'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z',
   'M14 2v6h6'
@@ -199,18 +191,6 @@ const DownloadIcon = createIcon([
 const LinkIcon = createIcon([
   'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71',
   'M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'
-])
-const RotateIcon = createIcon([
-  'M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8',
-  'M21 3v5h-5',
-  'M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16',
-  'M3 21v-5h5'
-])
-const ZoomInIcon = createIcon([
-  'M11 11m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0',
-  'm21 21-4.35-4.35',
-  'M11 8v6',
-  'M8 11h6'
 ])
 const UserIcon = createIcon([
   'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2',
@@ -308,16 +288,6 @@ const getFullUrl = (url) => {
   // Handle one or more backslashes and convert to a single forward slash
   const normalizedUrl = url.replace(/\\+/g, '/')
   return `http://localhost:8000/${normalizedUrl}`
-}
-
-const openImageModal = () => {
-  showImageModal.value = true
-}
-
-const getFileSize = (url) => {
-  // 这是一个模拟函数，实际应该从服务器获取文件大小
-  // 可以通过HEAD请求获取Content-Length
-  return '未知大小'
 }
 
 // 键盘事件处理

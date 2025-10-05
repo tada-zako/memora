@@ -207,7 +207,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getPostCollectionDetails } from '@/api'
 import { getPublicCollectionDetails } from '@/api'
@@ -249,7 +249,6 @@ const FileText = {
 }
 
 const route = useRoute()
-const router = useRouter()
 const postId = route.params.post_id
 const collectionId = route.params.collection_id
 
@@ -306,11 +305,6 @@ const tagList = computed(() => {
     .split(',')
     .map((tag) => tag.trim())
     .filter((tag) => tag)
-})
-
-const contentParagraphs = computed(() => {
-  if (!collection.value?.details?.content) return []
-  return collection.value.details.content.split('\n\n').filter((p) => p.trim())
 })
 
 // 新增：正文 markdown 渲染

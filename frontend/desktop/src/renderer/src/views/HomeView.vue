@@ -464,14 +464,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  Camera,
-  User,
-  Bell,
-  Settings,
   Calendar,
   Upload,
   Plus,
@@ -479,17 +475,12 @@ import {
   Edit,
   Trash2,
   FileText,
-  X,
-  ExternalLink,
   RefreshCw as RefreshIcon,
-  Globe,
-  Star,
-  Home
+  Star
 } from 'lucide-vue-next'
-import UploadModal from '../components/UploadModal.vue'
-import { getCategories, deleteCategory } from '@/api'
+import { getCategories } from '@/api'
 import { getCollectionsByCategory } from '@/api'
-import { isAuthenticated, getLocalUserInfo, refreshAuthStatus } from '@/api'
+import { isAuthenticated, refreshAuthStatus } from '@/api'
 import { uploadAttachment } from '@/api'
 import { aiSearch } from '@/api'
 import '../api/debug' // 引入调试工具
@@ -497,29 +488,14 @@ import '../api/debug' // 引入调试工具
 const { t } = useI18n()
 const router = useRouter()
 
-// 侧边栏展开状态
-const sidebarExpanded = ref(false)
-const sidebarToggleCount = ref(0)
-const showAnnoyanceModal = ref(false)
-
 // 当前页面
 const currentPage = ref('collections')
-
-// 菜单项
-const menuItems = [{ id: 'collections', name: '收藏', icon: Star }]
-
-// 用户信息
-const currentUserId = ref(1)
-const todayEvents = ref(0)
 
 // 其他数据和方法
 const events = ref([])
 const attachments = ref([])
 const collections = ref([])
 const isLoadingCollections = ref(false)
-
-// 上传模态窗口状态
-const showUploadModal = ref(false)
 
 // AI 搜索相关状态
 const aiSearchQuery = ref('')
@@ -539,7 +515,7 @@ const fetchCollections = async () => {
     const result = await getCategories()
 
     if (result && result.categories) {
-      collections.value = result.categories.map((category, index) => ({
+      collections.value = result.categories.map((category) => ({
         id: category.id,
         name: category.name,
         icon: category.emoji || '📚',
@@ -609,20 +585,6 @@ const refreshCollections = async () => {
   }
 }
 
-// 其他方法...
-const editCollection = (collection) => {
-  console.log('编辑收藏:', collection)
-}
-
-const deleteCollection = async (collectionId) => {
-  try {
-    await deleteCategory(collectionId)
-    collections.value = collections.value.filter((collection) => collection.id !== collectionId)
-  } catch (error) {
-    console.error('删除分类失败:', error)
-  }
-}
-
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('zh-CN', {
     month: 'short',
@@ -630,20 +592,6 @@ const formatDate = (dateString) => {
     hour: '2-digit',
     minute: '2-digit'
   })
-}
-
-// 处理上传成功
-const handleUploadSuccess = (data) => {
-  console.log('上传成功:', data)
-  // 刷新收藏列表以显示新上传的内容
-  refreshCollections()
-}
-
-// 调试功能
-const runDebug = async () => {
-  if (window.debugAuth) {
-    await window.debugAuth.full()
-  }
 }
 
 // AI 搜索功能

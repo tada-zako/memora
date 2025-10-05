@@ -698,7 +698,7 @@ const processUrlWithAPI = async (url) => {
           tempData.summary += data.data.summary
           break
 
-        case 'index_completed':
+        case 'index_completed': {
           console.log('收到: index_completed')
           currentStep.value = 5
           stepCompleted.value[4] = true
@@ -737,6 +737,7 @@ const processUrlWithAPI = async (url) => {
             showCompletionMessage.value = false
           }, 2000)
           break
+        }
 
         default:
           console.log('未知事件类型:', data.type)
@@ -968,7 +969,7 @@ const removeTag = (index) => {
   editingTags.value.splice(index, 1)
 }
 
-const handleTagKeydown = (event, inputRef) => {
+const handleTagKeydown = (event) => {
   if (event.key === 'Enter' && event.target.value.trim()) {
     event.preventDefault()
     addNewTag(event.target.value)
@@ -1066,67 +1067,12 @@ const useManualUrl = () => {
       statusMessage.value = null
       processUrlWithAPI(url)
     }, 1000)
-  } catch (error) {
+  } catch {
     statusMessage.value = { type: 'error', text: '请输入有效的网页链接' }
     setTimeout(() => {
       statusMessage.value = null
     }, 2000)
   }
-}
-
-const detectBrowser = async () => {
-  try {
-    console.log('Re-starting browser detection from renderer...')
-    isDetectingBrowser.value = true
-    if (window.electronAPI && window.electronAPI.invoke) {
-      const result = await window.electronAPI.invoke('detect-active-browser')
-      console.log('Re-detection result:', result)
-      isDetectingBrowser.value = false
-      if (result.success) {
-        detectedBrowser.value = result.browser
-        hasBrowser.value = result.hasBrowser
-        if (result.hasBrowser) {
-          statusMessage.value = {
-            type: 'success',
-            text: `刷新成功: ${getBrowserDisplayName(result.browser)}`
-          }
-        } else {
-          statusMessage.value = { type: 'info', text: '仍未检测到浏览器' }
-        }
-      } else {
-        detectedBrowser.value = 'NONE'
-        hasBrowser.value = false
-        statusMessage.value = { type: 'error', text: '刷新检测失败' }
-      }
-      setTimeout(() => {
-        statusMessage.value = null
-      }, 2000)
-    }
-  } catch (error) {
-    console.error('Error re-detecting browser:', error)
-    isDetectingBrowser.value = false
-    detectedBrowser.value = 'NONE'
-    hasBrowser.value = false
-    statusMessage.value = { type: 'error', text: '刷新检测出错' }
-    setTimeout(() => {
-      statusMessage.value = null
-    }, 2000)
-  }
-}
-
-const getBrowserDisplayName = (browser) => {
-  const names = {
-    EDGE: 'Edge',
-    CHROME: 'Chrome',
-    FIREFOX: 'Firefox',
-    IE: 'IE',
-    OPERA: 'Opera',
-    BRAVE: 'Brave',
-    VIVALDI: 'Vivaldi',
-    UNKNOWN_BROWSER: '未知浏览器',
-    NONE: '无浏览器'
-  }
-  return names[browser] || browser
 }
 
 onMounted(() => {

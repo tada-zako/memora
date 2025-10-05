@@ -439,11 +439,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getCollectionsByCategory } from '@/api'
-import {
-  createKnowledgeBase as apiCreateKnowledgeBase,
-  queryKnowledgeBase,
-  streamQueryKnowledgeBase
-} from '@/api'
+import { createKnowledgeBase as apiCreateKnowledgeBase, streamQueryKnowledgeBase } from '@/api'
 import { createManualCollection, updateCollection, deleteCollection } from '@/api'
 import { isAuthenticated } from '@/api'
 import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'

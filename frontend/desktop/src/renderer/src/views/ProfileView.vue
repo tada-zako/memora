@@ -227,7 +227,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { User, Edit3, Star, Upload, Clock, RefreshCw, LogOut } from 'lucide-vue-next'
+import { User, Edit3, RefreshCw, LogOut } from 'lucide-vue-next'
 import {
   isAuthenticated,
   getLocalUserInfo,

@@ -327,7 +327,6 @@ import {
   RefreshCw as RefreshIcon,
   Heart as HeartIcon,
   MessageCircle as MessageCircleIcon,
-  ExternalLink as ExternalLinkIcon,
   Bookmark as BookmarkIcon,
   Trash2 as TrashIcon,
   User
@@ -378,7 +377,7 @@ const parseSummary = (summary) => {
       return parseSummary(parsed.summary)
     }
     return decodeHtmlEntities(currentSummary)
-  } catch (e) {
+  } catch {
     // 如果不是一个JSON字符串，则按原样返回
     return decodeHtmlEntities(currentSummary)
   }
