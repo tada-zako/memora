@@ -9,7 +9,7 @@
           <!-- 标题区域 -->
           <div
             class="flex items-center justify-between sticky top-0 z-10 bg-muted glass-effect w-full px-4 py-4"
-            style="margin-bottom: 40px"
+            style="margin-bottom: 20px"
           >
             <div class="flex items-center">
               <div
@@ -34,12 +34,19 @@
           </div>
 
           <div style="width: 92%; margin-left: 20px">
+            <!-- AI添加收藏按钮 - 全宽展示 -->
+            <AddCollectionButton
+              @collection-added="refreshCollections"
+              @navigate-to-collection="navigateToNewCollection"
+            />
+
             <div
               style="
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
                 gap: 16px;
                 max-width: 100%;
+                margin-top: 20px;
               "
             >
               <!-- 收藏卡片 -->
@@ -478,6 +485,7 @@ import {
   RefreshCw as RefreshIcon,
   Star
 } from 'lucide-vue-next'
+import AddCollectionButton from '@/components/AddCollectionButton.vue'
 import { getCategories } from '@/api'
 import { getCollectionsByCategory } from '@/api'
 import { isAuthenticated, refreshAuthStatus } from '@/api'
@@ -628,19 +636,27 @@ const handleAiSearch = async () => {
   }
 }
 
-// 跳转到收藏页面
-const handleJumpToCollection = async () => {
-  if (!aiSearchResult.value?.success || !aiSearchResult.value.category) return
+// 跳转到新创建的收藏
+const navigateToNewCollection = async (collectionData) => {
+  // 等待一小段时间确保数据已刷新
+  await new Promise((resolve) => setTimeout(resolve, 500))
 
-  const categoryId = aiSearchResult.value.category.id
-  const collectionId = aiSearchResult.value.collection?.id
+  if (collectionData.category) {
+    // 如果有分类信息，直接跳转到该分类
+    const targetCategory = collections.value.find((cat) => cat.id === collectionData.category.id)
+    if (targetCategory) {
+      await viewCollection(targetCategory)
+      return
+    }
+  }
 
-  // 先跳转到收藏列表页面
-  await router.push({
-    name: 'CollectionList',
-    params: { category_id: categoryId },
-    query: { searchedCollection: collectionId } // 传递选中的收藏ID
-  })
+  // 如果没有找到特定分类，跳转到收藏数量最多的分类
+  if (collections.value.length > 0) {
+    const categoryWithMostCollections = collections.value.reduce((max, current) =>
+      current.collection_count > max.collection_count ? current : max
+    )
+    await viewCollection(categoryWithMostCollections)
+  }
 }
 
 // 清理AI search结果
