@@ -13,4 +13,4 @@ static_router = APIRouter()
 # Mount static files
 def mount_static_files(app):
     """Mount static file serving for uploads"""
-    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+    app.mount("/backend/uploads", StaticFiles(directory="backend/uploads"), name="uploads")

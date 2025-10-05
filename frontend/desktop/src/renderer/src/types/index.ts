@@ -49,6 +49,23 @@ export interface CollectionDetail {
   updated_at: string
 }
 
+export interface CollectionManualCreate {
+  category_id: number
+  url: string
+  tags: string[]
+  title: string
+  content?: string
+  summary?: string
+}
+
+export interface CollectionUpdate {
+  category_id: number
+  tags?: string[]
+  title?: string
+  content?: string
+  summary?: string
+}
+
 // export interface CreateUrlCollectionData {
 //   url: string
 //   category: string

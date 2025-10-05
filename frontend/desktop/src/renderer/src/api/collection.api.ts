@@ -1,5 +1,5 @@
 import api from './api'
-import type { ApiResponse } from '@/types'
+import type { ApiResponse, CollectionManualCreate, CollectionUpdate } from '@/types'
 import { uploadAttachment, deleteAttachment, getAttachment } from './attachment.api'
 
 // 根据分类ID获取该分类下的所有收藏夹
@@ -460,6 +460,53 @@ export const createPictureCollection = async (collectionData: any): Promise<any>
 
     if (response.code !== 200) {
       throw new Error(response.message || '创建图片收藏失败')
+    }
+
+    return response.data
+  } catch (error) {
+    const err = error as any
+    throw err.response?.data || err.message
+  }
+}
+
+// 手动创建Collection (API层)
+export const createManualCollectionApi = async (collectionData: CollectionManualCreate) => {
+  return await api.post('/api/v1/collection/create', collectionData)
+}
+
+// 更新Collection (API层)
+export const updateCollectionApi = async (collectionId: number, updateData: CollectionUpdate) => {
+  return await api.put(`/api/v1/collection/${collectionId}`, updateData)
+}
+
+// 手动创建Collection (服务层)
+export const createManualCollection = async (
+  collectionData: CollectionManualCreate
+): Promise<any> => {
+  try {
+    const response = await createManualCollectionApi(collectionData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '手动创建收藏失败')
+    }
+
+    return response.data
+  } catch (error) {
+    const err = error as any
+    throw err.response?.data || err.message
+  }
+}
+
+// 更新Collection (服务层)
+export const updateCollection = async (
+  collectionId: number,
+  updateData: CollectionUpdate
+): Promise<any> => {
+  try {
+    const response = await updateCollectionApi(collectionId, updateData)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '更新收藏失败')
     }
 
     return response.data

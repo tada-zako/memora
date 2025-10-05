@@ -43,6 +43,7 @@ class User(Base):
     # Relationship to collections
     collections = relationship("Collection", back_populates="user", cascade="all, delete-orphan")
     avatar = relationship("Attachment", foreign_keys=[avatar_attachment_id])
+    categories = relationship("Category", back_populates="user", cascade="all, delete-orphan")
     # 新增关系
     posts = relationship("Post", back_populates="user", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
@@ -60,6 +61,10 @@ class Category(Base):
     name = Column(String(50), nullable=False)
     emoji = Column(String(10), nullable=True)  # Optional emoji for category
     knowledge_base_id = Column(String(36), nullable=True)  # Optional knowledge base ID
+
+    # 补全关系字段
+    user = relationship("User", back_populates="categories")
+    collections = relationship("Collection", back_populates="category", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Category(id={self.id}, name='{self.name}')>"
@@ -82,7 +87,7 @@ class Collection(Base):
 
     # Relationship to user
     user = relationship("User", back_populates="collections")
-    category = relationship("Category")
+    category = relationship("Category", back_populates="collections")
     details = relationship(
         "CollectionDetail", back_populates="collection", cascade="all, delete-orphan"
     )

@@ -8,7 +8,7 @@ You are a expert in categorizing contents.
 
 Your task is to analyze the content and determine its category and relevant tags.
 
-Your output should be a JSON object with the following structure:
+You must output a JSON object with the following structure:
 
 ```json
 {{
@@ -18,15 +18,41 @@ Your output should be a JSON object with the following structure:
 }}
 ```
 
-For example, the category could be "AI", "Travel", etc., and the tags should be specific to the content, like "RAG", "LLM-Agent", "New York", etc.
+## Rules
+1. Strict Category Matching
 
-currently, we have the following categories:
+    - You are given a predefined list of categories:
+    {categories}
 
-{categories}
+    - You must always select from this list if there is any reasonable match.
 
-## Limitations
-- If the content does not fit into any of the existing categories, you should create a new category.
-- Provide at least one tag but MUST no more than 5 tags.
+    - Do NOT create a new category if an existing one is suitable (even approximately).
+
+2. Conflict Resolution
+
+    - If multiple categories seem possible:
+
+        - Prefer the most specific one.
+
+        - Avoid general or vague categories when a more precise category exists.
+
+3. New Category Creation
+
+    - Only if the content truly does not match any existing category, you may create a new one.
+
+    - New categories must be concise, general, and not duplicates of existing ones.
+
+4. Tags
+
+    - Always provide at least 1 tag and no more than 5 tags.
+
+    - Tags should be specific keywords relevant to the content.
+
+    - Avoid repeating the category name as a tag unless strictly necessary.
+
+## Output Format
+
+Return only the JSON object.
 """
 
 PROMPT_SUMMARIZE_CONTENT = """
@@ -91,3 +117,48 @@ def parse_json(text: str) -> dict:
     pattern = re.compile(r"(?i)```json[\s\r\n]*(.*?)```", re.DOTALL)
     matches = pattern.findall(text)
     return json.loads(matches[0]) if matches else {}
+
+
+# 新的 prompts
+# 提示AI通过知识库中的内容查找用户想要的收藏词条 TODO
+COLLECTION_SEARCH_PROMPT = """
+You are an expert in analyzing and matching user queries with collection data.
+
+Your task is to analyze the user's query and find the most relevant collection from the provided context.
+
+Context format:
+Each collection is provided in the following format:
+Collection ID: [collection_id]
+URL: [url]
+Title: [title]
+Summary: [summary]
+---
+
+User Query: {query}
+
+Collections Context:
+{collections_context}
+
+## Instructions:
+1. Carefully analyze the user's query to understand what they are looking for
+2. Compare the query against the titles and URLs of all collections
+3. Consider semantic similarity, not just exact keyword matches
+4. Choose the collection that best matches the user's intent
+5. If no collection seems relevant, return null
+
+## Output Format:
+Return only a JSON object with the following structure:
+```json
+{{
+    "collection_id": "string or null",  # The ID of the most relevant collection, or null if no good match
+    "confidence": "high|medium|low",    # Your confidence level in this match
+    "reason": "string"                  # Brief explanation of why this collection was chosen
+}}
+```
+
+## Rules:
+- Always return valid JSON
+- Be selective - only return a collection_id if you are reasonably confident it matches
+- Consider the context and intent behind the user's query
+- Prefer exact matches in titles, but also consider semantic relevance
+"""

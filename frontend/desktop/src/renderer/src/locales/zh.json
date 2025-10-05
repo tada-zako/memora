@@ -9,6 +9,7 @@
     "settings": "设置"
   },
   "home": {
+    "refreshTitle": "刷新收藏列表",
     "collections": "收藏",
     "refresh": "刷新",
     "refreshing": "刷新中...",
@@ -30,7 +31,17 @@
     "selectFile": "选择文件",
     "description": "描述（可选）",
     "addDescription": "为此附件添加描述...",
-    "uploadAttachment": "上传附件"
+    "uploadAttachment": "上传附件",
+    "aiSearch": {
+      "title": "AI 智能搜索",
+      "inputPlaceholder": "请输入搜索内容...",
+      "result": "搜索结果",
+      "highConfidence": "高置信度",
+      "mediumConfidence": "中等置信度",
+      "lowConfidence": "低置信度",
+      "jumpToCollection": "跳转到收藏",
+      "fail": "搜索失败"
+    }
   },
   "login": {
     "loginTitle": "登录到你的账户",
@@ -132,7 +143,36 @@
     "close": "关闭",
     "askAnything": "Ask me anything about this category's knowledge base!",
     "askAIPlaceholder": "Ask AI...",
-    "sending": "发送中..."
+    "sending": "发送中...",
+    "createNewCollection": "创建新的收藏",
+    "title": "标题",
+    "titlePlaceholder": "输入收藏标题...",
+    "content": "内容",
+    "contentPlaceholder": "输入收藏内容...",
+    "url": "链接",
+    "urlPlaceholder": "输入相关链接...",
+    "tags": "标签",
+    "tagsPlaceholder": "输入标签，用逗号分隔...",
+    "summary": "摘要",
+    "summaryPlaceholder": "输入收藏摘要...",
+    "cancel": "取消",
+    "create": "创建",
+    "createSuccess": "收藏创建成功！",
+    "createFailed": "收藏创建失败",
+    "delete": "删除",
+    "openLink": "跳转链接",
+    "edit": "编辑",
+    "update": "更新",
+    "updating": "更新中...",
+    "updateSuccess": "收藏更新成功！",
+    "updateFailed": "收藏更新失败",
+    "confirmDeleteTitle": "删除收藏",
+    "confirmDeleteMessage": "是否确认删除？"
+  },
+  "modal": {
+    "confirmText": "确认",
+    "loadingText": "处理中...",
+    "cancelText": "取消"
   },
   "settings": {
     "title": "设置",

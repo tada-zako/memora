@@ -1,3 +1,4 @@
+import { Category } from './../types/index'
 import api from './api'
 import type { ApiResponse } from '@/types'
 
@@ -155,8 +156,11 @@ export const queryKnowledgeBase = async (
   try {
     const response = await queryKnowledgeBaseApi(categoryId, query)
 
-    // 由于Axios拦截器已经提取了data字段，这里直接返回响应
-    return response
+    if (response.code !== 200) {
+      throw new Error(response.message || '查询知识库失败')
+    }
+
+    return response.data
   } catch (error) {
     const err = error as any
     console.error('查询知识库API错误:', {
@@ -180,5 +184,93 @@ export const queryKnowledgeBase = async (
         detail: err.message || '网络请求失败'
       }
     }
+  }
+}
+
+// 流式查询知识库
+export async function* streamQueryKnowledgeBase(categoryId: string | number, query: string) {
+  try {
+    const params = new URLSearchParams({ query: query })
+
+    const token = localStorage.getItem('access_token')
+
+    const response = await fetch(
+      `/api/v1/category/knowledge_base/${categoryId}?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : ''
+        }
+      }
+    )
+
+    if (!response.ok || !response.body) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder('utf-8')
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      yield decoder.decode(value, { stream: true })
+    }
+  } catch (error) {
+    const err = error as any
+    console.error('流式查询知识库API错误:', {
+      categoryId,
+      query,
+      error: err.message,
+      response: err.response?.data,
+      status: err.response?.status
+    })
+    throw err.response?.data || err.message
+  }
+}
+
+// AI search api （API层 + 服务层）
+export const aiSearchApi = async (query: string): Promise<ApiResponse<any>> => {
+  return await api.get('/api/v1/category/search_collections', { params: { query } })
+}
+
+// 返回示例：
+// {
+//     "code": 200,
+//     "message": "Collection found successfully",
+//     "data": {
+//         "collection": {
+//         "id": "collection_id",
+//         "user_id": "user_id",
+//         "category_id": "category_id",
+//         "created_at": "timestamp",
+//         "details": {"url": "...", "title": "...", ...}
+//         },
+//         "category": {
+//         "id": "category_id",
+//         "name": "category_name",
+//         "emoji": "emoji",
+//         "knowledge_base_id": "kb_id"
+//         },
+//         "search_info": {
+//         "confidence": "high|medium|low",
+//         "reason": "AI匹配理由",
+//         "query": "用户查询"
+//         }
+//     }
+// }
+
+export const aiSearch = async (query: string): Promise<any> => {
+  try {
+    const response = await aiSearchApi(query)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || 'AI响应失败')
+    }
+
+    return response.data
+  } catch (error) {
+    throw error
   }
 }

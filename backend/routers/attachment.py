@@ -22,7 +22,7 @@ router = APIRouter(
 )
 
 # Configuration for file uploads
-UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR = Path("backend/uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}

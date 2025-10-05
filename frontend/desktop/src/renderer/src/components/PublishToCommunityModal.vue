@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="show"
-    class="fixed inset-0 bg-inverse bg-opacity-50 flex items-center justify-center"
+    class="fixed inset-0 backdrop-blur-xl bg-opacity-50 flex items-center justify-center"
     style="z-index: 9999"
     @click.self="closeModal"
   >
@@ -34,7 +34,7 @@
           <textarea
             v-model="description"
             :placeholder="t('community.sharePlaceholder')"
-            class="w-full p-3 border border-muted-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            class="w-full p-3 text-accent-text border border-muted-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             rows="4"
             maxlength="500"
           ></textarea>
@@ -46,7 +46,7 @@
       <!-- 模态框底部 -->
       <div class="flex items-center justify-end gap-3 p-6 border-t border-muted-border">
         <button
-          class="px-4 py-2 bg-primary text-accent-text border border-accent-border rounded-lg hover:bg-muted transition-colors font-medium"
+          class="px-4 py-2 bg-primary text-accent-text border border-accent-border rounded-lg hover:bg-accent transition-colors font-medium"
           :disabled="loading"
           @click="closeModal"
         >
@@ -54,12 +54,12 @@
         </button>
         <button
           :disabled="loading"
-          class="px-4 py-2 bg-inverse text-muted-text rounded-lg hover:bg-accent transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          class="px-4 py-2 bg-primary text-accent-text rounded-lg border border-accent-border hover:bg-accent transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           @click="handlePublish"
         >
           <span
             v-if="loading"
-            class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+            class="w-4 h-4 border-2 border-muted-border border-t-transparent rounded-full animate-spin"
           ></span>
           {{ loading ? t('community.publishing') : t('community.publish') }}
         </button>

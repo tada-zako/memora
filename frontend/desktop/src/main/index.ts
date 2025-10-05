@@ -326,10 +326,10 @@ try {
     # Get all browser processes with main window titles
     $browserNames = @('msedge', 'chrome', 'firefox', 'opera', 'brave', 'vivaldi', 'iexplore')
     Write-Host 'Looking for browser processes...' -ForegroundColor Green
-    
-    $browsers = Get-Process | Where-Object { 
-        $_.ProcessName.ToLower() -in $browserNames -and 
-        $_.MainWindowTitle -and 
+
+    $browsers = Get-Process | Where-Object {
+        $_.ProcessName.ToLower() -in $browserNames -and
+        $_.MainWindowTitle -and
         $_.MainWindowTitle.Trim() -ne ''
     }
 
@@ -370,10 +370,10 @@ Write-Host 'Browser detection completed.' -ForegroundColor Yellow`
         if (!fs.existsSync(userDataDir)) {
           fs.mkdirSync(userDataDir, { recursive: true })
         }
-        
+
         const scriptPath = join(userDataDir, 'detect_browser.ps1')
         scriptPathUsed = scriptPath
-        
+
         fs.writeFileSync(scriptPath, psScript, 'utf8')
         scriptExecuted = true
         console.log('PowerShell script written successfully')
@@ -386,11 +386,11 @@ Write-Host 'Browser detection completed.' -ForegroundColor Yellow`
       if (scriptExecuted && scriptPathUsed) {
         console.log('Executing PowerShell script from file...')
         console.log('Script path:', scriptPathUsed)
-        
+
         // Use double quotes around the path to handle spaces
         const command = `powershell.exe -ExecutionPolicy Bypass -File "${scriptPathUsed}"`
         console.log('Executing command:', command)
-        
+
         const result = await execAsync(command, {
           encoding: 'utf8',
           timeout: 10000,
@@ -439,22 +439,25 @@ Write-Host 'Browser detection completed.' -ForegroundColor Yellow`
       console.log('=== END RAW OUTPUT ===')
 
       // Handle multi-line output by looking for our expected patterns
-      const lines = output.split('\n').map(line => line.trim()).filter(line => line.length > 0)
+      const lines = output
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
       const lastLine = lines[lines.length - 1] || ''
-      
+
       console.log('=== OUTPUT PARSING ===')
       console.log('Lines:', lines)
       console.log('Last line:', JSON.stringify(lastLine))
       console.log('=== END PARSING ===')
 
       // Look for SUCCESS line in the output
-      const successLine = lines.find(line => line.startsWith('SUCCESS:'))
-      
+      const successLine = lines.find((line) => line.startsWith('SUCCESS:'))
+
       if (successLine) {
         const parts = successLine.split(':')
         const browser = parts[1] || 'UNKNOWN'
         const windowTitle = parts.slice(2).join(':') || ''
-        
+
         console.log('SUCCESS detected - Browser:', browser, 'Title:', windowTitle)
         console.log('Full success line:', JSON.stringify(successLine))
 
@@ -467,7 +470,7 @@ Write-Host 'Browser detection completed.' -ForegroundColor Yellow`
       } else {
         console.log('No SUCCESS line found in output')
         console.log('Looking for other patterns...')
-        
+
         if (lastLine === 'ERROR:AddType failed') {
           return {
             success: true,
@@ -937,6 +940,18 @@ app.whenReady().then(() => {
   ipcMain.handle('detect-active-browser', async () => {
     console.log('IPC: detect-active-browser called')
     return await detectActiveBrowser()
+  })
+
+  // 添加打开外部链接的 IPC 处理器
+  ipcMain.handle('open-external-url', async (_event, url: string) => {
+    console.log('IPC: open-external-url called with URL:', url)
+    try {
+      await shell.openExternal(url)
+      return { success: true }
+    } catch (error) {
+      console.error('Error opening external URL:', error)
+      return { success: false, error: error instanceof Error ? error.message : String(error) }
+    }
   })
 
   createWindow()

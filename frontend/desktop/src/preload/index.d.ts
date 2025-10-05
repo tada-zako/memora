@@ -24,6 +24,12 @@ interface CustomAPI {
     error?: string
   }>
 
+  // 打开外部链接
+  openExternalUrl: (url: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
   // 获取操作系统信息
   getPlatform: () => NodeJS.Platform
 

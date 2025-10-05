@@ -1,8 +1,8 @@
 <template>
-  <div class="h-screen bg-primary flex flex-col">
+  <div class="max-h-screen h-full bg-muted flex flex-col overflow-hidden">
     <!-- Header -->
     <header class="border-b border-muted-border flex-shrink-0">
-      <div class="max-w-6xl mx-auto px-6 py-5">
+      <div class="max-w-6xl mx-auto px-4 py-3">
         <div class="flex justify-between items-start mb-2">
           <button
             class="px-2 py-1 bgconst createKnowledgeBase = async () => { if (!categoryId || creatingKnowledgeBase.value) return try { creatingKnowledgeBase.value = true const result = await apiCreateKnowledgeBase(categoryId) if (result.code === ) { // 知识库创建已启动，后台处理 alert('知识库创建已启动，请稍后刷新页面查看状态。') // 由于是后台任务，不立即重新获取数据 } } catch (error) { console.error('创建知识库失败:', error) alert('创建知识库失败: ' + (error.detail || error.message || '未知错误')) } finally { creatingKnowledgeBase.value = false } }-gray-200 rounded text-primary-text font-medium flex items-center gap-2"
@@ -102,7 +102,7 @@
                 v-model="searchQuery"
                 type="text"
                 :placeholder="t('collection.searchCollections')"
-                class="pl-4 pr-4 py-2 border border-muted-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-64"
+                class="pl-4 pr-4 py-2 text-accent-text border border-muted-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-64"
                 @input="handleSearch"
                 @keydown.enter="handleSearch"
               />
@@ -140,7 +140,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-6xl px-6 py-6 flex-1 min-h-0">
+    <main class="max-w-6xl px-4 py-4 pb-0 flex-1 min-h-0">
       <div v-if="loading" class="text-center py-16 text-primary-text">
         {{ t('collection.loading') }}
       </div>
@@ -164,60 +164,150 @@
         <div v-else class="h-full">
           <div class="flex h-full gap-2">
             <div class="flex-1 overflow-y-auto pr-2">
-              <div
-                v-for="item in filteredCollections"
-                :key="item.id"
-                class="border border-muted-border rounded-lg bg-primary hover:shadow-md transition-shadow cursor-pointer group mb-4"
-                @click="onCollectionClick(item)"
-              >
-                <div class="p-6">
-                  <h3
-                    class="text-lg font-semibold text-accent-text mb-2 line-clamp-2 group-hover:text-primary-text transition-colors"
-                  >
-                    <!-- Collection #{{ item.id }} -->
-                    {{ decodeHtmlEntities(item.details.title) }}
-                  </h3>
-                  <div style="display: flex; flex-wrap: wrap; gap: 4px">
-                    <span
-                      v-for="(tag, index) in item.tags"
-                      :key="tag.id"
-                      :index="index"
-                      class="px-2 py-1 bg-muted text-accent-text rounded text-xs font-medium"
-                    >
-                      {{ tag }}
-                    </span>
-                  </div>
+              <div v-for="item in filteredCollections" :key="item.id" class="mb-4">
+                <!-- 编辑表单 -->
+                <CollectionForm
+                  v-if="editingCollectionId === item.id"
+                  v-model="createForm"
+                  :loading="updatingCollection"
+                  :is-editing="true"
+                  @submit="handleUpdateCollection"
+                  @cancel="cancelEditCollection"
+                />
 
-                  <div class="flex items-center justify-between text-xs text-primary-text mt-2">
-                    <div>
+                <!-- 常规卡片 -->
+                <div
+                  v-else
+                  :ref="(el) => setRef(el, item.id)"
+                  class="'border border-muted-border rounded-lg bg-primary hover:shadow-md transition-all duration-500 cursor-pointer group',"
+                  @click="onCollectionClick(item)"
+                >
+                  <div class="p-6">
+                    <div class="flex justify-between items-start">
+                      <!-- 标题 -->
+                      <h3
+                        class="text-lg font-semibold text-accent-text mb-2 line-clamp-2 group-hover:text-primary-text transition-colors"
+                      >
+                        <!-- Collection #{{ item.id }} -->
+                        {{ decodeHtmlEntities(item.details.title) }}
+                      </h3>
+                      <!-- 删除按钮 -->
+                      <button
+                        :title="t('collection.delete')"
+                        class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center float-right"
+                        @click.stop="startDeleteCollection(item.id)"
+                      >
+                        <Trash2 class="w-4 h-4 text-primary-text" />
+                      </button>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px">
+                      <span
+                        v-for="(tag, index) in item.tags"
+                        :key="tag.id"
+                        :index="index"
+                        class="px-2 py-1 bg-muted text-accent-text rounded text-xs font-medium"
+                      >
+                        {{ tag }}
+                      </span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs text-primary-text mt-2">
                       <div>
-                        {{ t('collection.createdAt', { date: formatDate(item.created_at) }) }}
+                        <div>
+                          {{ t('collection.createdAt', { date: formatDate(item.created_at) }) }}
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <!-- 链接按钮 -->
+                        <button
+                          :title="t('collection.openLink')"
+                          class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
+                          @click.stop="handleJumpToLink(item.details.url)"
+                        >
+                          <Link class="w-4 h-4 text-primary-text" />
+                        </button>
+                        <!-- 编辑按钮 -->
+                        <button
+                          :title="t('collection.edit')"
+                          class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
+                          @click.stop="startEditCollection(item)"
+                        >
+                          <svg
+                            class="w-4 h-4 text-primary-text"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                        <!-- 发布按钮 -->
+                        <button
+                          class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
+                          @click.stop="showPublishModal(item.id)"
+                        >
+                          <MessageSquareShare class="w-4 h-4 text-primary-text" />
+                        </button>
                       </div>
                     </div>
-                    <button
-                      class="p-2 bg-primary border border-muted-border rounded-lg hover:bg-muted hover:border-muted-border transition-all duration-200 flex items-center justify-center"
-                      @click.stop="showPublishModal(item.id)"
+                    <div
+                      v-if="item.details && item.details.attachment"
+                      class="mt-4 pt-4 border-t border-muted-border"
                     >
-                      <MessageSquareShare class="w-4 h-4 text-primary-text" />
-                    </button>
-                  </div>
-                  <div
-                    v-if="item.details && item.details.attachment"
-                    class="mt-4 pt-4 border-t border-muted-border"
-                  >
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs text-primary-text truncate">{{
-                        t('collection.attachmentId', { id: item.details.attachment })
-                      }}</span>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-primary-text truncate">{{
+                          t('collection.attachmentId', { id: item.details.attachment })
+                        }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+
+              <!-- Add new collection button -->
+              <div
+                v-if="!showCreateForm"
+                class="border border-muted-border rounded-lg bg-primary hover:shadow-md transition-shadow cursor-pointer group mb-4 border-dashed"
+                @click="showCreateForm = true"
+              >
+                <div class="p-6 flex items-center justify-center">
+                  <div
+                    class="flex items-center gap-3 text-primary-text group-hover:text-accent-text transition-colors"
+                  >
+                    <svg
+                      class="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 5v14m-7-7h14" />
+                    </svg>
+                    <span class="text-lg font-medium">{{
+                      t('collection.createNewCollection')
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Create/Edit collection form -->
+              <CollectionForm
+                v-if="showCreateForm"
+                v-model="createForm"
+                :loading="creatingCollection"
+                :is-editing="false"
+                @submit="handleCreateCollection"
+                @cancel="cancelCreateForm"
+              />
             </div>
+
+            <!-- AI panel -->
             <transition name="slide-panel" mode="out-in">
               <div
                 v-if="selectedCollection || showAskAIPanel"
-                class="w-2/5 border border-muted-border rounded-lg bg-primary flex flex-col h-full"
+                class="w-2/5 border border-muted-border rounded-lg bg-primary flex flex-col max-h-full overflow-hidden"
               >
                 <div class="flex items-center justify-between p-4 flex-shrink-0">
                   <div class="flex items-center gap-2">
@@ -250,35 +340,31 @@
                   <div
                     v-if="selectedCollection && !showAskAIPanel"
                     key="overview"
-                    class="p-4 flex-1 overflow-y-auto"
+                    class="p-4 flex-1 h-full overflow-y-auto text-accent-text"
                   >
                     <p>{{ decodeHtmlEntities(selectedCollection?.details?.summary) }}</p>
                   </div>
 
                   <!-- Ask AI Panel -->
-                  <div
-                    v-else-if="showAskAIPanel"
-                    key="askAI"
-                    class="flex flex-col"
-                    style="height: 100%"
-                  >
-                    <div v-if="aiResponse" class="flex-1 p-4 m-4 rounded-lg overflow-y-auto">
-                      <div class="text-primary-text prose" v-html="renderedAiResponse"></div>
+                  <div v-else-if="showAskAIPanel" key="askAI" class="flex flex-col flex-1 min-h-0">
+                    <div class="flex-1 p-4 overflow-y-auto min-h-0 scrollbar-hide">
+                      <div
+                        v-if="aiResponse"
+                        class="rounded-lg text-primary-text whitespace-pre-wrap break-words"
+                      >
+                        {{ aiResponse }}
+                      </div>
+                      <div v-else class="text-primary-text">
+                        {{ t('collection.askAnything') }}
+                      </div>
                     </div>
-                    <div
-                      v-else
-                      class="flex-1 p-4 flex items-center justify-center text-primary-text"
-                    >
-                      {{ t('collection.askAnything') }}
-                    </div>
-
                     <div class="p-4 flex-shrink-0">
                       <div class="border border-muted-border rounded-2xl">
                         <textarea
                           id="input-field"
                           v-model="aiQuery"
                           :placeholder="t('collection.askAIPlaceholder')"
-                          class="w-full resize-none outline-none border-none rounded-t-2xl p-4 min-h-[60px] font-inherit text-base bg-transparent"
+                          class="w-full resize-none text-primary-text outline-none border-none rounded-t-2xl p-4 min-h-[60px] font-inherit text-base bg-transparent scrollbar-hide"
                           @keydown="handleInputKeyDown"
                           @click:clear="clearMessage"
                         ></textarea>
@@ -335,30 +421,41 @@
     />
 
     <!-- Ask AI 模态框 - 已移除，现在使用卡片显示 -->
+
+    <!-- 通知模态框 -->
+    <ConfirmModal
+      :title="confirmModalTitle"
+      :message="confirmModalMessage"
+      :show="showConfirmModal"
+      :loading="confirmModalLoading"
+      @confirm="handleConfirmModal"
+      @cancel="handleCancelModal"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getCollectionsByCategory } from '@/api'
-import { createKnowledgeBase as apiCreateKnowledgeBase, queryKnowledgeBase } from '@/api'
+import {
+  createKnowledgeBase as apiCreateKnowledgeBase,
+  queryKnowledgeBase,
+  streamQueryKnowledgeBase
+} from '@/api'
+import { createManualCollection, updateCollection, deleteCollection } from '@/api'
 import { isAuthenticated } from '@/api'
 import PublishToCommunityModal from '../components/PublishToCommunityModal.vue'
-import { Sparkle } from 'lucide-vue-next'
+import CollectionForm from '../components/CollectionForm.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import { Sparkles } from 'lucide-vue-next'
 import { ArrowUp } from 'lucide-vue-next'
-import { MessageSquareShare } from 'lucide-vue-next'
-import { marked } from 'marked'
+import { MessageSquareShare, Link, Trash2 } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const BookmarkIcon = {
   template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`
-}
-
-const SearchIcon = {
-  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`
 }
 
 // 解码HTML实体
@@ -376,6 +473,7 @@ const router = useRouter()
 const categoryId = route.params.category_id
 
 const collections = ref([])
+const collectionRefs = ref({}) // 用于存储每个收藏项的引用
 const category = ref(null)
 const loading = ref(false)
 const publishModalShow = ref(false)
@@ -388,6 +486,23 @@ const selectedCollection = ref(null)
 const searchQuery = ref('')
 const filteredCollections = ref([])
 const creatingKnowledgeBase = ref(false)
+const showCreateForm = ref(false)
+const creatingCollection = ref(false)
+const editingCollection = ref(null)
+const editingCollectionId = ref(null) // 跟踪正在编辑的卡片ID
+const updatingCollection = ref(false)
+const createForm = ref({
+  title: '',
+  content: '',
+  url: '',
+  tagsInput: '',
+  summary: ''
+})
+const showConfirmModal = ref(false) // 控制确认模态框显示
+const confirmModalTitle = ref('') // 确认模态框标题
+const confirmModalMessage = ref('') // 确认模态框消息
+const confirmModalAction = ref(null) // 存储要执行的操作函数
+const confirmModalLoading = ref(false) // 模态框加载状态
 
 const fetchCollectionsByCategory = async () => {
   // 检查用户是否已登录
@@ -429,8 +544,31 @@ const fetchCollectionsByCategory = async () => {
   }
 }
 
-onMounted(() => {
-  fetchCollectionsByCategory()
+const setRef = (el, id) => {
+  if (el) {
+    collectionRefs.value[id] = el
+  } else {
+    delete collectionRefs.value[id]
+  }
+}
+
+onMounted(async () => {
+  await fetchCollectionsByCategory()
+
+  // 检查是否有参数
+  const searchedCollection = route.query.searchedCollection
+  if (searchedCollection) {
+    await nextTick()
+    // 等待 DOM 更新后滚动到指定位置
+    scrollToCollection(parseInt(searchedCollection))
+    // 触发点击事件
+    const element = collectionRefs.value[parseInt(searchedCollection)]
+    console.log('点击收藏项:', element)
+    if (element) {
+      console.log('触发点击事件')
+      element.click()
+    }
+  }
 })
 
 const formatDate = (dateString) => {
@@ -478,6 +616,17 @@ const onCollectionClick = (collection) => {
   showAskAIPanel.value = false // 关闭 Ask AI 面板
 }
 
+// 滚动到指定收藏项
+const scrollToCollection = (collectionId) => {
+  const element = collectionRefs.value[collectionId]
+  if (element) {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    })
+  }
+}
+
 const askAI = async () => {
   if (!aiQuery.value.trim() || !categoryId) return
 
@@ -485,85 +634,15 @@ const askAI = async () => {
     aiLoading.value = true
     aiResponse.value = ''
 
-    const result = await queryKnowledgeBase(categoryId, aiQuery.value)
-
-    // 更详细的响应检查
-    console.log('AI查询结果:', result)
-
-    if (!result) {
-      console.warn('AI查询返回空结果')
-      aiResponse.value = 'AI查询失败: 返回结果为空'
-      return
-    }
-
-    // 检查后端返回的数据结构：result.data.response 或 result.data
-    if (result.data && result.data.response) {
-      aiResponse.value = result.data.response
-    } else if (result.data && typeof result.data === 'string') {
-      aiResponse.value = result.data
-    } else if (result.data && result.data.content) {
-      aiResponse.value = result.data.content
-    } else if (result.data && result.data.answer) {
-      aiResponse.value = result.data.answer
-    } else if (result.data) {
-      // 如果data是对象，尝试转换为字符串
-      aiResponse.value = JSON.stringify(result.data)
-    } else if (result.response) {
-      // 兼容旧格式
-      aiResponse.value = result.response
-    } else if (typeof result === 'string') {
-      aiResponse.value = result
-    } else {
-      console.warn('AI响应数据结构未知:', result)
-      aiResponse.value = 'AI返回了空响应，请重试。'
+    // const result = await queryKnowledgeBase(categoryId, aiQuery.value)
+    for await (const chunk of streamQueryKnowledgeBase(categoryId, aiQuery.value)) {
+      aiResponse.value += chunk
     }
   } catch (error) {
     console.error('AI查询失败:', error)
 
     // 更详细的错误处理
     let errorMessage = '未知错误'
-
-    if (error.response) {
-      // 服务器返回了错误状态码
-      const status = error.response.status
-      const data = error.response.data
-
-      if (status === 404) {
-        if (data?.detail?.includes('Knowledge base')) {
-          errorMessage = '知识库不存在，请先创建知识库'
-        } else if (data?.detail?.includes('Category')) {
-          errorMessage = '分类不存在'
-        } else {
-          errorMessage = '请求的资源不存在'
-        }
-      } else if (status === 500) {
-        errorMessage = '服务器内部错误，请稍后重试'
-      } else if (status === 401 || status === 403) {
-        errorMessage = '认证失败，请重新登录'
-      } else if (data && data.detail) {
-        errorMessage = data.detail
-      } else if (data && data.message) {
-        errorMessage = data.message
-      } else {
-        errorMessage = `HTTP ${status} 错误`
-      }
-    } else if (error.request) {
-      // 网络请求失败
-      if (error.customMessage) {
-        errorMessage = error.customMessage
-      } else {
-        errorMessage = '网络连接失败，请检查网络连接'
-      }
-    } else if (error.message) {
-      if (error.message.includes('timeout') || error.code === 'ECONNABORTED') {
-        errorMessage = '请求超时，请稍后重试'
-      } else {
-        errorMessage = error.message
-      }
-    } else if (error.detail) {
-      // 处理后端返回的错误信息
-      errorMessage = error.detail
-    }
 
     aiResponse.value = 'AI查询失败: ' + errorMessage
   } finally {
@@ -609,10 +688,174 @@ const clearSearch = () => {
   filteredCollections.value = collections.value
 }
 
-// 计算属性：渲染AI响应的Markdown
-const renderedAiResponse = computed(() => {
-  return aiResponse.value ? marked(aiResponse.value) : ''
-})
+// 取消编辑Collection卡片
+const cancelEditCollection = () => {
+  editingCollectionId.value = null
+  editingCollection.value = null
+  createForm.value = {
+    title: '',
+    content: '',
+    url: '',
+    tagsInput: '',
+    summary: ''
+  }
+}
+
+// 取消创建/编辑表单
+const cancelCreateForm = () => {
+  showCreateForm.value = false
+  editingCollection.value = null
+  createForm.value = {
+    title: '',
+    content: '',
+    url: '',
+    tagsInput: '',
+    summary: ''
+  }
+}
+
+// 处理创建Collection
+const handleCreateCollection = async (collectionData) => {
+  try {
+    creatingCollection.value = true
+
+    const submitData = {
+      ...collectionData,
+      category_id: parseInt(categoryId)
+    }
+
+    await createManualCollection(submitData)
+
+    // 创建成功后重新获取数据
+    await fetchCollectionsByCategory()
+
+    // 重置表单
+    cancelCreateForm()
+
+    // 显示成功消息
+    alert(t('collection.createSuccess'))
+  } catch (error) {
+    console.error('创建Collection失败:', error)
+    alert(t('collection.createFailed') + ': ' + (error.detail || error.message || '未知错误'))
+  } finally {
+    creatingCollection.value = false
+  }
+}
+
+// 开始编辑Collection
+const startEditCollection = (collection) => {
+  editingCollection.value = collection
+  editingCollectionId.value = collection.id
+  createForm.value = {
+    title: collection.details?.title || '',
+    content: collection.details?.content || '',
+    url: collection.details?.url || '',
+    tagsInput: collection.tags ? collection.tags.join(', ') : '',
+    summary: collection.details?.summary || ''
+  }
+  // 不需要显示创建表单，因为我们直接在卡片位置显示编辑表单
+  showCreateForm.value = false
+}
+
+// 开始删除Collection
+const startDeleteCollection = (id) => {
+  if (!id) return
+
+  // 设置要执行的删除操作
+  confirmModalAction.value = async () => {
+    await handleDeleteCollection(id)
+  }
+
+  // 打开模态框
+  confirmModalTitle.value = t('collection.confirmDeleteTitle')
+  confirmModalMessage.value = t('collection.confirmDeleteMessage')
+  showConfirmModal.value = true
+}
+
+// 实际删除Collection的函数
+const handleDeleteCollection = async (id) => {
+  try {
+    confirmModalLoading.value = true
+
+    await deleteCollection(id)
+
+    // 删除成功后重新获取数据
+    await fetchCollectionsByCategory()
+
+    // 关闭模态框
+    showConfirmModal.value = false
+  } catch (error) {
+    console.error('删除Collection失败:', error)
+    alert(t('collection.deleteFailed') + ': ' + (error.detail || error.message || '未知错误'))
+  } finally {
+    confirmModalLoading.value = false
+  }
+}
+
+// 模态框确认函数
+const handleConfirmModal = async () => {
+  if (confirmModalAction.value) {
+    await confirmModalAction.value()
+  }
+}
+
+// 模态框取消函数
+const handleCancelModal = () => {
+  showConfirmModal.value = false
+  confirmModalAction.value = null
+  confirmModalLoading.value = false
+}
+
+// 跳转到链接
+const handleJumpToLink = async (url) => {
+  if (!url) {
+    alert(t('collection.noUrl'))
+    return
+  }
+
+  try {
+    // 检查是否在 Electron 环境中
+    if (window.electronAPI && window.electronAPI.invoke) {
+      // 在 Electron 中使用主进程打开链接
+      const result = await window.electronAPI.invoke('open-external-url', url)
+      if (!result.success) {
+        console.error('Failed to open URL:', result.error)
+        alert('打开链接失败: ' + result.error)
+      }
+    } else {
+      // 在浏览器中使用 window.open
+      window.open(url, '_blank')
+    }
+  } catch (error) {
+    console.error('Error opening URL:', error)
+    alert('打开链接失败: ' + (error.message || '未知错误'))
+  }
+}
+
+// 处理更新Collection
+const handleUpdateCollection = async (collectionData) => {
+  if (!editingCollection.value) return
+
+  try {
+    updatingCollection.value = true
+
+    await updateCollection(editingCollection.value.id, collectionData)
+
+    // 更新成功后重新获取数据
+    await fetchCollectionsByCategory()
+
+    // 重置编辑状态
+    cancelEditCollection()
+
+    // 显示成功消息
+    alert(t('collection.updateSuccess'))
+  } catch (error) {
+    console.error('更新Collection失败:', error)
+    alert(t('collection.updateFailed') + ': ' + (error.detail || error.message || '未知错误'))
+  } finally {
+    updatingCollection.value = false
+  }
+}
 </script>
 
 <style scoped>

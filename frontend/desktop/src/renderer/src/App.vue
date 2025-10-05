@@ -66,9 +66,10 @@
         </ul>
       </nav>
     </div>
+
     <!-- 主内容区 -->
-    <div class="flex-1 flex flex-col min-w-0">
-      <router-view style="overflow-y: scroll" />
+    <div class="flex-1 flex flex-col min-w-0 max-h-screen p-4 bg-muted border border-muted-border">
+      <router-view />
     </div>
 
     <!-- 黑夜模式切换按钮 -->
@@ -95,7 +96,6 @@ const router = useRouter()
 const route = useRoute()
 
 const sidebarExpanded = ref(true)
-const sidebarToggleCount = ref(0)
 
 const menuItems = computed(() => [
   { id: 'collections', name: t('menu.collections'), icon: Star, route: { name: 'Home' } },

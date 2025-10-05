@@ -24,7 +24,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '@': resolve('src/renderer/src'),
-        'vue': 'vue/dist/vue.esm-bundler.js'
+        vue: 'vue/dist/vue.esm-bundler.js'
       }
     },
     plugins: [vue({}), tailwindcss()],
