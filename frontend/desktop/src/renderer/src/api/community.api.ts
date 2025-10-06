@@ -244,3 +244,25 @@ export const unlikeAsset = async (assetId: string | number, assetType: string): 
     throw err.response?.data || err
   }
 }
+
+// 将社区推文的收藏复制到我的收藏 (API层)
+export const copyPostToMyCollectionApi = async (postId: string) => {
+  return await api.post(`/api/v1/community/posts/${postId}/copy-to-my-collection`)
+}
+
+// 将社区推文的收藏复制到我的收藏 (服务层)
+export const copyPostToMyCollection = async (postId: string): Promise<any> => {
+  try {
+    const response = await copyPostToMyCollectionApi(postId)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '复制收藏失败')
+    }
+
+    return response.data
+  } catch (error) {
+    const err = error as any
+    console.error('复制收藏失败:', err)
+    throw err.response?.data || err
+  }
+}

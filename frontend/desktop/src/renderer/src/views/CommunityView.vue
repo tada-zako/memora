@@ -158,6 +158,28 @@
               {{ post.comments_count }}
             </button>
           </div>
+
+          <!-- 右侧操作按钮 -->
+          <div class="flex items-center gap-2">
+            <!-- 复制到我的收藏按钮 -->
+            <button
+              v-if="!isMyPost(post)"
+              :disabled="post.copying"
+              class="flex items-center gap-1 text-sm text-primary-text hover:text-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              :title="post.copying ? '复制中...' : '复制到我的收藏'"
+              @click="copyToMyCollection(post)"
+            >
+              <svg v-if="!post.copying" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M2.978 8.358l-2.978-2.618 8.707-4.74 3.341 2.345 3.21-2.345 8.742 4.639-3.014 2.68.014.008 3 4.115-3 1.634v4.122l-9 4.802-9-4.802v-4.115l1 .544v2.971l7.501 4.002v-7.889l-2.501 3.634-9-4.893 2.978-4.094zm9.523 5.366v7.875l7.499-4.001v-2.977l-5 2.724-2.499-3.621zm-11.022-1.606l7.208 3.918 1.847-2.684-7.231-3.742-1.824 2.508zm11.989 1.247l1.844 2.671 7.208-3.927-1.822-2.498-7.23 3.754zm-9.477-4.525l8.01-4.43 7.999 4.437-7.971 4.153-8.038-4.16zm-2.256-2.906l2.106 1.851 7.16-3.953-2.361-1.657-6.905 3.759zm11.273-2.052l7.076 3.901 2.176-1.935-6.918-3.671-2.334 1.705z"
+                />
+              </svg>
+              <div
+                v-else
+                class="w-4 h-4 border-2 border-muted-border border-t-green-600 rounded-full animate-spin"
+              ></div>
+            </button>
+          </div>
         </div>
 
         <!-- 评论区域 -->
@@ -315,6 +337,52 @@
         {{ t('community.noMoreContent') }}
       </div>
     </div>
+
+    <!-- Toast通知 -->
+    <div
+      v-if="toast.show"
+      class="fixed top-4 right-4 z-50 max-w-sm transition-all duration-300"
+      :class="toast.show ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'"
+    >
+      <div
+        class="rounded-lg shadow-lg p-4 flex items-center gap-3"
+        :class="toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'"
+      >
+        <svg
+          v-if="toast.type === 'success'"
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+        <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+        <span class="flex-1">{{ toast.message }}</span>
+        <button class="hover:opacity-75" @click="toast.show = false">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -338,7 +406,8 @@ import {
   createComment,
   getPostComments,
   deletePost,
-  deleteComment
+  deleteComment,
+  copyPostToMyCollection
 } from '@/api'
 import { isAuthenticated, buildAvatarUrl } from '@/api'
 
@@ -352,6 +421,11 @@ const loadingMore = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(1)
 const currentUser = ref(null)
+const toast = ref({
+  show: false,
+  message: '',
+  type: 'success'
+})
 
 // 解析summary
 const parseSummary = (summary) => {
@@ -437,6 +511,7 @@ const loadPosts = async (page = 1) => {
             hasMoreComments: post.comments_count > 0,
             commentsPage: 1,
             showFullDescription: false,
+            copying: false,
             avatar_url: await buildAvatarUrl(post.user?.avatar_attachment_id)
           }
         })
@@ -635,6 +710,43 @@ const isMyPost = (post) => {
 // 判断是否是我的评论
 const isMyComment = (comment) => {
   return currentUser.value && comment.user_id === currentUser.value.id
+}
+
+// 显示toast通知
+const showToast = (message, type = 'success') => {
+  toast.value = {
+    show: true,
+    message,
+    type
+  }
+  setTimeout(() => {
+    toast.value.show = false
+  }, 3000)
+}
+
+// 复制他人的收藏到我的收藏
+const copyToMyCollection = async (post) => {
+  if (!post.post_id) {
+    console.error('推文ID不存在')
+    return
+  }
+
+  // 设置复制状态
+  post.copying = true
+
+  try {
+    const result = await copyPostToMyCollection(post.post_id)
+    console.log('收藏复制成功:', result)
+
+    // 显示成功消息
+    showToast(`收藏已成功添加！分类: ${result.category || '未分类'}`, 'success')
+  } catch (error) {
+    console.error('复制收藏失败:', error)
+    showToast('复制收藏失败，请稍后重试', 'error')
+  } finally {
+    // 重置复制状态
+    post.copying = false
+  }
 }
 
 // 跳转到收藏详情页
