@@ -29,7 +29,7 @@
       :class="isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'"
     >
       <div class="bg-primary/80 glass-effect rounded-xl border border-muted-border p-6">
-        <p class="text-primary-text mb-6 text-center">
+        <p class="text-primary-text mb-2 text-center">
           告诉我收藏的来源细节，让 AI 帮你生成摘要并进行分类~
         </p>
 
@@ -37,6 +37,17 @@
         <div class="mb-6">
           <div class="border-b border-muted-border">
             <nav class="-mb-px flex space-x-8">
+              <button
+                class="py-2 px-1 border-b-2 font-medium text-sm transition-colors"
+                :class="
+                  aiAddActiveTab === 'browser'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-primary-text hover:text-accent-text hover:border-muted-border'
+                "
+                @click="aiAddActiveTab = 'browser'"
+              >
+                浏览器页面
+              </button>
               <button
                 class="py-2 px-1 border-b-2 font-medium text-sm transition-colors"
                 :class="
@@ -59,25 +70,26 @@
               >
                 arXiv
               </button>
-              <button
-                class="py-2 px-1 border-b-2 font-medium text-sm transition-colors opacity-50 cursor-not-allowed"
-                :class="
-                  aiAddActiveTab === 'text'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-primary-text hover:text-accent-text hover:border-muted-border'
-                "
-                disabled
-              >
-                文本内容
-              </button>
             </nav>
           </div>
         </div>
 
         <!-- 标签页内容 -->
         <div class="mb-6">
+          <!-- 浏览器页面标签页 -->
+          <div v-if="aiAddActiveTab === 'browser'" class="space-y-4">
+            <div class="text-center py-8">
+              <div class="text-4xl mb-4">🌐</div>
+              <p class="text-primary-text text-sm">
+                请在浏览器页面按下快捷键
+                <kbd class="px-2 py-1 bg-muted rounded text-xs font-mono">Ctrl+空格</kbd>
+                ，即可唤起浮窗。
+              </p>
+            </div>
+          </div>
+
           <!-- 网页链接标签页 -->
-          <div v-if="aiAddActiveTab === 'url'" class="space-y-4">
+          <div v-else-if="aiAddActiveTab === 'url'" class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-accent-text mb-2">网页链接</label>
               <input
@@ -101,20 +113,6 @@
                 placeholder="例如: 1234.5678 或 1234.5678v1"
                 @keydown.enter="handleAIAddCollection"
               />
-            </div>
-          </div>
-
-          <!-- 文本内容标签页 (暂时禁用) -->
-          <div v-else-if="aiAddActiveTab === 'text'" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-accent-text mb-2">文本内容</label>
-              <textarea
-                v-model="aiAddTextInput"
-                class="w-full px-3 py-2 border border-muted-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-accent-text bg-primary"
-                rows="4"
-                placeholder="请输入要收藏的文本内容..."
-                disabled
-              ></textarea>
             </div>
           </div>
         </div>
@@ -147,14 +145,7 @@
         </div>
 
         <!-- 对话框底部 -->
-        <div class="flex justify-end space-x-3">
-          <button
-            class="px-4 py-2 text-primary-text hover:text-accent-text transition-colors"
-            :disabled="aiAddProcessing"
-            @click="closeDrawer"
-          >
-            取消
-          </button>
+        <div v-if="aiAddActiveTab !== 'browser'" class="flex justify-end">
           <button
             class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             :disabled="getButtonDisabledState() || aiAddProcessing"
