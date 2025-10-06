@@ -4,6 +4,7 @@ from sqlalchemy import desc, select, and_, func
 from pydantic import BaseModel
 from typing import Optional
 from datetime import timezone
+from loguru import logger
 
 from backend.entity.response import Response
 from backend.model import (
@@ -18,6 +19,8 @@ from backend.model import (
 )
 from backend.db import get_db
 from backend.routers.auth import get_current_user
+from backend.ai.openai_provider import provider_openai
+from backend.ai.PROMPTS import PROMPT_PARSE_CATEGORY_AND_TAGS, ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE, parse_json
 
 # Create router instance
 router = APIRouter(
@@ -642,5 +645,124 @@ async def get_post_collection_details(
                 "created_at": collection.created_at.replace(tzinfo=timezone.utc).isoformat(),
                 "updated_at": collection.updated_at.replace(tzinfo=timezone.utc).isoformat(),
             }
+        },
+    )
+
+
+@router.post("/posts/{post_id}/copy-to-my-collection", response_model=Response)
+async def copy_post_to_my_collection(
+    post_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    将社区推文的收藏复制到当前用户的收藏中
+    除了分类需要重新AI生成外，其他字段直接复制
+    """
+    # 检查推文是否存在
+    post_query = select(Post).where(Post.post_id == post_id)
+    post_result = await db.execute(post_query)
+    post = post_result.scalar_one_or_none()
+
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="推文不存在")
+
+    # 获取原收藏信息
+    collection_query = select(Collection).where(Collection.id == post.refer_collection_id)
+    collection_result = await db.execute(collection_query)
+    original_collection = collection_result.scalar_one_or_none()
+
+    if not original_collection:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="收藏不存在")
+
+    # 获取原收藏详情
+    details_query = select(CollectionDetail).where(
+        CollectionDetail.collection_id == original_collection.id
+    )
+    details_result = await db.execute(details_query)
+    original_details = details_result.scalars().all()
+
+    # 将详情转换为字典
+    details_dict = {detail.key: detail.value for detail in original_details}
+
+    # 获取内容用于AI分类
+    content = details_dict.get("content", "")
+    title = details_dict.get("title", "")
+    summary = details_dict.get("summary", "")
+
+    # 使用内容、标题和摘要生成新的分类
+    analysis_text = f"标题: {title}\n\n摘要: {summary}\n\n内容: {content[:500]}"
+
+    # 获取当前用户的所有分类
+    categories_query = select(Category.name, Category.emoji).where(
+        Category.user_id == current_user.id
+    )
+    categories_result = await db.execute(categories_query)
+    categories = [row[0] for row in categories_result.all()]
+    category_emojis = [row[1] for row in categories_result.all()]
+
+    categories_str = ", ".join(
+        [f"{cat}({emoji})" for cat, emoji in zip(categories, category_emojis)]
+    )
+    cate_sys_prompt = PROMPT_PARSE_CATEGORY_AND_TAGS.format(categories=categories_str)
+    cate_sys_prompt += f"\n\n{ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE}"
+
+    # 使用AI生成新的分类
+    cate_llm_resp = await provider_openai.text_chat(
+        prompt=analysis_text,
+        system_prompt=cate_sys_prompt,
+    )
+    cate_json = parse_json(cate_llm_resp.completion_text)
+    category: str = cate_json.get("category", "")
+    category_emoji: str = cate_json.get("category_emoji", "")
+
+    # 保存或获取分类
+    category_id = None
+    if category:
+        db_category_query = select(Category).where(
+            Category.name == category, Category.user_id == current_user.id
+        )
+        db_category_result = await db.execute(db_category_query)
+        db_category = db_category_result.scalar_one_or_none()
+
+        if not db_category:
+            # 创建新分类
+            new_category = Category(name=category, emoji=category_emoji, user_id=current_user.id)
+            db.add(new_category)
+            await db.commit()
+            await db.refresh(new_category)
+            category_id = new_category.id
+            logger.info(f"New category created: {new_category.name}")
+        else:
+            category_id = db_category.id
+
+    # 创建新的收藏（复制标签，但使用新的分类）
+    new_collection = Collection(
+        user_id=current_user.id,
+        category_id=category_id,
+        tags=original_collection.tags,  # 直接复制标签
+    )
+    db.add(new_collection)
+    await db.commit()
+    await db.refresh(new_collection)
+
+    # 复制所有详情字段
+    for key, value in details_dict.items():
+        new_detail = CollectionDetail(
+            collection_id=new_collection.id,
+            key=key,
+            value=value
+        )
+        db.add(new_detail)
+
+    await db.commit()
+
+    return Response(
+        code=200,
+        message="收藏复制成功",
+        data={
+            "collection_id": new_collection.id,
+            "category_id": category_id,
+            "category": category,
         },
     )

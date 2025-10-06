@@ -145,7 +145,7 @@
     "askAnything": "询问我任何关于此分类的知识库问题！",
     "askAIPlaceholder": "Ask AI...",
     "sending": "发送中...",
-    "createNewCollection": "创建新的收藏",
+    "createNewCollection": "手动创建新收藏",
     "title": "标题",
     "titlePlaceholder": "输入收藏标题...",
     "content": "内容",
