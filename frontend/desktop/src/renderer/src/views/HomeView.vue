@@ -8,7 +8,7 @@
         <div class="bg-muted glass-effect h-full min-h-0">
           <!-- 标题区域 -->
           <div
-            class="flex items-center justify-between sticky top-0 z-10 bg-muted glass-effect w-full px-4 py-4"
+            class="flex items-center justify-between sticky top-0 z-10 bg-muted glass-effect w-full p-2"
             style="margin-bottom: 20px"
           >
             <div class="flex items-center">

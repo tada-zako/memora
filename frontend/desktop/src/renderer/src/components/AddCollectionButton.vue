@@ -2,7 +2,7 @@
   <div class="w-full">
     <!-- AI添加收藏按钮 - 全宽展示 -->
     <button
-      class="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-4 rounded-lg transition-all duration-300 font-medium text-sm btn-hover flex items-center justify-center space-x-2 mb-4"
+      class="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-3 rounded-lg transition-all duration-300 font-medium text-sm btn-hover flex items-center justify-center space-x-2 mb-4"
       @click="toggleExpanded"
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
