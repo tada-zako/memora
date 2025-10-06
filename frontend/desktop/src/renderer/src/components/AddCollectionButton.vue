@@ -49,6 +49,17 @@
                 网页链接
               </button>
               <button
+                class="py-2 px-1 border-b-2 font-medium text-sm transition-colors"
+                :class="
+                  aiAddActiveTab === 'arxiv'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-primary-text hover:text-accent-text hover:border-muted-border'
+                "
+                @click="aiAddActiveTab = 'arxiv'"
+              >
+                arXiv
+              </button>
+              <button
                 class="py-2 px-1 border-b-2 font-medium text-sm transition-colors opacity-50 cursor-not-allowed"
                 :class="
                   aiAddActiveTab === 'text'
@@ -74,6 +85,20 @@
                 type="url"
                 class="w-full px-3 py-2 border border-muted-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-accent-text bg-primary"
                 placeholder="请输入网页链接..."
+                @keydown.enter="handleAIAddCollection"
+              />
+            </div>
+          </div>
+
+          <!-- arXiv标签页 -->
+          <div v-else-if="aiAddActiveTab === 'arxiv'" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-accent-text mb-2">arXiv ID</label>
+              <input
+                v-model="aiAddArxivInput"
+                type="text"
+                class="w-full px-3 py-2 border border-muted-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-accent-text bg-primary"
+                placeholder="例如: 1234.5678 或 1234.5678v1"
                 @keydown.enter="handleAIAddCollection"
               />
             </div>
@@ -132,7 +157,7 @@
           </button>
           <button
             class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            :disabled="!aiAddUrlInput.trim() || aiAddProcessing"
+            :disabled="getButtonDisabledState() || aiAddProcessing"
             @click="handleAIAddCollection"
           >
             <svg
@@ -191,6 +216,7 @@ import { processUrlWithStreaming } from '@/api'
 const isExpanded = ref(false)
 const aiAddActiveTab = ref('url')
 const aiAddUrlInput = ref('')
+const aiAddArxivInput = ref('')
 const aiAddTextInput = ref('')
 const aiAddProcessing = ref(false)
 const aiCurrentStep = ref(0)
@@ -212,6 +238,19 @@ const newCollectionData = ref({
 // 定义事件
 const emit = defineEmits(['collection-added', 'navigate-to-collection'])
 
+// arXiv ID 校验函数
+const validateArxivId = (id) => {
+  // arXiv ID 格式校验
+  // 支持格式：1234.5678, 1234.5678v1, hep-th/123456 等
+  const arxivPattern = /^(\d{4}\.\d{4,5}(v\d+)?|([a-z-]+\/\d{6,7}))$/
+  return arxivPattern.test(id.trim())
+}
+
+// 拼接 arXiv URL
+const buildArxivUrl = (id) => {
+  return `https://arxiv.org/abs/${id.trim()}`
+}
+
 // 切换展开状态
 const toggleExpanded = () => {
   isExpanded.value = !isExpanded.value
@@ -222,6 +261,7 @@ const closeDrawer = () => {
   isExpanded.value = false
   aiAddActiveTab.value = 'url'
   aiAddUrlInput.value = ''
+  aiAddArxivInput.value = ''
   aiAddTextInput.value = ''
   aiAddProcessing.value = false
   aiCurrentStep.value = 0
@@ -230,11 +270,6 @@ const closeDrawer = () => {
   Object.keys(aiStepCompleted.value).forEach((key) => {
     aiStepCompleted.value[key] = false
   })
-  // 重置新收藏数据
-  newCollectionData.value = {
-    collectionId: null,
-    category: null
-  }
 }
 
 // 显示成功提示
@@ -246,13 +281,45 @@ const showSuccessMessage = () => {
   }, 3000)
 }
 
+// 根据当前标签页获取按钮禁用状态
+const getButtonDisabledState = () => {
+  if (aiAddActiveTab.value === 'url') {
+    return !aiAddUrlInput.value.trim()
+  } else if (aiAddActiveTab.value === 'arxiv') {
+    return !aiAddArxivInput.value.trim()
+  }
+  return true
+}
+
 const handleAIAddCollection = async () => {
-  if (!aiAddUrlInput.value.trim() || aiAddProcessing.value) return
+  let urlToProcess = ''
+
+  // 根据当前标签页确定要处理的URL
+  if (aiAddActiveTab.value === 'url') {
+    if (!aiAddUrlInput.value.trim()) return
+    // 验证URL格式
+    try {
+      new URL(aiAddUrlInput.value)
+      urlToProcess = aiAddUrlInput.value
+    } catch {
+      alert('请输入有效的网页链接')
+      return
+    }
+  } else if (aiAddActiveTab.value === 'arxiv') {
+    if (!aiAddArxivInput.value.trim()) return
+    // 验证arXiv ID格式
+    if (!validateArxivId(aiAddArxivInput.value)) {
+      alert('请输入有效的 arXiv ID 格式（如：1234.5678 或 1234.5678v1）')
+      return
+    }
+    urlToProcess = buildArxivUrl(aiAddArxivInput.value)
+  } else {
+    return // 不支持的标签页
+  }
+
+  if (aiAddProcessing.value) return
 
   try {
-    // 验证URL格式
-    new URL(aiAddUrlInput.value)
-
     // 检查用户认证状态
     if (!isAuthenticated()) {
       alert('请先登录后再使用此功能')
@@ -268,7 +335,7 @@ const handleAIAddCollection = async () => {
     })
 
     // 使用流式处理API
-    await processUrlWithStreaming(aiAddUrlInput.value, (data) => {
+    await processUrlWithStreaming(urlToProcess, (data) => {
       console.log('AI添加收藏 - 收到流数据:', data)
 
       switch (data.type) {
@@ -326,12 +393,8 @@ const handleAIAddCollection = async () => {
       emit('navigate-to-collection', newCollectionData.value)
     }, 500)
   } catch (error) {
-    if (error.name === 'TypeError') {
-      alert('请输入有效的网页链接')
-    } else {
-      console.error('AI添加收藏失败:', error)
-      alert('添加收藏失败: ' + (error.detail || error.message || '未知错误'))
-    }
+    console.error('AI添加收藏失败:', error)
+    alert('添加收藏失败: ' + (error.detail || error.message || '未知错误'))
   } finally {
     aiAddProcessing.value = false
   }
