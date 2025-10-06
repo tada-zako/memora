@@ -102,14 +102,7 @@
         </div>
 
         <!-- Actions -->
-        <div class="flex justify-end gap-3">
-          <button
-            type="button"
-            class="px-4 py-2 text-primary-text hover:text-accent-text border border-accent-border rounded-lg hover:bg-muted transition-colors"
-            @click="handleCancel"
-          >
-            {{ t('collection.cancel') }}
-          </button>
+        <div class="flex justify-end">
           <button
             type="submit"
             :disabled="!formData.title.trim() || loading"

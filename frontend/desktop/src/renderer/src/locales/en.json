@@ -145,7 +145,7 @@
     "askAnything": "Ask me anything about this category's knowledge base!",
     "askAIPlaceholder": "Ask AI...",
     "sending": "Sending...",
-    "createNewCollection": "Create New Collection",
+    "createNewCollection": "Manually Add New Collection",
     "title": "Title",
     "titlePlaceholder": "Enter collection title...",
     "content": "Content",
