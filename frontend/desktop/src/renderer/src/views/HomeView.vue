@@ -340,9 +340,9 @@
     </main>
 
     <!-- AI search zone -->
-    <div class="bg-primary/80 glass-effect rounded-xl border border-muted-border p-6 m-4">
-      <h3 class="text-lg font-semibold text-accent-text mb-4 flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <div class="bg-primary/80 glass-effect rounded-xl border border-muted-border p-4">
+      <h3 class="text-sm font-semibold text-accent-text mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path
             d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z"
           />
@@ -358,7 +358,7 @@
             type="text"
             :placeholder="t('home.aiSearch.inputPlaceholder')"
             :disabled="aiSearchLoading"
-            class="w-full pl-4 pr-12 py-3 text-accent-text border border-muted-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-primary/80"
+            class="w-full pl-4 pr-12 py-2 text-accent-text border border-muted-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-primary/80"
             @keydown.enter="handleAiSearch"
           />
           <button
@@ -437,7 +437,7 @@
               </div>
             </div>
             <button
-              class="w-full bg-accent text-accent-text py-2 rounded-lg shadow-xl hover:bg-primary transition-smooth font-medium text-sm btn-hover"
+              class="w-full bg-accent text-accent-text py-2 rounded-lg shadow hover:bg-primary transition-smooth font-medium text-sm btn-hover"
               @click="handleJumpToCollection"
             >
               {{ t('home.aiSearch.viewCollection') }}
@@ -636,14 +636,45 @@ const handleAiSearch = async () => {
   }
 }
 
+// 跳转到AI搜索找到的收藏
+const handleJumpToCollection = async () => {
+  if (!aiSearchResult.value || !aiSearchResult.value.category) {
+    console.error('AI搜索结果不完整')
+    return
+  }
+
+  try {
+    // 创建一个模拟的collection对象来使用现有的viewCollection函数
+    const targetCategory = {
+      id: aiSearchResult.value.category.id,
+      name: aiSearchResult.value.category.name,
+      icon: aiSearchResult.value.category.emoji || '📚',
+      collection_count: aiSearchResult.value.category.collection_count || 0
+    }
+
+    await viewCollection(targetCategory)
+  } catch (error) {
+    console.error('跳转到收藏失败:', error)
+  }
+}
+
 // 跳转到新创建的收藏
 const navigateToNewCollection = async (collectionData) => {
   // 等待一小段时间确保数据已刷新
   await new Promise((resolve) => setTimeout(resolve, 500))
 
   if (collectionData.category) {
-    // 如果有分类信息，直接跳转到该分类
-    const targetCategory = collections.value.find((cat) => cat.id === collectionData.category.id)
+    let targetCategory = null
+
+    // 检查category是对象还是字符串
+    if (typeof collectionData.category === 'object' && collectionData.category.id) {
+      // 如果是对象，直接通过id查找
+      targetCategory = collections.value.find((cat) => cat.id === collectionData.category.id)
+    } else if (typeof collectionData.category === 'string') {
+      // 如果是字符串，通过name查找
+      targetCategory = collections.value.find((cat) => cat.name === collectionData.category)
+    }
+
     if (targetCategory) {
       await viewCollection(targetCategory)
       return
