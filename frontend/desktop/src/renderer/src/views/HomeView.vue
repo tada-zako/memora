@@ -636,58 +636,19 @@ const handleAiSearch = async () => {
   }
 }
 
-// 跳转到AI搜索找到的收藏
+// 跳转到收藏页面
 const handleJumpToCollection = async () => {
-  if (!aiSearchResult.value || !aiSearchResult.value.category) {
-    console.error('AI搜索结果不完整')
-    return
-  }
+  if (!aiSearchResult.value?.success || !aiSearchResult.value.category) return
 
-  try {
-    // 创建一个模拟的collection对象来使用现有的viewCollection函数
-    const targetCategory = {
-      id: aiSearchResult.value.category.id,
-      name: aiSearchResult.value.category.name,
-      icon: aiSearchResult.value.category.emoji || '📚',
-      collection_count: aiSearchResult.value.category.collection_count || 0
-    }
+  const categoryId = aiSearchResult.value.category.id
+  const collectionId = aiSearchResult.value.collection?.id
 
-    await viewCollection(targetCategory)
-  } catch (error) {
-    console.error('跳转到收藏失败:', error)
-  }
-}
-
-// 跳转到新创建的收藏
-const navigateToNewCollection = async (collectionData) => {
-  // 等待一小段时间确保数据已刷新
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  if (collectionData.category) {
-    let targetCategory = null
-
-    // 检查category是对象还是字符串
-    if (typeof collectionData.category === 'object' && collectionData.category.id) {
-      // 如果是对象，直接通过id查找
-      targetCategory = collections.value.find((cat) => cat.id === collectionData.category.id)
-    } else if (typeof collectionData.category === 'string') {
-      // 如果是字符串，通过name查找
-      targetCategory = collections.value.find((cat) => cat.name === collectionData.category)
-    }
-
-    if (targetCategory) {
-      await viewCollection(targetCategory)
-      return
-    }
-  }
-
-  // 如果没有找到特定分类，跳转到收藏数量最多的分类
-  if (collections.value.length > 0) {
-    const categoryWithMostCollections = collections.value.reduce((max, current) =>
-      current.collection_count > max.collection_count ? current : max
-    )
-    await viewCollection(categoryWithMostCollections)
-  }
+  // 先跳转到收藏列表页面
+  await router.push({
+    name: 'CollectionList',
+    params: { category_id: categoryId },
+    query: { searchedCollection: collectionId } // 传递选中的收藏ID
+  })
 }
 
 // 清理AI search结果

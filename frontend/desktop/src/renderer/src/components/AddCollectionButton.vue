@@ -2,7 +2,7 @@
   <div class="w-full">
     <!-- AI添加收藏按钮 - 全宽展示 -->
     <button
-      class="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-3 rounded-lg transition-all duration-300 font-medium text-sm btn-hover flex items-center justify-center space-x-2 mb-4"
+      class="w-full bg-gradient-to-r from-muted to-primary hover:from-primary hover:to-accent border-2 border-accent hover:border-primary-border text-accent-text px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-smooth font-medium text-sm btn-hover flex items-center justify-center space-x-2 mb-4"
       @click="toggleExpanded"
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -38,10 +38,10 @@
           <div class="border-b border-muted-border">
             <nav class="-mb-px flex space-x-8">
               <button
-                class="py-2 px-1 border-b-2 font-medium text-sm transition-colors"
+                class="py-2 px-1 border-b-2 font-medium text-sm transition-smooth"
                 :class="
                   aiAddActiveTab === 'browser'
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-accent text-accent-text'
                     : 'border-transparent text-primary-text hover:text-accent-text hover:border-muted-border'
                 "
                 @click="aiAddActiveTab = 'browser'"
@@ -49,10 +49,10 @@
                 浏览器页面
               </button>
               <button
-                class="py-2 px-1 border-b-2 font-medium text-sm transition-colors"
+                class="py-2 px-1 border-b-2 font-medium text-sm transition-smooth"
                 :class="
                   aiAddActiveTab === 'url'
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-accent text-accent-text'
                     : 'border-transparent text-primary-text hover:text-accent-text hover:border-muted-border'
                 "
                 @click="aiAddActiveTab = 'url'"
@@ -60,10 +60,10 @@
                 网页链接
               </button>
               <button
-                class="py-2 px-1 border-b-2 font-medium text-sm transition-colors"
+                class="py-2 px-1 border-b-2 font-medium text-sm transition-smooth"
                 :class="
                   aiAddActiveTab === 'arxiv'
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-accent text-accent-text'
                     : 'border-transparent text-primary-text hover:text-accent-text hover:border-muted-border'
                 "
                 @click="aiAddActiveTab = 'arxiv'"
@@ -95,7 +95,7 @@
               <input
                 v-model="aiAddUrlInput"
                 type="url"
-                class="w-full px-3 py-2 border border-muted-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-accent-text bg-primary"
+                class="w-full px-3 py-2 border border-muted-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent text-accent-text bg-primary transition-smooth"
                 placeholder="请输入网页链接..."
                 @keydown.enter="handleAIAddCollection"
               />
@@ -109,7 +109,7 @@
               <input
                 v-model="aiAddArxivInput"
                 type="text"
-                class="w-full px-3 py-2 border border-muted-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-accent-text bg-primary"
+                class="w-full px-3 py-2 border border-muted-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent text-accent-text bg-primary transition-smooth"
                 placeholder="例如: 1234.5678 或 1234.5678v1"
                 @keydown.enter="handleAIAddCollection"
               />
@@ -132,9 +132,9 @@
 
             <!-- 进度条 -->
             <div class="mt-4">
-              <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="w-full bg-muted rounded-full h-2">
                 <div
-                  class="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  class="bg-accent h-2 rounded-full transition-smooth"
                   :style="{
                     width: `${(Object.values(aiStepCompleted).filter(Boolean).length / 5) * 100}%`
                   }"
@@ -147,7 +147,7 @@
         <!-- 对话框底部 -->
         <div v-if="aiAddActiveTab !== 'browser'" class="flex justify-end">
           <button
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            class="px-4 py-2 bg-accent hover:bg-primary text-accent-text rounded-lg transition-smooth disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 btn-hover"
             :disabled="getButtonDisabledState() || aiAddProcessing"
             @click="handleAIAddCollection"
           >
@@ -181,10 +181,10 @@
     <!-- 轻量通知提示 -->
     <div
       v-if="showSuccessToast"
-      class="fixed top-4 right-4 z-50 transform transition-all duration-300 ease-in-out"
+      class="fixed top-4 right-4 z-50 transform transition-smooth"
       :class="showSuccessToast ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'"
     >
-      <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+      <div class="bg-accent border border-muted-border text-accent-text px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
           <path
             fill-rule="evenodd"

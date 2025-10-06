@@ -266,6 +266,32 @@
                 </div>
               </div>
 
+              <!-- Add new collection button -->
+              <div
+                v-if="!showCreateForm"
+                class="border border-muted-border rounded-lg bg-primary hover:shadow-md transition-shadow cursor-pointer group mb-4 border-dashed"
+                @click="showCreateForm = true"
+              >
+                <div class="p-6 flex items-center justify-center">
+                  <div
+                    class="flex items-center gap-3 text-primary-text group-hover:text-accent-text transition-colors"
+                  >
+                    <svg
+                      class="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 5v14m-7-7h14" />
+                    </svg>
+                    <span class="text-lg font-medium">{{
+                      t('collection.createNewCollection')
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+
               <!-- Create/Edit collection form -->
               <CollectionForm
                 v-if="showCreateForm"
@@ -405,18 +431,6 @@
       @confirm="handleConfirmModal"
       @cancel="handleCancelModal"
     />
-
-    <!-- 固定浮动按钮：手动添加新收藏 -->
-    <button
-      v-if="!showCreateForm"
-      class="fixed bottom-6 right-6 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 z-50 opacity-70 hover:opacity-100"
-      @click="showCreateForm = true"
-    >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M12 5v14m-7-7h14" />
-      </svg>
-      <span class="text-sm font-medium">{{ t('collection.createNewCollection') }}</span>
-    </button>
   </div>
 </template>
 
