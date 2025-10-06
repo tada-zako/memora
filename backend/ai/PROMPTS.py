@@ -4,60 +4,42 @@ import re
 ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE = "Your output should be Chinese."
 
 PROMPT_PARSE_CATEGORY_AND_TAGS = """
-You are a expert in categorizing contents.
-
+You are an expert in categorizing contents.
 Your task is to analyze the content and determine its category and relevant tags.
 
-You must output a JSON object with the following structure:
+## Output Format
+
+You MUST output a JSON object with the following structure:
 
 ```json
 {{
-    "category": "string",  # The category of the content
-    "category_emoji": "string",  # An optional emoji representing the category
+    "category": "string",  # The category name of the content
+    "category_emoji": "string",  # An emoji representing the category
     "tags": ["string1", "string2", ...]  # A list of relevant tags
 }}
 ```
 
 ## Rules
-1. Strict Category Matching
+1. Category Matching:
+    - You are given a predefined list of existing categories: {categories}
+    - You should select a proper category from this list if there is any reasonable match.
+    - If multiple categories seem possible, avoid general categories when a more precise category exists.
 
-    - You are given a predefined list of categories:
-    {categories}
-
-    - You must always select from this list if there is any reasonable match.
-
-    - Do NOT create a new category if an existing one is suitable (even approximately).
-
-2. Conflict Resolution
-
-    - If multiple categories seem possible:
-
-        - Prefer the most specific one.
-
-        - Avoid general or vague categories when a more precise category exists.
-
-3. New Category Creation
-
+2. New Category Creation:
     - Only if the content truly does not match any existing category, you may create a new one.
-
     - New categories must be concise, general, and not duplicates of existing ones.
 
-4. Tags
-
+3. Tags Generation:
     - Always provide at least 1 tag and no more than 5 tags.
-
     - Tags should be specific keywords relevant to the content.
-
     - Avoid repeating the category name as a tag unless strictly necessary.
-
-## Output Format
-
-Return only the JSON object.
 """
 
 PROMPT_SUMMARIZE_CONTENT = """
-You are a expert in summarizing contents.
+You are an expert in summarizing contents.
 Your task is to analyze the content and generate a concise summary.
+
+## Output Format
 
 Your output should be a JSON object with the following structure:
 
@@ -69,15 +51,16 @@ Your output should be a JSON object with the following structure:
 """
 
 KNOWLEDGE_BASE_QUERY_PROMPT = """
-You will be givel several documents that related to the user's query.
+You will be given several documents that related to the user's query.
 Your task is to analyze the documents and generate a concise answer to the user's query.
 
-Documents:
+## Documents
+
 {documents}
 """
 
 PICTURE_PROMPT = """
-Anaylize the image and generate a JSON object like:
+Analyze the image and generate a JSON object like:
 
 ```json
 {{
