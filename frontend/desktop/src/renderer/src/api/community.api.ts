@@ -1,8 +1,13 @@
 import api from './api'
 import type { ApiResponse } from '@/types'
 
+// ================= API 层 =================
+
 // 创建推文（发布收藏到社区）
-export const createPostApi = async (referCollectionId, description) => {
+export const createPostApi = async (
+  referCollectionId: string | number,
+  description: string
+): Promise<ApiResponse<any>> => {
   return await api.post('/api/v1/community/posts', {
     refer_collection_id: referCollectionId,
     description: description
@@ -10,26 +15,29 @@ export const createPostApi = async (referCollectionId, description) => {
 }
 
 // 删除推文
-export const deletePostApi = async (postId) => {
+export const deletePostApi = async (postId: string | number): Promise<ApiResponse<any>> => {
   return await api.delete(`/api/v1/community/posts/${postId}`)
 }
 
 // 获取社区最新推文列表
-export const getLatestPostsApi = async (page = 1, limit = 20) => {
+export const getLatestPostsApi = async (page = 1, limit = 20): Promise<ApiResponse<any>> => {
   return await api.get('/api/v1/community/posts-latest', {
     params: { page, limit }
   })
 }
 
 // 获取社区推荐推文列表
-export const getRecommendedPostsApi = async (page = 1, limit = 20) => {
+export const getRecommendedPostsApi = async (page = 1, limit = 20): Promise<ApiResponse<any>> => {
   return await api.get('/api/v1/community/posts-recommended', {
     params: { page, limit }
   })
 }
 
 // 点赞推文或评论
-export const likeAssetApi = async (assetId, assetType) => {
+export const likeAssetApi = async (
+  assetId: string | number,
+  assetType: string
+): Promise<ApiResponse<any>> => {
   return await api.post(`/api/v1/community/like`, {
     asset_id: assetId,
     asset_type: assetType
@@ -37,7 +45,10 @@ export const likeAssetApi = async (assetId, assetType) => {
 }
 
 // 取消点赞推文或评论
-export const unlikeAssetApi = async (assetId, assetType) => {
+export const unlikeAssetApi = async (
+  assetId: string | number,
+  assetType: string
+): Promise<ApiResponse<any>> => {
   return await api.delete('/api/v1/community/like', {
     data: {
       asset_id: assetId,
@@ -47,35 +58,51 @@ export const unlikeAssetApi = async (assetId, assetType) => {
 }
 
 // 为推文添加评论
-export const createCommentApi = async (postId, content) => {
+export const createCommentApi = async (
+  postId: string | number,
+  content: string
+): Promise<ApiResponse<any>> => {
   return await api.post(`/api/v1/community/posts/${postId}/comments`, {
     content
   })
 }
 
 // 获取推文的评论列表
-export const getPostCommentsApi = async (postId, page, limit) => {
+export const getPostCommentsApi = async (
+  postId: string | number,
+  page: number,
+  limit: number
+): Promise<ApiResponse<any>> => {
   return await api.get(`/api/v1/community/posts/${postId}/comments`, {
     params: { page, limit }
   })
 }
 
 // 删除评论
-export const deleteCommentApi = async (commentId) => {
+export const deleteCommentApi = async (commentId: string | number): Promise<ApiResponse<any>> => {
   return await api.delete(`/api/v1/community/comments/${commentId}`)
 }
 
 // 获取推文关联的收藏详情（公共接口，无需登录）
-export const getPostCollectionDetailsApi = async (postId) => {
+export const getPostCollectionDetailsApi = async (
+  postId: string | number
+): Promise<ApiResponse<any>> => {
   return await api.get(`/api/v1/community/posts/${postId}/collection`)
 }
 
 // 获取当前用户推文列表
-export const getUserPostsApi = async (page, limit) => {
+export const getUserPostsApi = async (page: number, limit: number): Promise<ApiResponse<any>> => {
   return await api.get(`/api/v1/community/my-posts`, {
     params: { page, limit }
   })
 }
+
+// 将社区推文的收藏复制到我的收藏
+export const copyPostToMyCollectionApi = async (postId: string): Promise<ApiResponse<any>> => {
+  return await api.post(`/api/v1/community/posts/${postId}/copy-to-my-collection`)
+}
+
+// ================= 服务层 =================
 
 // 创建推文 (服务层)
 export const createPost = async (
@@ -270,11 +297,6 @@ export const unlikeAsset = async (assetId: string | number, assetType: string): 
     console.error('取消点赞失败:', err)
     throw err.response?.data || err
   }
-}
-
-// 将社区推文的收藏复制到我的收藏 (API层)
-export const copyPostToMyCollectionApi = async (postId: string) => {
-  return await api.post(`/api/v1/community/posts/${postId}/copy-to-my-collection`)
 }
 
 // 将社区推文的收藏复制到我的收藏 (服务层)
