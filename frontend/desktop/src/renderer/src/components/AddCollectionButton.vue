@@ -184,7 +184,9 @@
       class="fixed top-4 right-4 z-50 transform transition-smooth"
       :class="showSuccessToast ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'"
     >
-      <div class="bg-accent border border-muted-border text-accent-text px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+      <div
+        class="bg-accent border border-muted-border text-accent-text px-6 py-3 rounded-lg shadow-lg flex items-center gap-3"
+      >
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
           <path
             fill-rule="evenodd"

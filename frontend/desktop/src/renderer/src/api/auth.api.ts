@@ -189,6 +189,8 @@ export const buildAvatarUrl = async (
 export const logout = (): void => {
   localStorage.removeItem('access_token')
   localStorage.removeItem('user_info')
+  // 清除其他可能的用户相关缓存
+  localStorage.removeItem('memora_recommended_posts_cache')
 }
 
 // 检查是否已登录
