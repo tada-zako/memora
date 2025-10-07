@@ -145,3 +145,39 @@ Return only a JSON object with the following structure:
 - Consider the context and intent behind the user's query
 - Prefer exact matches in titles, but also consider semantic relevance
 """
+
+PROMPT_RECOMMEND_POSTS = """
+You are an expert recommendation system for a collection-based social platform.
+
+Your task is to recommend posts that match the user's interests based on their collection patterns.
+
+## User's Top Categories (by collection count):
+{user_categories}
+
+## Recent Posts Available:
+{posts_info}
+
+## Instructions:
+1. Understand user's primary interests
+2. Select posts that align with the user's interests
+3. Prioritize posts with tags or titles that closely relate to the user's categories
+
+## Output Format:
+Return a JSON object with the following structure:
+```json
+{{
+    "recommended_post_ids": [post_id1, post_id2, ...],  # Post IDs here are integers
+    "explanations": {{
+        "post_id1": "brief reason why this post was recommended",
+        "post_id2": "brief reason why this post was recommended"
+    }}
+}}
+```
+
+## Rules:
+- Always return valid JSON
+- The recommended_post_ids should be a list of integers
+- Only recommend post IDs that exist in the provided posts list
+- Order the recommendations by relevance (most relevant first)
+- Return at least 1 post ID, but no more than {max_recommendations}
+"""

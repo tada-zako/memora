@@ -14,9 +14,16 @@ export const deletePostApi = async (postId) => {
   return await api.delete(`/api/v1/community/posts/${postId}`)
 }
 
-// 获取社区推文列表
-export const getPostsApi = async (page = 1, limit = 20) => {
-  return await api.get('/api/v1/community/posts', {
+// 获取社区最新推文列表
+export const getLatestPostsApi = async (page = 1, limit = 20) => {
+  return await api.get('/api/v1/community/posts-latest', {
+    params: { page, limit }
+  })
+}
+
+// 获取社区推荐推文列表
+export const getRecommendedPostsApi = async (page = 1, limit = 20) => {
+  return await api.get('/api/v1/community/posts-recommended', {
     params: { page, limit }
   })
 }
@@ -107,22 +114,42 @@ export const deletePost = async (postId: string | number): Promise<any> => {
   }
 }
 
-// 获取社区推文列表 (服务层)
-export const getPosts = async (page: number = 1, limit: number = 20): Promise<any> => {
+// 获取社区最新推文列表 (服务层)
+export const getLatestPosts = async (page: number = 1, limit: number = 20): Promise<any> => {
   try {
-    const response = await getPostsApi(page, limit)
+    const response = await getLatestPostsApi(page, limit)
 
     if (response.code !== 200) {
-      throw new Error(response.message || '获取推文列表失败')
+      throw new Error(response.message || '获取最新推文列表失败')
     }
 
     return response.data
   } catch (error) {
     const err = error as any
-    console.error('获取推文列表失败:', err)
+    console.error('获取最新推文列表失败:', err)
     throw err.response?.data || err
   }
 }
+
+// 获取社区推荐推文列表 (服务层)
+export const getRecommendedPosts = async (page: number = 1, limit: number = 20): Promise<any> => {
+  try {
+    const response = await getRecommendedPostsApi(page, limit)
+
+    if (response.code !== 200) {
+      throw new Error(response.message || '获取推荐推文列表失败')
+    }
+
+    return response.data
+  } catch (error) {
+    const err = error as any
+    console.error('获取推荐推文列表失败:', err)
+    throw err.response?.data || err
+  }
+}
+
+// 兼容旧的 API 名称，默认返回最新推文
+export const getPosts = getLatestPosts
 
 // 为推文添加评论 (服务层)
 export const createComment = async (postId: string | number, content: string): Promise<any> => {

@@ -25,13 +25,50 @@
       </button>
     </div>
 
+    <!-- 标签页切换 -->
+    <div class="px-4 py-3 border-b border-muted-border">
+      <div class="flex gap-2">
+        <button
+          :class="[
+            'px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200',
+            activeTab === 'latest'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'bg-muted text-primary-text hover:bg-accent'
+          ]"
+          @click="switchTab('latest')"
+        >
+          {{ t('community.latest') }}
+        </button>
+        <button
+          :class="[
+            'px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200',
+            activeTab === 'recommended'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'bg-muted text-primary-text hover:bg-accent'
+          ]"
+          @click="switchTab('recommended')"
+        >
+          {{ t('community.recommended') }}
+        </button>
+      </div>
+    </div>
+
     <!-- 加载状态 -->
     <div v-if="loading && posts.length === 0" class="flex justify-center py-12">
-      <div class="flex items-center gap-2 text-primary-text">
+      <div class="flex flex-col items-center gap-3">
         <div
-          class="w-5 h-5 border-2 border-muted-border border-t-blue-600 rounded-full animate-spin"
+          class="w-8 h-8 border-3 border-muted-border border-t-blue-600 rounded-full animate-spin"
         ></div>
-        {{ t('community.loading') }}
+        <div class="text-primary-text text-center">
+          <div class="font-medium">
+            {{
+              activeTab === 'recommended' ? t('community.aiRecommending') : t('community.loading')
+            }}
+          </div>
+          <div v-if="activeTab === 'recommended'" class="text-sm text-primary-text opacity-70 mt-1">
+            {{ t('community.aiRecommendingHint') }}
+          </div>
+        </div>
       </div>
     </div>
 
@@ -320,8 +357,8 @@
       </button>
     </div>
 
-    <!-- 加载更多 -->
-    <div v-if="posts.length > 0 && hasMore" class="text-center py-6">
+    <!-- 加载更多 (推荐频道隐藏此按钮) -->
+    <div v-if="posts.length > 0 && hasMore && activeTab === 'latest'" class="text-center py-6">
       <button
         :disabled="loadingMore"
         class="px-6 py-2 bg-blue-600 text-muted-text rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
@@ -332,9 +369,16 @@
     </div>
 
     <!-- 无更多内容提示 -->
-    <div v-if="posts.length > 0 && !hasMore" class="text-center py-6">
+    <div v-if="posts.length > 0 && !hasMore && activeTab === 'latest'" class="text-center py-6">
       <div class="text-primary-text text-sm">
         {{ t('community.noMoreContent') }}
+      </div>
+    </div>
+
+    <!-- 推荐频道的底部提示 -->
+    <div v-if="posts.length > 0 && activeTab === 'recommended'" class="text-center py-6">
+      <div class="text-primary-text text-sm opacity-70">
+        {{ t('community.recommendedEndHint') }}
       </div>
     </div>
 
@@ -400,7 +444,8 @@ import {
   User
 } from 'lucide-vue-next'
 import {
-  getPosts,
+  getLatestPosts,
+  getRecommendedPosts,
   likeAsset,
   unlikeAsset,
   createComment,
@@ -421,6 +466,7 @@ const loadingMore = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(1)
 const currentUser = ref(null)
+const activeTab = ref('latest') // 'latest' or 'recommended'
 const toast = ref({
   show: false,
   message: '',
@@ -496,7 +542,9 @@ const loadPosts = async (page = 1) => {
       loadingMore.value = true
     }
 
-    const result = await getPosts(page, 10)
+    // 根据当前标签页选择不同的API
+    const fetchFunction = activeTab.value === 'latest' ? getLatestPosts : getRecommendedPosts
+    const result = await fetchFunction(page, 10)
 
     if (result && result.posts) {
       const newPosts = await Promise.all(
@@ -543,6 +591,17 @@ const loadPosts = async (page = 1) => {
 const refreshPosts = () => {
   currentPage.value = 1
   hasMore.value = true
+  loadPosts(1)
+}
+
+// 切换标签页
+const switchTab = (tab) => {
+  if (activeTab.value === tab) return
+
+  activeTab.value = tab
+  currentPage.value = 1
+  hasMore.value = true
+  posts.value = []
   loadPosts(1)
 }
 

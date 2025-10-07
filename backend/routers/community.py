@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, select, and_, func
 from pydantic import BaseModel
 from typing import Optional
-from datetime import timezone
+from datetime import timezone, datetime
 from loguru import logger
 
 from backend.entity.response import Response
@@ -20,7 +20,17 @@ from backend.model import (
 from backend.db import get_db
 from backend.routers.auth import get_current_user
 from backend.ai.openai_provider import provider_openai
-from backend.ai.PROMPTS import PROMPT_PARSE_CATEGORY_AND_TAGS, ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE, parse_json
+from backend.ai.PROMPTS import (
+    PROMPT_PARSE_CATEGORY_AND_TAGS,
+    ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE,
+    PROMPT_RECOMMEND_POSTS,
+    parse_json,
+)
+
+# 推荐缓存：存储每个用户的推荐结果
+# 格式：{user_id: {"posts": [...], "timestamp": datetime}}
+_recommendation_cache = {}
+CACHE_DURATION_SECONDS = 300  # 5分钟缓存
 
 # Create router instance
 router = APIRouter(
@@ -82,6 +92,107 @@ class PostResponse(BaseModel):
     created_at: str
     updated_at: str
     user: Optional[UserInfo] = None
+
+
+# 辅助函数：获取推文详细信息
+async def _fetch_post_details(
+    post_ids: list[int],
+    current_user: User,
+    db: AsyncSession
+) -> list[PostResponse]:
+    """
+    根据post IDs获取完整的推文详细信息
+    """
+    if not post_ids:
+        return []
+
+    # 获取推文详细信息
+    posts_query = (
+        select(
+            Post,
+            User,
+            Collection,
+            Category.name.label("category_name"),
+            func.count(Like.id.distinct()).label("likes_count"),
+            func.count(Comment.id.distinct()).label("comments_count"),
+        )
+        .join(User, Post.user_id == User.id)
+        .join(Collection, Post.refer_collection_id == Collection.id)
+        .outerjoin(Category, Collection.category_id == Category.id)
+        .outerjoin(Like, and_(Like.asset_id == Post.id, Like.asset_type == AssetType.post))
+        .outerjoin(Comment, Comment.post_id == Post.id)
+        .where(Post.id.in_(post_ids))
+        .group_by(
+            Post.id, User.id, User.username, User.avatar_attachment_id, Collection.id, Category.name
+        )
+    )
+
+    posts_result = await db.execute(posts_query)
+    posts_data = posts_result.all()
+
+    # 按照提供的顺序排序
+    posts_dict = {}
+    for row in posts_data:
+        posts_dict[row[0].id] = row
+
+    posts = []
+    for post_id in post_ids:
+        if post_id not in posts_dict:
+            continue
+
+        row = posts_dict[post_id]
+        post = row[0]
+        user = row[1]
+        collection = row[2]
+        category_name = row[3]
+        likes_count = row[4]
+        comments_count = row[5]
+
+        # 检查当前用户是否已点赞
+        like_query = select(Like).where(
+            and_(
+                Like.asset_id == post.id,
+                Like.asset_type == AssetType.post,
+                Like.user_id == current_user.id,
+            )
+        )
+        like_result = await db.execute(like_query)
+        is_liked_by_me = like_result.scalar_one_or_none() is not None
+
+        # 获取收藏详情
+        details_query = select(CollectionDetail).where(
+            CollectionDetail.collection_id == collection.id
+        )
+        details_result = await db.execute(details_query)
+        details = details_result.scalars().all()
+
+        posts.append(
+            PostResponse(
+                id=post.id,
+                post_id=post.post_id,
+                description=post.description,
+                user_id=post.user_id,
+                username=user.username,
+                avatar_attachment_id=user.avatar_attachment_id,
+                refer_collection_id=post.refer_collection_id,
+                collection_details={detail.key: detail.value for detail in details},
+                category_id=collection.category_id,
+                category_name=category_name,
+                tags=collection.tags,
+                likes_count=likes_count,
+                comments_count=comments_count,
+                is_liked_by_me=is_liked_by_me,
+                created_at=post.created_at.replace(tzinfo=timezone.utc).isoformat(),
+                updated_at=post.updated_at.replace(tzinfo=timezone.utc).isoformat(),
+                user=UserInfo(
+                    id=user.id,
+                    username=user.username,
+                    avatar_attachment_id=user.avatar_attachment_id,
+                ),
+            )
+        )
+
+    return posts
 
 
 @router.post("/posts", response_model=Response)
@@ -147,15 +258,15 @@ async def delete_post(
     return Response(code=200, message="推文删除成功", data={"post_id": post_id})
 
 
-@router.get("/posts", response_model=Response)
-async def get_posts(
+@router.get("/posts-latest", response_model=Response)
+async def get_latest_posts(
     page: int = 1,
     limit: int = 20,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    获取社区推文列表
+    获取社区最新推文列表
     """
     offset = (page - 1) * limit
 
@@ -241,6 +352,177 @@ async def get_posts(
     return Response(
         code=200, message="推文列表获取成功", data={"posts": posts, "page": page, "limit": limit}
     )
+
+
+@router.get("/posts-recommended", response_model=Response)
+async def get_recommended_posts(
+    page: int = 1,
+    limit: int = 20,
+    top_k_categories: int = 5,
+    top_m_posts: int = 50,
+    max_n_recommendations: int = 10,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    获取社区推荐推文列表（基于用户收藏分类的LLM推荐）
+
+    参数：
+    - page: 分页页码
+    - limit: 每页数量
+    - top_k_categories: 获取用户收藏数量最多的前k个分类 (默认5)
+    - top_m_posts: 从最新的m个推文中选择 (默认50)
+    - max_n_recommendations: LLM最多推荐n个推文 (默认10)
+
+    缓存策略：每个用户的推荐结果缓存300秒
+    """
+    try:
+        # 检查缓存
+        user_id = current_user.id
+        now = datetime.now(timezone.utc)
+
+        if user_id in _recommendation_cache:
+            cached_data = _recommendation_cache[user_id]
+            cache_age = (now - cached_data["timestamp"]).total_seconds()
+
+            if cache_age < CACHE_DURATION_SECONDS:
+                logger.info(f"Recommendations cache used for user {user_id}, age: {cache_age:.0f}s")
+                cached_post_ids = cached_data["post_ids"]
+
+                # 应用分页
+                offset = (page - 1) * limit
+                paginated_post_ids = cached_post_ids[offset:offset + limit]
+
+                if not paginated_post_ids:
+                    return Response(
+                        code=200,
+                        message="推荐推文列表获取成功（来自缓存）",
+                        data={"posts": [], "page": page, "limit": limit, "from_cache": True}
+                    )
+
+                # 获取推文详细信息（使用缓存的post_ids）
+                posts = await _fetch_post_details(paginated_post_ids, current_user, db)
+
+                return Response(
+                    code=200,
+                    message="推荐推文列表获取成功（来自缓存）",
+                    data={"posts": posts, "page": page, "limit": limit, "from_cache": True}
+                )
+            else:
+                logger.info(f"Recommendations cache expired for user {user_id}")
+
+        # 1. 获取用户收藏数量最多的前k个分类
+        user_categories_query = (
+            select(Category.name, func.count(Collection.id).label("collection_count"))
+            .join(Collection, Collection.category_id == Category.id)
+            .where(Collection.user_id == current_user.id)
+            .group_by(Category.id, Category.name)
+            .order_by(desc("collection_count"))
+            .limit(top_k_categories)
+        )
+        user_categories_result = await db.execute(user_categories_query)
+        user_categories_data = user_categories_result.all()
+
+        # 如果用户没有任何分类，返回最新推文作为默认推荐
+        if not user_categories_data:
+            logger.info(f"User {current_user.id} has no categories, returning latest posts")
+            return await get_latest_posts(page, limit, current_user, db)
+
+        # 构建用户分类信息字符串
+        user_categories_str = "\n".join([
+            f"- {row[0]} ({row[1]} collections)"
+            for row in user_categories_data
+        ])
+
+        # 2. 获取最新的m个推文的基本信息
+        latest_posts_query = (
+            select(
+                Post.id,
+                Post.post_id,
+                Collection.tags,
+                CollectionDetail.value.label("title")
+            )
+            .join(Collection, Post.refer_collection_id == Collection.id)
+            .outerjoin(
+                CollectionDetail,
+                and_(
+                    CollectionDetail.collection_id == Collection.id,
+                    CollectionDetail.key == "title"
+                )
+            )
+            .order_by(desc(Post.created_at))
+            .limit(top_m_posts)
+        )
+        latest_posts_result = await db.execute(latest_posts_query)
+        latest_posts_data = latest_posts_result.all()
+
+        if not latest_posts_data:
+            return Response(
+                code=200,
+                message="暂无推荐推文",
+                data={"posts": [], "page": page, "limit": limit}
+            )
+
+        # 构建推文信息字符串
+        posts_info_str = "\n\n".join([
+            f"Post ID: {row[0]}\nTitle: {row[3] or 'No title'}\nTags: {row[2] or 'No tags'}"
+            for row in latest_posts_data
+        ])
+
+        # 3. 使用LLM进行推荐
+        recommendation_prompt = PROMPT_RECOMMEND_POSTS.format(
+            user_categories=user_categories_str,
+            posts_info=posts_info_str,
+            max_recommendations=max_n_recommendations
+        )
+        recommendation_prompt += f"\n\n{ADDITIONAL_PROMPT_USER_LANGUAGE_PREFERENCE}"
+
+        llm_resp = await provider_openai.text_chat(
+            prompt="Please analyze and provide recommendations.",
+            system_prompt=recommendation_prompt,
+        )
+
+        recommendation_json = parse_json(llm_resp.completion_text)
+        recommended_post_ids = recommendation_json.get("recommended_post_ids", [])
+
+        logger.info(f"LLM recommended post IDs: {recommended_post_ids}")
+
+        if not recommended_post_ids:
+            logger.warning("LLM returned no recommendations, falling back to latest posts")
+            return await get_latest_posts(page, limit, current_user, db)
+
+        # 保存到缓存
+        _recommendation_cache[user_id] = {
+            "post_ids": recommended_post_ids,
+            "timestamp": now
+        }
+        logger.info(f"Recommendations cache added for user {user_id}")
+
+        # 4. 根据推荐的post IDs获取完整的推文信息
+        # 应用分页
+        offset = (page - 1) * limit
+        paginated_post_ids = recommended_post_ids[offset:offset + limit]
+
+        if not paginated_post_ids:
+            return Response(
+                code=200,
+                message="推荐推文列表获取成功",
+                data={"posts": [], "page": page, "limit": limit, "from_cache": False}
+            )
+
+        # 使用辅助函数获取推文详细信息
+        posts = await _fetch_post_details(paginated_post_ids, current_user, db)
+
+        return Response(
+            code=200,
+            message="推荐推文列表获取成功",
+            data={"posts": posts, "page": page, "limit": limit, "from_cache": False}
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to get recommendations: {e}")
+        # 如果推荐失败，返回最新推文作为降级方案
+        return await get_latest_posts(page, limit, current_user, db)
 
 
 @router.get("/my-posts", response_model=Response)
