@@ -26,7 +26,7 @@
     </div>
 
     <!-- 标签页切换 -->
-    <div class="px-4 py-3 border-b border-muted-border">
+    <div class="px-4 py-3 border-b border-muted-border mb-1">
       <div class="flex gap-2">
         <button
           :class="[
@@ -131,7 +131,7 @@
         <!-- 收藏内容 -->
         <div class="p-4" style="padding-top: 2px">
           <div
-            class="bg-muted rounded-lg p-4 cursor-pointer hover:bg-muted transition-colors"
+            class="bg-muted rounded-lg p-4 hover:bg-muted transition-colors"
             @click="viewCollectionDetail(post.refer_collection_id, post.post_id)"
           >
             <div class="flex items-center justify-between mb-2">
@@ -203,19 +203,16 @@
             <button
               v-if="!isMyPost(post)"
               :disabled="post.copying"
-              class="flex items-center gap-1 text-sm text-primary-text hover:text-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex items-center gap-2 text-sm text-primary-text hover:text-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-muted hover:bg-primary/50 px-3 py-2 rounded-lg border border-muted-border hover:border-green-200"
               :title="post.copying ? '复制中...' : '复制到我的收藏'"
               @click="copyToMyCollection(post)"
             >
-              <svg v-if="!post.copying" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M2.978 8.358l-2.978-2.618 8.707-4.74 3.341 2.345 3.21-2.345 8.742 4.639-3.014 2.68.014.008 3 4.115-3 1.634v4.122l-9 4.802-9-4.802v-4.115l1 .544v2.971l7.501 4.002v-7.889l-2.501 3.634-9-4.893 2.978-4.094zm9.523 5.366v7.875l7.499-4.001v-2.977l-5 2.724-2.499-3.621zm-11.022-1.606l7.208 3.918 1.847-2.684-7.231-3.742-1.824 2.508zm11.989 1.247l1.844 2.671 7.208-3.927-1.822-2.498-7.23 3.754zm-9.477-4.525l8.01-4.43 7.999 4.437-7.971 4.153-8.038-4.16zm-2.256-2.906l2.106 1.851 7.16-3.953-2.361-1.657-6.905 3.759zm11.273-2.052l7.076 3.901 2.176-1.935-6.918-3.671-2.334 1.705z"
-                />
-              </svg>
+              <PackageOpen v-if="!post.copying" class="w-4 h-4" />
               <div
                 v-else
                 class="w-4 h-4 border-2 border-muted-border border-t-green-600 rounded-full animate-spin"
               ></div>
+              <span class="text-xs font-medium">{{ post.copying ? '复制中' : '复制收藏' }}</span>
             </button>
           </div>
         </div>
@@ -442,7 +439,8 @@ import {
   MessageCircle as MessageCircleIcon,
   Bookmark as BookmarkIcon,
   Trash2 as TrashIcon,
-  User
+  User,
+  PackageOpen
 } from 'lucide-vue-next'
 import {
   getLatestPosts,
@@ -473,6 +471,64 @@ const toast = ref({
   message: '',
   type: 'success'
 })
+
+// 推荐posts本地缓存相关
+const RECOMMENDED_POSTS_CACHE_KEY = 'memora_recommended_posts_cache'
+const CACHE_EXPIRY_TIME = 24 * 60 * 60 * 1000 // 24小时过期时间
+
+// 缓存相关辅助函数
+const saveRecommendedPostsToCache = (posts) => {
+  try {
+    const cacheData = {
+      posts: posts,
+      timestamp: Date.now(),
+      userId: currentUser.value?.id
+    }
+    localStorage.setItem(RECOMMENDED_POSTS_CACHE_KEY, JSON.stringify(cacheData))
+    console.log('推荐posts已保存到本地缓存')
+  } catch (error) {
+    console.error('保存推荐posts缓存失败:', error)
+  }
+}
+
+const loadRecommendedPostsFromCache = () => {
+  try {
+    const cacheData = localStorage.getItem(RECOMMENDED_POSTS_CACHE_KEY)
+    if (!cacheData) {
+      return null
+    }
+
+    const parsed = JSON.parse(cacheData)
+
+    // 检查缓存是否过期
+    if (Date.now() - parsed.timestamp > CACHE_EXPIRY_TIME) {
+      console.log('推荐posts缓存已过期')
+      localStorage.removeItem(RECOMMENDED_POSTS_CACHE_KEY)
+      return null
+    }
+
+    // 检查用户是否匹配（防止多用户混淆）
+    if (parsed.userId !== currentUser.value?.id) {
+      console.log('推荐posts缓存用户不匹配')
+      localStorage.removeItem(RECOMMENDED_POSTS_CACHE_KEY)
+      return null
+    }
+
+    console.log('从本地缓存加载推荐posts')
+    return parsed.posts
+  } catch (error) {
+    console.error('加载推荐posts缓存失败:', error)
+    localStorage.removeItem(RECOMMENDED_POSTS_CACHE_KEY)
+    return null
+  }
+}
+
+const clearRecommendedPostsCache = () => {
+  localStorage.removeItem(RECOMMENDED_POSTS_CACHE_KEY)
+  // 清空当前posts数据
+  posts.value = []
+  console.log('推荐posts缓存已清除')
+}
 
 // 解析summary
 const parseSummary = (summary) => {
@@ -535,7 +591,7 @@ onMounted(async () => {
 })
 
 // 加载推文列表
-const loadPosts = async (page = 1) => {
+const loadPosts = async (page = 1, forceRefresh = false) => {
   try {
     if (page === 1) {
       loading.value = true
@@ -543,12 +599,28 @@ const loadPosts = async (page = 1) => {
       loadingMore.value = true
     }
 
-    // 根据当前标签页选择不同的API
+    let newPosts = []
+
+    // 如果是推荐标签页且是第一页且不是强制刷新，尝试从缓存加载
+    if (activeTab.value === 'recommended' && page === 1 && !forceRefresh) {
+      const cachedPosts = loadRecommendedPostsFromCache()
+      if (cachedPosts && cachedPosts.length > 0) {
+        // 使用缓存数据
+        newPosts = cachedPosts
+        posts.value = newPosts
+        hasMore.value = false // 推荐posts不支持分页
+        currentPage.value = page
+        console.log('使用缓存的推荐posts，数量:', newPosts.length)
+        return
+      }
+    }
+
+    // 从服务器获取数据
     const fetchFunction = activeTab.value === 'latest' ? getLatestPosts : getRecommendedPosts
     const result = await fetchFunction(page, 10)
 
     if (result && result.posts) {
-      const newPosts = await Promise.all(
+      newPosts = await Promise.all(
         result.posts.map(async (post) => {
           return {
             ...post,
@@ -568,11 +640,17 @@ const loadPosts = async (page = 1) => {
 
       if (page === 1) {
         posts.value = newPosts
+
+        // 如果是推荐标签页的第一页，保存到缓存
+        if (activeTab.value === 'recommended') {
+          saveRecommendedPostsToCache(newPosts)
+        }
       } else {
         posts.value.push(...newPosts)
       }
 
-      hasMore.value = newPosts.length === 10
+      // 推荐标签页不支持分页
+      hasMore.value = activeTab.value === 'latest' ? newPosts.length === 10 : false
       currentPage.value = page
     }
   } catch (error) {
@@ -592,7 +670,14 @@ const loadPosts = async (page = 1) => {
 const refreshPosts = () => {
   currentPage.value = 1
   hasMore.value = true
-  loadPosts(1)
+
+  // 如果是推荐标签页，清除缓存并强制刷新
+  if (activeTab.value === 'recommended') {
+    clearRecommendedPostsCache()
+    loadPosts(1, true) // 强制刷新
+  } else {
+    loadPosts(1)
+  }
 }
 
 // 切换标签页
@@ -601,9 +686,16 @@ const switchTab = (tab) => {
 
   activeTab.value = tab
   currentPage.value = 1
-  hasMore.value = true
   posts.value = []
-  loadPosts(1)
+
+  // 设置hasMore的默认值
+  if (tab === 'recommended') {
+    hasMore.value = false // 推荐标签页不支持分页
+  } else {
+    hasMore.value = true
+  }
+
+  loadPosts(1) // loadPosts内部处理缓存逻辑
 }
 
 // 加载更多推文
@@ -923,6 +1015,7 @@ const formatDate = (dateString) => {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -930,6 +1023,7 @@ const formatDate = (dateString) => {
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
