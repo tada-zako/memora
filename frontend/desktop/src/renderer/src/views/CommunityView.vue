@@ -159,7 +159,8 @@
             <div v-if="post.collection_details" class="mt-2">
               <h4
                 v-if="post.collection_details.title"
-                class="font-medium text-accent-text mb-1 hover:text-blue-700 transition-colors"
+                class="font-medium text-accent-text mb-1 hover:text-blue-700 transition-colors cursor-pointer"
+                @click.stop="openOriginalLink(post.collection_details.url)"
               >
                 {{ decodeHtmlEntities(post.collection_details.title) }}
               </h4>
@@ -822,6 +823,13 @@ const viewCollectionDetail = (collectionId, postId) => {
       name: 'PublicCollectionDetail',
       params: { collection_id: collectionId }
     })
+  }
+}
+
+// 打开原始链接
+const openOriginalLink = (url) => {
+  if (url) {
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 }
 
