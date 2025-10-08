@@ -1,4 +1,3 @@
-import { Category } from './../types/index'
 import api from './api'
 import type { ApiResponse } from '@/types'
 
@@ -195,7 +194,7 @@ export async function* streamQueryKnowledgeBase(categoryId: string | number, que
     const token = localStorage.getItem('access_token')
 
     const response = await fetch(
-      `/api/v1/category/knowledge_base/${categoryId}?${params.toString()}`,
+      `${api.defaults.baseURL}/api/v1/category/knowledge_base/${categoryId}?${params.toString()}`,
       {
         method: 'GET',
         headers: {
